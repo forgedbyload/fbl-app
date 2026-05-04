@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="de">
 <head>
   <meta charset="UTF-8">
@@ -221,7 +221,7 @@
     .plan-day-label { font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 1px; color: var(--muted); }
     .plan-day-add {
       background: none; border: 1px solid var(--border); border-radius: 50%;
-      width: 26px; height: 26px; color: var(--text); font-size: 18px; line-height: 1;
+      width: 24px; height: 24px; color: var(--text); font-size: 18px; line-height: 1;
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; -webkit-tap-highlight-color: transparent; flex-shrink: 0;
     }
@@ -263,13 +263,17 @@
 
     /* ── Session-Overlay Felder ── */
     .ses-pool-item {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 9px 0; border-bottom: 1px solid var(--border);
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; overflow: hidden; display: flex; flex-direction: column;
     }
-    .ses-pool-name { font-size: 14px; color: var(--text); }
+    .ses-pool-thumb { width: 100%; aspect-ratio: 1; background: var(--border); overflow: hidden; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .ses-pool-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .ses-pool-thumb-ph { font-size: 24px; color: var(--muted); }
+    .ses-pool-footer { display: flex; align-items: center; gap: 4px; padding: 6px 8px; }
+    .ses-pool-name { font-size: 11px; font-weight: 600; flex: 1; line-height: 1.2; color: var(--text); }
     .ses-add-btn {
       background: none; border: 1px solid var(--border); border-radius: 50%;
-      width: 26px; height: 26px; color: var(--text); font-size: 16px;
+      width: 24px; height: 24px; color: var(--text); font-size: 16px;
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; flex-shrink: 0; -webkit-tap-highlight-color: transparent;
     }
@@ -281,7 +285,7 @@
     .ses-sel-name { flex: 1; font-size: 14px; font-weight: 500; }
     .ses-sel-btns { display: flex; gap: 4px; flex-shrink: 0; }
     .ses-remove-btn { background: none; border: none; color: var(--muted); font-size: 18px; cursor: pointer; padding: 0 4px; -webkit-tap-highlight-color: transparent; }
-    #ses-exercise-pool { max-height: 220px; overflow-y: auto; margin-top: 8px; }
+    #ses-exercise-pool { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; max-height: 320px; overflow-y: auto; }
     #ses-selected-list { margin-top: 8px; }
 
     /* ── Timer: Select ── */
@@ -439,11 +443,13 @@
     <h1>Übungen</h1>
     <div class="filter-tabs">
       <button class="filter-tab active" data-filter="alle">Alle</button>
-      <button class="filter-tab" data-filter="komplex">Komplex</button>
-      <button class="filter-tab" data-filter="upper">Upper</button>
-      <button class="filter-tab" data-filter="lower">Lower</button>
+      <button class="filter-tab" data-filter="chest">Brust</button>
+      <button class="filter-tab" data-filter="back">Rücken</button>
+      <button class="filter-tab" data-filter="shoulders">Schultern</button>
+      <button class="filter-tab" data-filter="arms">Arme</button>
+      <button class="filter-tab" data-filter="legs">Beine</button>
       <button class="filter-tab" data-filter="core">Core</button>
-      <button class="filter-tab" data-filter="flex">Flexibility</button>
+      <button class="filter-tab" data-filter="mobility">Mobilität</button>
     </div>
   </div>
   <div class="loading active" id="loading">Lädt…</div>
@@ -695,6 +701,16 @@
       </div>
       <div class="form-group">
         <label class="form-label">Übungen auswählen</label>
+        <div class="filter-tabs ses-region-tabs" id="ses-region-tabs" style="padding-bottom:8px">
+          <button class="filter-tab active" data-region="alle">Alle</button>
+          <button class="filter-tab" data-region="chest">Brust</button>
+          <button class="filter-tab" data-region="back">Rücken</button>
+          <button class="filter-tab" data-region="shoulders">Schultern</button>
+          <button class="filter-tab" data-region="arms">Arme</button>
+          <button class="filter-tab" data-region="legs">Beine</button>
+          <button class="filter-tab" data-region="core">Core</button>
+          <button class="filter-tab" data-region="mobility">Mobilität</button>
+        </div>
         <input class="form-input" type="search" id="ses-search" placeholder="Übung suchen…" autocomplete="off">
         <div id="ses-exercise-pool"></div>
       </div>
@@ -748,6 +764,7 @@
   let appState       = { id: null, current_week: 'A' };
   let editingSessionId = null;
   let sesSelectedIds   = [];
+  let sesRegion        = 'alle';
 
   const DUP_CFG = {
     kraft:       { sets:4, workTime:0,  restTime:180 },
@@ -893,8 +910,7 @@
         html += rest.map(renderExCard).join('');
       }
     } else {
-      const cat = CATS.find(c => c.key === activeFilter);
-      const group = cat ? exercises.filter(cat.test) : exercises;
+      const group = exercises.filter(e => (e.body_regions||[]).includes(activeFilter));
       html = group.map(renderExCard).join('');
     }
     if (!html) {
@@ -1061,6 +1077,8 @@
       typeof cfg === 'string' ? { exercise_id: cfg, sets: 3 } : { exercise_id: cfg.exercise_id, sets: cfg.sets || 3 }
     );
     document.getElementById('ses-search').value = '';
+    sesRegion = 'alle';
+    document.querySelectorAll('#ses-region-tabs .filter-tab').forEach(b => b.classList.toggle('active', b.dataset.region === 'alle'));
     updateSesModeUI();
     renderSesPool('');
     renderSesSelected();
@@ -1088,11 +1106,26 @@
     const term = search.toLowerCase();
     const filtered = exercises.filter(e =>
       !sesSelectedIds.some(s => s.exercise_id === e.id) &&
+      (sesRegion === 'alle' || (e.body_regions||[]).includes(sesRegion)) &&
       (term === '' || e.name.toLowerCase().includes(term))
     );
-    document.getElementById('ses-exercise-pool').innerHTML = filtered.length
-      ? filtered.map(e => `<div class="ses-pool-item" data-id="${e.id}"><span class="ses-pool-name">${e.name}</span><button type="button" class="ses-add-btn">+</button></div>`).join('')
-      : `<div style="color:var(--muted);font-size:13px;padding:8px 0">Keine Treffer.</div>`;
+    const poolEl = document.getElementById('ses-exercise-pool');
+    if (!filtered.length) {
+      poolEl.innerHTML = `<div style="color:var(--muted);font-size:13px;padding:8px 0;grid-column:1/-1">Keine Treffer.</div>`;
+    } else {
+      poolEl.innerHTML = filtered.map(e => {
+        const th = e.gif_base64
+          ? `<img src="${e.gif_base64}" loading="lazy">`
+          : `<span class="ses-pool-thumb-ph">💪</span>`;
+        return `<div class="ses-pool-item" data-id="${e.id}">
+          <div class="ses-pool-thumb">${th}</div>
+          <div class="ses-pool-footer">
+            <span class="ses-pool-name">${e.name}</span>
+            <button type="button" class="ses-add-btn">+</button>
+          </div>
+        </div>`;
+      }).join('');
+    }
     document.querySelectorAll('.ses-pool-item .ses-add-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         sesSelectedIds.push({ exercise_id: btn.closest('.ses-pool-item').dataset.id, sets: 1 });
@@ -1218,6 +1251,12 @@
   document.getElementById('session-overlay').addEventListener('click', e => { if (e.target === document.getElementById('session-overlay')) closeSessionModal(); });
   document.getElementById('ses-btn-delete').addEventListener('click', deleteSession);
   document.getElementById('ses-search').addEventListener('input', e => renderSesPool(e.target.value));
+  document.querySelectorAll('#ses-region-tabs .filter-tab').forEach(btn => btn.addEventListener('click', () => {
+    document.querySelectorAll('#ses-region-tabs .filter-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    sesRegion = btn.dataset.region;
+    renderSesPool(document.getElementById('ses-search').value);
+  }));
   document.querySelectorAll('.t-toggle[data-weekday]').forEach(btn => btn.addEventListener('click', () => {
     document.querySelectorAll('.t-toggle[data-weekday]').forEach(b => b.classList.remove('on'));
     btn.classList.add('on');
