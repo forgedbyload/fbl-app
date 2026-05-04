@@ -196,6 +196,9 @@
     .weight-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
     .weight-row-label { font-size: 12px; font-weight: 600; color: var(--muted); width: 62px; flex-shrink: 0; }
     .weight-input { padding: 10px 12px !important; font-size: 14px !important; }
+    .ses-sets-input { width: 44px; background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 4px 0; text-align: center; font-size: 13px; }
+    .ta-weight-hint { color: var(--kraft); font-size: 13px; font-weight: 600; text-align: center; padding: 0 16px 4px; letter-spacing: .5px; }
+    .satz-progress { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 1px; color: var(--kraft); }
 
     /* ── Wochenplan ── */
     .plan-week-switch { display: flex; gap: 8px; padding-bottom: 12px; }
@@ -490,6 +493,7 @@
     <div class="ta-img" id="ta-img"></div>
     <div class="ta-name" id="ta-name"></div>
     <div class="ta-dots" id="ta-dots"></div>
+    <div class="ta-weight-hint" id="ta-weight-hint" style="display:none"></div>
     <div class="ta-ring-wrap" id="ta-ring-wrap">
       <svg class="ta-ring-svg" viewBox="0 0 120 120">
         <circle class="ring-bg"   cx="60" cy="60" r="54"/>
@@ -514,7 +518,7 @@
     </div>
     <div class="ta-btns" id="ta-btns">
       <button class="ta-skip" id="ta-skip">Überspringen</button>
-      <button class="ta-main" id="ta-main">Satz beendet</button>
+      <button class="ta-main" id="ta-main">SATZ FERTIG</button>
     </div>
   </div>
 
@@ -680,8 +684,10 @@
         </div>
       </div>
       <div class="form-group" id="ses-timer-section">
-        <label class="form-label">Arbeitszeit (Sekunden)</label>
-        <input class="form-input" type="number" id="ses-work" placeholder="z.B. 40" min="5" max="300">
+        <div id="ses-work-section">
+          <label class="form-label">Arbeitszeit (Sekunden)</label>
+          <input class="form-input" type="number" id="ses-work" placeholder="z.B. 40" min="5" max="300">
+        </div>
         <label class="form-label" style="margin-top:10px">Pausenzeit (Sekunden)</label>
         <input class="form-input" type="number" id="ses-rest" placeholder="z.B. 90" min="10" max="600">
       </div>
@@ -822,22 +828,23 @@
   }
 
   function buildPayload() {
-    const strengthWeights = {};
+    const strengthWeights = [];
     document.querySelectorAll('.t-toggle[data-wtype].on').forEach(b => {
       const wt = b.dataset.wtype;
       const ww = document.getElementById(`ww-${wt}`)?.value;
       const pr = document.getElementById(`pr-${wt}`)?.value;
       if (ww || pr) {
-        strengthWeights[wt] = {};
-        if (ww) strengthWeights[wt].working_weight = parseFloat(ww);
-        if (pr) strengthWeights[wt].pr = parseFloat(pr);
+        const item = { type: wt };
+        if (ww) item.working_weight = parseFloat(ww);
+        if (pr) item.personal_record = parseFloat(pr);
+        strengthWeights.push(item);
       }
     });
     return {
       name:                    inpName.value.trim(),
       gif_base64:              gifBase64,
       dup_modes:               [...document.querySelectorAll('.t-toggle[data-dup].on')].map(b => b.dataset.dup),
-      strength_weights:        Object.keys(strengthWeights).length ? strengthWeights : null,
+      strength_weights:        strengthWeights.length ? strengthWeights : null,
       body_regions:            [...document.querySelectorAll('.t-toggle[data-region].on')].map(b => b.dataset.region),
       movement_patterns:       [...document.querySelectorAll('.t-toggle[data-movement].on')].map(b => b.dataset.movement),
       muscle_groups_anatomical:[...document.querySelectorAll('.t-toggle[data-anatomical].on')].map(b => b.dataset.anatomical),
@@ -906,7 +913,7 @@
     if (gifBase64) { gifPreview.src = gifBase64; gifPreview.style.display = 'block'; uploadHint.style.display = 'none'; }
     else { gifPreview.style.display = 'none'; uploadHint.style.display = 'block'; gifInput.value = ''; }
     document.querySelectorAll('.t-toggle[data-dup]').forEach(b => b.classList.toggle('on', (ex?.dup_modes??[]).includes(b.dataset.dup)));
-    document.querySelectorAll('.t-toggle[data-wtype]').forEach(b => b.classList.toggle('on', !!(ex?.strength_weights?.[b.dataset.wtype])));
+    document.querySelectorAll('.t-toggle[data-wtype]').forEach(b => b.classList.toggle('on', !!(ex?.strength_weights?.find(sw => sw.type === b.dataset.wtype))));
     document.querySelectorAll('.t-toggle[data-region]').forEach(b => b.classList.toggle('on', (ex?.body_regions??[]).includes(b.dataset.region)));
     document.querySelectorAll('.t-toggle[data-movement]').forEach(b => b.classList.toggle('on', (ex?.movement_patterns??[]).includes(b.dataset.movement)));
     document.querySelectorAll('.t-toggle[data-anatomical]').forEach(b => b.classList.toggle('on', (ex?.muscle_groups_anatomical??[]).includes(b.dataset.anatomical)));
@@ -916,19 +923,19 @@
   }
 
   function updateWeightUI() {
-    const kraftOn = document.querySelector('.t-toggle[data-dup="kraft"].on');
-    document.getElementById('weight-section').style.display = kraftOn ? 'block' : 'none';
+    const anyNonFlex = [...document.querySelectorAll('.t-toggle[data-dup].on')].some(b => b.dataset.dup !== 'flexibility');
+    document.getElementById('weight-section').style.display = anyNonFlex ? 'block' : 'none';
     const inputsEl = document.getElementById('weight-inputs');
     const selected = [...document.querySelectorAll('.t-toggle[data-wtype].on')];
     if (!selected.length) { inputsEl.innerHTML = ''; return; }
     const LABELS = { barbell:'Barbell', dumbbell_1x:'DB 1x', dumbbell_2x:'DB 2x', kettlebell_1x:'KB 1x', kettlebell_2x:'KB 2x' };
     inputsEl.innerHTML = selected.map(b => {
       const wt = b.dataset.wtype;
-      const sw = editingEx?.strength_weights?.[wt] || {};
+      const sw = (editingEx?.strength_weights || []).find(item => item.type === wt) || {};
       return `<div class="weight-row">
         <span class="weight-row-label">${LABELS[wt]||wt}</span>
         <input class="form-input weight-input" type="number" id="ww-${wt}" placeholder="Arbeit kg" value="${sw.working_weight||''}">
-        <input class="form-input weight-input" type="number" id="pr-${wt}" placeholder="PR kg" value="${sw.pr||''}">
+        <input class="form-input weight-input" type="number" id="pr-${wt}" placeholder="PR kg" value="${sw.personal_record||''}">
       </div>`;
     }).join('');
   }
@@ -997,7 +1004,7 @@
       html += `</div>`;
     });
 
-    const allExIds = new Set(ws.filter(s=>s.dup_mode!=='flexibility').flatMap(s=>s.exercise_ids||[]));
+    const allExIds = new Set(ws.filter(s=>s.dup_mode!=='flexibility').flatMap(s=>(s.exercise_ids||[]).map(c=>typeof c==='string'?c:c.exercise_id)));
     const wex = exercises.filter(e => allExIds.has(e.id));
     html += buildBiasHTML(wex);
 
@@ -1048,7 +1055,9 @@
     document.getElementById('ses-work').value = ses?.work_seconds ?? '';
     document.getElementById('ses-rest').value = ses?.rest_seconds ?? '';
     document.getElementById('ses-title').value = ses?.title ?? '';
-    sesSelectedIds = [...(ses?.exercise_ids || [])];
+    sesSelectedIds = (ses?.exercise_ids || []).map(cfg =>
+      typeof cfg === 'string' ? { exercise_id: cfg, sets: 3 } : { exercise_id: cfg.exercise_id, sets: cfg.sets || 3 }
+    );
     document.getElementById('ses-search').value = '';
     updateSesModeUI();
     renderSesPool('');
@@ -1059,13 +1068,15 @@
   function updateSesModeUI() {
     const mode = document.querySelector('.t-toggle[data-sesmode].on')?.dataset.sesmode;
     const isFlex = mode === 'flexibility';
+    const isKraft = mode === 'kraft';
     document.getElementById('ses-timer-section').style.display = isFlex ? 'none' : 'block';
+    document.getElementById('ses-work-section').style.display = isKraft ? 'none' : 'block';
     if (!isFlex && mode) {
       const defs = { kraft:[0,180], hyper:[40,90], vol:[40,60] };
       const [w,r] = defs[mode] || [40,60];
       const wEl = document.getElementById('ses-work');
       const rEl = document.getElementById('ses-rest');
-      if (!wEl.value) wEl.value = w;
+      if (!wEl.value) wEl.value = w || '';
       if (!rEl.value) rEl.value = r;
     }
     autoFillSesTitle();
@@ -1074,7 +1085,7 @@
   function renderSesPool(search) {
     const term = search.toLowerCase();
     const filtered = exercises.filter(e =>
-      !sesSelectedIds.includes(e.id) &&
+      !sesSelectedIds.some(s => s.exercise_id === e.id) &&
       (term === '' || e.name.toLowerCase().includes(term))
     );
     document.getElementById('ses-exercise-pool').innerHTML = filtered.length
@@ -1082,7 +1093,7 @@
       : `<div style="color:var(--muted);font-size:13px;padding:8px 0">Keine Treffer.</div>`;
     document.querySelectorAll('.ses-pool-item .ses-add-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        sesSelectedIds.push(btn.closest('.ses-pool-item').dataset.id);
+        sesSelectedIds.push({ exercise_id: btn.closest('.ses-pool-item').dataset.id, sets: 3 });
         renderSesPool(document.getElementById('ses-search').value);
         renderSesSelected();
         autoFillSesTitle();
@@ -1093,18 +1104,26 @@
   function renderSesSelected() {
     const el = document.getElementById('ses-selected-list');
     if (!sesSelectedIds.length) { el.innerHTML = `<div style="color:var(--muted);font-size:13px;padding:6px 0">Noch leer.</div>`; return; }
-    el.innerHTML = sesSelectedIds.map((id, idx) => {
-      const ex = exercises.find(e => e.id === id);
+    el.innerHTML = sesSelectedIds.map((item, idx) => {
+      const ex = exercises.find(e => e.id === item.exercise_id);
       if (!ex) return '';
       return `<div class="ses-sel-item" data-idx="${idx}">
         <span class="ses-sel-name">${ex.name}</span>
+        <input type="number" class="ses-sets-input" data-idx="${idx}" min="1" max="10" value="${item.sets||3}" title="Sätze">
         <div class="ses-sel-btns">
           <button type="button" class="ses-order-btn" data-dir="up" ${idx===0?'disabled':''}>↑</button>
           <button type="button" class="ses-order-btn" data-dir="down" ${idx===sesSelectedIds.length-1?'disabled':''}>↓</button>
-          <button type="button" class="ses-remove-btn" data-id="${id}">×</button>
+          <button type="button" class="ses-remove-btn" data-id="${item.exercise_id}">×</button>
         </div>
       </div>`;
     }).join('');
+    el.querySelectorAll('.ses-sets-input').forEach(inp => {
+      inp.addEventListener('change', () => {
+        const i = parseInt(inp.dataset.idx);
+        sesSelectedIds[i].sets = Math.min(10, Math.max(1, parseInt(inp.value) || 3));
+        inp.value = sesSelectedIds[i].sets;
+      });
+    });
     el.querySelectorAll('.ses-order-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const idx = parseInt(btn.closest('.ses-sel-item').dataset.idx);
@@ -1118,7 +1137,7 @@
     });
     el.querySelectorAll('.ses-remove-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        sesSelectedIds = sesSelectedIds.filter(i => i !== btn.dataset.id);
+        sesSelectedIds = sesSelectedIds.filter(i => i.exercise_id !== btn.dataset.id);
         renderSesPool(document.getElementById('ses-search').value);
         renderSesSelected();
         autoFillSesTitle();
@@ -1129,7 +1148,7 @@
   function autoFillSesTitle() {
     const mode = document.querySelector('.t-toggle[data-sesmode].on')?.dataset.sesmode;
     if (!mode) return;
-    const exs = sesSelectedIds.map(id => exercises.find(e => e.id === id)).filter(Boolean);
+    const exs = sesSelectedIds.map(s => exercises.find(e => e.id === s.exercise_id)).filter(Boolean);
     const regions = [...new Set(exs.flatMap(e => e.body_regions || []))];
     const REGION_LABELS = {chest:'Chest',back:'Back',shoulders:'Shoulders',arms:'Arms',legs:'Legs',core:'Core',mobility:'Flexibility'};
     const regionStr = regions.map(r => REGION_LABELS[r] || r).join(', ');
@@ -1162,18 +1181,18 @@
       week:         planWeek,
       weekday,
       dup_mode:     mode,
-      exercise_ids: sesSelectedIds,
-      work_seconds: isFlex ? null : (parseInt(document.getElementById('ses-work').value) || null),
+      exercise_ids: sesSelectedIds.map(s => ({ exercise_id: s.exercise_id, sets: s.sets || 3 })),
+      work_seconds: (isFlex || mode === 'kraft') ? null : (parseInt(document.getElementById('ses-work').value) || null),
       rest_seconds: isFlex ? null : (parseInt(document.getElementById('ses-rest').value) || null),
       title:        document.getElementById('ses-title').value.trim() || null,
     };
-    for (const exId of sesSelectedIds) {
-      const ex = exercises.find(e => e.id === exId);
+    for (const item of sesSelectedIds) {
+      const ex = exercises.find(e => e.id === item.exercise_id);
       if (ex) {
         const wa = ex.week_assignment || [];
         if (!wa.includes(planWeek)) {
           const updated = [...wa, planWeek];
-          await db.from('exercises').update({ week_assignment: updated }).eq('id', exId);
+          await db.from('exercises').update({ week_assignment: updated }).eq('id', item.exercise_id);
           ex.week_assignment = updated;
         }
       }
@@ -1289,7 +1308,12 @@
     if (!ses) return;
     tSession = ses;
     tMode    = ses.dup_mode;
-    const pool = (ses.exercise_ids||[]).map(id => exercises.find(e=>e.id===id)).filter(Boolean);
+    const pool = (ses.exercise_ids||[]).map(cfg => {
+      const id   = typeof cfg === 'string' ? cfg : cfg.exercise_id;
+      const sets = typeof cfg === 'object' ? (cfg.sets || 3) : 3;
+      const ex   = exercises.find(e => e.id === id);
+      return ex ? { ...ex, _sets: sets } : null;
+    }).filter(Boolean);
     selIds = new Set(pool.map(e=>e.id));
     const isFlex = tMode === 'flexibility';
     const timeStr = isFlex ? '' : ` · ${ses.work_seconds||'?'}s / ${ses.rest_seconds||'?'}s`;
@@ -1315,7 +1339,12 @@
   });
 
   document.getElementById('btn-start').addEventListener('click', () => {
-    const pool = (tSession.exercise_ids||[]).map(id=>exercises.find(e=>e.id===id)).filter(Boolean);
+    const pool = (tSession.exercise_ids||[]).map(cfg => {
+      const id   = typeof cfg === 'string' ? cfg : cfg.exercise_id;
+      const sets = typeof cfg === 'object' ? (cfg.sets || 3) : 3;
+      const ex   = exercises.find(e => e.id === id);
+      return ex ? { ...ex, _sets: sets } : null;
+    }).filter(Boolean);
     tExercises = pool.filter(e=>selIds.has(e.id));
     if (!tExercises.length) { toast('Keine Übungen ausgewählt'); return; }
     exIdx = 0; setIdx = 0;
@@ -1332,6 +1361,7 @@
     document.getElementById('ta-flex-controls').style.display = 'none';
     document.getElementById('ta-btns').style.display = 'grid';
     document.getElementById('ta-next-preview').style.display = 'none';
+    document.getElementById('ta-weight-hint').style.display = 'none';
   }
 
   // ── Exercise / set logic ──────────────────────────────
@@ -1352,11 +1382,24 @@
     taImg.innerHTML  = ex.gif_base64 ? `<img src="${ex.gif_base64}" loading="lazy">` : `<span class="ta-img-ph">💪</span>`;
     taName.textContent = ex.name;
     taCounter.textContent = `${exIdx+1} / ${tExercises.length}`;
-    if (tMode !== 'flexibility') {
+    const wHint = document.getElementById('ta-weight-hint');
+    if (tMode === 'kraft') {
+      const totalSets = ex._sets || 3;
+      taDots.innerHTML = `<span class="satz-progress">Satz ${setIdx+1} / ${totalSets}</span>`;
+      const sw = ex.strength_weights;
+      if (sw?.length) {
+        const WLBLS = { barbell:'BB', dumbbell_1x:'DB 1x', dumbbell_2x:'DB 2x', kettlebell_1x:'KB 1x', kettlebell_2x:'KB 2x' };
+        const parts = sw.filter(w=>w.working_weight).map(w=>`${WLBLS[w.type]||w.type}: ${w.working_weight}kg`);
+        wHint.textContent = parts.join(' · ');
+        wHint.style.display = parts.length ? 'block' : 'none';
+      } else { wHint.style.display = 'none'; }
+    } else if (tMode !== 'flexibility') {
       taDots.innerHTML = Array.from({length:cfg.sets},(_,i)=>
         `<span class="set-dot${i<setIdx?' done':i===setIdx?' active':''}"></span>`).join('');
+      wHint.style.display = 'none';
     } else {
       taDots.innerHTML = '';
+      wHint.style.display = 'none';
     }
   }
 
@@ -1426,8 +1469,8 @@
   }
 
   function getNextExercise() {
-    const cfg = DUP_CFG[tMode];
-    const nextExIdx = (setIdx+1 >= cfg.sets) ? exIdx+1 : exIdx;
+    const totalSets = tMode === 'kraft' ? (tExercises[exIdx]?._sets || 3) : DUP_CFG[tMode].sets;
+    const nextExIdx = (setIdx+1 >= totalSets) ? exIdx+1 : exIdx;
     return nextExIdx < tExercises.length ? tExercises[nextExIdx] : null;
   }
 
@@ -1448,7 +1491,8 @@
 
   function nextSet() {
     setIdx++;
-    if (setIdx >= DUP_CFG[tMode].sets) { exIdx++; setIdx=0; }
+    const totalSets = tMode === 'kraft' ? (tExercises[exIdx]?._sets || 3) : DUP_CFG[tMode].sets;
+    if (setIdx >= totalSets) { exIdx++; setIdx=0; }
     if (exIdx >= tExercises.length) { showDone(); return; }
     startExercise();
   }
@@ -1492,7 +1536,9 @@
     if (rafId) { cancelAnimationFrame(rafId); rafId=null; }
     const mins = Math.round((Date.now()-sessionStart)/60000);
     const isFlex = tMode === 'flexibility';
-    const sets = isFlex ? tExercises.length : tExercises.length * DUP_CFG[tMode].sets;
+    const sets = isFlex ? tExercises.length
+      : tMode === 'kraft' ? tExercises.reduce((s,e)=>s+(e._sets||3),0)
+      : tExercises.length * DUP_CFG[tMode].sets;
     doneMeta.innerHTML = `${tSession?.title||cap(tMode)} · Woche ${tWeek}<br>${tExercises.length} Übungen · ${sets} ${isFlex?'Exercises':'Sätze'} · ${mins} Min.`;
     resetTimerUI();
     showTimerSub('done');
@@ -1501,7 +1547,7 @@
   document.getElementById('btn-save-session').addEventListener('click', async () => {
     const mins   = Math.round((Date.now()-sessionStart)/60000);
     const isFlex = tMode === 'flexibility';
-    const sets   = isFlex ? 0 : tExercises.length * DUP_CFG[tMode].sets;
+    const sets   = isFlex ? 0 : tMode === 'kraft' ? tExercises.reduce((s,e)=>s+(e._sets||3),0) : tExercises.length * DUP_CFG[tMode].sets;
     const { error } = await db.from('training_log').insert([{
       date:             new Date().toISOString().split('T')[0],
       session_type:     tMode,

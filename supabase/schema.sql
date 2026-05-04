@@ -116,3 +116,7 @@ on conflict do nothing;
 -- alter table app_state
 --   drop column if exists last_training_date,
 --   drop column if exists current_dup_index;
+--
+-- Migration: exercise_ids von uuid[] auf jsonb [{exercise_id, sets}]
+-- alter table sessions drop column if exists exercise_ids;
+-- alter table sessions add column exercise_ids jsonb;
