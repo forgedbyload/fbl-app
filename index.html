@@ -96,20 +96,19 @@
     /* ── Übungs-Karte ── */
     .exercise-card {
       background: var(--surface); border: 1px solid var(--border);
-      border-radius: 12px; display: flex; flex-direction: column;
+      border-radius: 12px; display: flex; gap: 8px; padding: 10px;
       cursor: pointer; transition: border-color .15s; -webkit-tap-highlight-color: transparent;
-      overflow: hidden;
     }
     .exercise-card:active { border-color: var(--muted); }
     .card-thumb {
-      width: 100%; aspect-ratio: 1; background: var(--border);
-      overflow: hidden; display: flex; align-items: center; justify-content: center;
+      width: 52px; height: 52px; border-radius: 8px; background: var(--border);
+      flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center;
     }
     .card-thumb img { width: 100%; height: 100%; object-fit: cover; }
-    .thumb-placeholder { color: var(--muted); font-size: 32px; }
-    .card-content { padding: 8px; display: flex; flex-direction: column; gap: 4px; }
-    .card-top { display: flex; align-items: flex-start; gap: 4px; flex-wrap: wrap; }
-    .card-name { font-weight: 600; font-size: 13px; line-height: 1.2; }
+    .thumb-placeholder { color: var(--muted); font-size: 22px; }
+    .card-content { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; justify-content: center; }
+    .card-top { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+    .card-name { font-weight: 600; font-size: 12px; line-height: 1.2; }
     .week-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; letter-spacing: .6px; text-transform: uppercase; }
     .badge-a  { background: rgba(200,169,110,.15); color: var(--kraft); }
     .badge-b  { background: rgba(93,170,176,.15);  color: var(--hyper); }
