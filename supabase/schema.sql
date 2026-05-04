@@ -7,13 +7,41 @@
 
 -- Übungsbibliothek
 create table if not exists exercises (
-  id               uuid primary key default gen_random_uuid(),
-  name             text not null,
-  gif_base64       text,
-  muscle_groups    text[],   -- z.B. ['push','core','hinge']
-  dup_modes        text[],   -- z.B. ['kraft','hyper','vol']
-  week_assignment  text,     -- 'A', 'B' oder 'snack'
-  created_at       timestamptz default now()
+  id                        uuid primary key default gen_random_uuid(),
+  name                      text not null,
+  gif_base64                text,
+
+  -- Ebene 1: Körperregion
+  -- 'chest','back','shoulders','arms','legs','core','mobility'
+  body_regions              text[],
+
+  -- Ebene 2: Movement Pattern
+  -- 'horizontal_push','vertical_push','horizontal_pull','vertical_pull',
+  -- 'hip_hinge','squat','lunge','carry','rotation','anti_rotation',
+  -- 'core_flexion','isometrie','mobility'
+  movement_patterns         text[],
+
+  -- Ebene 3: Anatomische Muskeln
+  -- 'pectoralis_major','pectoralis_minor','serratus_anterior',
+  -- 'latissimus_dorsi','trapezius_upper','trapezius_middle','trapezius_lower',
+  -- 'rhomboids','erector_spinae','teres_major',
+  -- 'deltoid_anterior','deltoid_lateral','deltoid_posterior','rotator_cuff',
+  -- 'biceps','triceps','forearms',
+  -- 'quadriceps','hamstrings','gluteus_maximus','gluteus_medius',
+  -- 'calves','hip_flexors','adductors',
+  -- 'rectus_abdominis','obliques','transversus_abdominis','multifidus'
+  muscle_groups_anatomical  text[],
+
+  -- DUP Soft Lock
+  -- empfohlen: ['kraft','hyper','vol','snack']
+  -- erlaubt:   ['kraft','hyper','vol','snack']
+  dup_modes_recommended     text[],
+  dup_modes_allowed         text[],
+
+  -- Wochenzuweisung: ['A'], ['B'], ['A','B'], ['snack'], null
+  week_assignment           text[],
+
+  created_at                timestamptz default now()
 );
 
 -- Trainingshistorie
@@ -55,6 +83,16 @@ create policy "Alle Zugriffe erlaubt (kein Auth)" on training_log
 
 create policy "Alle Zugriffe erlaubt (kein Auth)" on app_state
   for all using (true) with check (true);
+
+-- ============================================================
+-- Berechtigungen für anon / authenticated Role
+-- (nötig wenn Auto-expose tables deaktiviert ist)
+-- ============================================================
+
+grant usage on schema public to anon, authenticated;
+grant all on table exercises    to anon, authenticated;
+grant all on table training_log to anon, authenticated;
+grant all on table app_state    to anon, authenticated;
 
 -- ============================================================
 -- Initialer App-State (genau eine Zeile eintragen)

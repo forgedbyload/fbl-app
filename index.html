@@ -131,7 +131,9 @@
     .week-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; letter-spacing: .6px; text-transform: uppercase; }
     .badge-a     { background: rgba(200,169,110,.15); color: var(--kraft); }
     .badge-b     { background: rgba(93,170,176,.15);  color: var(--hyper); }
+    .badge-ab    { background: rgba(155,138,180,.15); color: var(--vol); }
     .badge-snack { background: rgba(168,197,160,.15); color: var(--snack); }
+    .cat-header  { padding: 16px 16px 6px; font-family: 'Bebas Neue', sans-serif; font-size: 13px; letter-spacing: 2px; color: var(--muted); }
     .card-tags { display: flex; flex-wrap: wrap; gap: 4px; }
     .pill { font-size: 11px; padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border); color: var(--muted); }
     .pill-kraft { border-color: rgba(200,169,110,.4); color: var(--kraft); }
@@ -253,6 +255,13 @@
     .plan-ex-tags { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 4px; }
     .plan-ex-tags .pill { font-size: 10px; padding: 1px 6px; }
     .plan-empty { color: var(--muted); font-size: 13px; padding: 12px 0 4px; }
+    .plan-ex-remove { background: none; border: none; color: var(--muted); font-size: 20px; line-height: 1; cursor: pointer; padding: 0 4px; flex-shrink: 0; -webkit-tap-highlight-color: transparent; }
+    .plan-ex-remove:active { color: var(--text); }
+    .plan-add-section { margin-top: 8px; border-top: 1px solid var(--border); padding-top: 16px; }
+    .plan-add-header { font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 1px; color: var(--muted); margin-bottom: 8px; }
+    .plan-add-row { background: var(--surface); border: 1px dashed var(--border); border-radius: 10px; display: flex; align-items: center; gap: 10px; padding: 10px 12px; margin-bottom: 6px; }
+    .plan-add-btn { background: none; border: 1px solid var(--border); border-radius: 50%; color: var(--snack); font-size: 18px; line-height: 1; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; -webkit-tap-highlight-color: transparent; transition: all .15s; }
+    .plan-add-btn:active { background: rgba(168,197,160,.15); border-color: var(--snack); }
     .bias-section { margin-top: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; }
     .bias-title { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 1px; margin-bottom: 14px; }
     .bias-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
@@ -457,9 +466,14 @@
     <h1>Übungen</h1>
     <div class="filter-tabs">
       <button class="filter-tab active" data-filter="alle">Alle</button>
-      <button class="filter-tab" data-filter="A">Woche A</button>
-      <button class="filter-tab" data-filter="B">Woche B</button>
-      <button class="filter-tab" data-filter="snack">Snack</button>
+      <button class="filter-tab" data-filter="komplex">Komplex</button>
+      <button class="filter-tab" data-filter="chest">Brust</button>
+      <button class="filter-tab" data-filter="back">Rücken</button>
+      <button class="filter-tab" data-filter="shoulders">Schultern</button>
+      <button class="filter-tab" data-filter="arms">Arme</button>
+      <button class="filter-tab" data-filter="legs">Beine</button>
+      <button class="filter-tab" data-filter="core">Core</button>
+      <button class="filter-tab" data-filter="mobility">Mobilität</button>
     </div>
   </div>
   <div class="loading active" id="loading">Lädt…</div>
@@ -564,14 +578,6 @@
         <label class="form-label" for="inp-name">Name</label>
         <input class="form-input" type="text" id="inp-name" placeholder="z.B. Romanian Deadlift" autocomplete="off" required>
       </div>
-      <div class="form-group">
-        <label class="form-label">Wochenzuweisung</label>
-        <div class="week-grid">
-          <button type="button" class="week-btn" data-week="A">A</button>
-          <button type="button" class="week-btn" data-week="B">B</button>
-          <button type="button" class="week-btn" data-week="snack">Snack</button>
-        </div>
-      </div>
       <div class="form-group" id="dup-section">
         <label class="form-label">DUP-Modi</label>
         <div class="tag-group">
@@ -581,15 +587,66 @@
         </div>
       </div>
       <div class="form-group">
-        <label class="form-label">Muskelgruppen</label>
+        <label class="form-label">Körperregion</label>
         <div class="tag-group">
-          <button type="button" class="t-toggle" data-muscle="push">Push</button>
-          <button type="button" class="t-toggle" data-muscle="pull">Pull</button>
-          <button type="button" class="t-toggle" data-muscle="hinge">Hinge</button>
-          <button type="button" class="t-toggle" data-muscle="squat">Squat</button>
-          <button type="button" class="t-toggle" data-muscle="core">Core</button>
-          <button type="button" class="t-toggle" data-muscle="isometrie">Isometrie</button>
-          <button type="button" class="t-toggle" data-muscle="mobility">Mobility</button>
+          <button type="button" class="t-toggle" data-region="chest">Brust</button>
+          <button type="button" class="t-toggle" data-region="back">Rücken</button>
+          <button type="button" class="t-toggle" data-region="shoulders">Schultern</button>
+          <button type="button" class="t-toggle" data-region="arms">Arme</button>
+          <button type="button" class="t-toggle" data-region="legs">Beine</button>
+          <button type="button" class="t-toggle" data-region="core">Core</button>
+          <button type="button" class="t-toggle" data-region="mobility">Mobilität</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Bewegungsmuster</label>
+        <div class="tag-group">
+          <button type="button" class="t-toggle" data-movement="horizontal_push">Horiz. Push</button>
+          <button type="button" class="t-toggle" data-movement="vertical_push">Vert. Push</button>
+          <button type="button" class="t-toggle" data-movement="horizontal_pull">Horiz. Pull</button>
+          <button type="button" class="t-toggle" data-movement="vertical_pull">Vert. Pull</button>
+          <button type="button" class="t-toggle" data-movement="hip_hinge">Hip Hinge</button>
+          <button type="button" class="t-toggle" data-movement="squat">Squat</button>
+          <button type="button" class="t-toggle" data-movement="lunge">Lunge</button>
+          <button type="button" class="t-toggle" data-movement="carry">Carry</button>
+          <button type="button" class="t-toggle" data-movement="rotation">Rotation</button>
+          <button type="button" class="t-toggle" data-movement="anti_rotation">Anti-Rot.</button>
+          <button type="button" class="t-toggle" data-movement="core_flexion">Core Flex.</button>
+          <button type="button" class="t-toggle" data-movement="isometrie">Isometrie</button>
+          <button type="button" class="t-toggle" data-movement="mobility">Mobility</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Muskeln (anatomisch)</label>
+        <div class="tag-group">
+          <button type="button" class="t-toggle" data-anatomical="pectoralis_major">Pec. Major</button>
+          <button type="button" class="t-toggle" data-anatomical="pectoralis_minor">Pec. Minor</button>
+          <button type="button" class="t-toggle" data-anatomical="serratus_anterior">Serratus</button>
+          <button type="button" class="t-toggle" data-anatomical="latissimus_dorsi">Latissimus</button>
+          <button type="button" class="t-toggle" data-anatomical="trapezius_upper">Trap. Oben</button>
+          <button type="button" class="t-toggle" data-anatomical="trapezius_middle">Trap. Mitte</button>
+          <button type="button" class="t-toggle" data-anatomical="trapezius_lower">Trap. Unten</button>
+          <button type="button" class="t-toggle" data-anatomical="rhomboids">Rhomboiden</button>
+          <button type="button" class="t-toggle" data-anatomical="erector_spinae">Rückenstr.</button>
+          <button type="button" class="t-toggle" data-anatomical="teres_major">Teres Major</button>
+          <button type="button" class="t-toggle" data-anatomical="deltoid_anterior">Delt. Vorne</button>
+          <button type="button" class="t-toggle" data-anatomical="deltoid_lateral">Delt. Seite</button>
+          <button type="button" class="t-toggle" data-anatomical="deltoid_posterior">Delt. Hint.</button>
+          <button type="button" class="t-toggle" data-anatomical="rotator_cuff">Rotatorenm.</button>
+          <button type="button" class="t-toggle" data-anatomical="biceps">Bizeps</button>
+          <button type="button" class="t-toggle" data-anatomical="triceps">Trizeps</button>
+          <button type="button" class="t-toggle" data-anatomical="forearms">Unterarme</button>
+          <button type="button" class="t-toggle" data-anatomical="quadriceps">Quadrizeps</button>
+          <button type="button" class="t-toggle" data-anatomical="hamstrings">Hamstrings</button>
+          <button type="button" class="t-toggle" data-anatomical="gluteus_maximus">Glut. Max.</button>
+          <button type="button" class="t-toggle" data-anatomical="gluteus_medius">Glut. Med.</button>
+          <button type="button" class="t-toggle" data-anatomical="calves">Waden</button>
+          <button type="button" class="t-toggle" data-anatomical="hip_flexors">Hüftbeuger</button>
+          <button type="button" class="t-toggle" data-anatomical="adductors">Adduktoren</button>
+          <button type="button" class="t-toggle" data-anatomical="rectus_abdominis">Rectus Abd.</button>
+          <button type="button" class="t-toggle" data-anatomical="obliques">Obliques</button>
+          <button type="button" class="t-toggle" data-anatomical="transversus_abdominis">Transversus</button>
+          <button type="button" class="t-toggle" data-anatomical="multifidus">Multifidus</button>
         </div>
       </div>
       <div class="form-group">
@@ -731,30 +788,69 @@
   }
 
   function buildPayload() {
-    const week = document.querySelector('.week-btn.on')?.dataset.week ?? null;
     return {
-      name:            inpName.value.trim(),
-      gif_base64:      gifBase64,
-      week_assignment: week,
-      dup_modes:       week === 'snack' ? [] : [...document.querySelectorAll('.t-toggle[data-dup].on')].map(b => b.dataset.dup),
-      muscle_groups:   [...document.querySelectorAll('.t-toggle[data-muscle].on')].map(b => b.dataset.muscle),
+      name:                    inpName.value.trim(),
+      gif_base64:              gifBase64,
+      dup_modes_recommended:   [...document.querySelectorAll('.t-toggle[data-dup].on')].map(b => b.dataset.dup),
+      dup_modes_allowed:       ['kraft','hyper','vol'],
+      body_regions:            [...document.querySelectorAll('.t-toggle[data-region].on')].map(b => b.dataset.region),
+      movement_patterns:       [...document.querySelectorAll('.t-toggle[data-movement].on')].map(b => b.dataset.movement),
+      muscle_groups_anatomical:[...document.querySelectorAll('.t-toggle[data-anatomical].on')].map(b => b.dataset.anatomical),
     };
   }
 
+  const CATS = [
+    { key:'komplex',   label:'Komplex',   test: e => (e.body_regions||[]).length > 1 },
+    { key:'chest',     label:'Brust',     test: e => { const r=e.body_regions||[]; return r.length===1 && r[0]==='chest'; } },
+    { key:'back',      label:'Rücken',    test: e => { const r=e.body_regions||[]; return r.length===1 && r[0]==='back'; } },
+    { key:'shoulders', label:'Schultern', test: e => { const r=e.body_regions||[]; return r.length===1 && r[0]==='shoulders'; } },
+    { key:'arms',      label:'Arme',      test: e => { const r=e.body_regions||[]; return r.length===1 && r[0]==='arms'; } },
+    { key:'legs',      label:'Beine',     test: e => { const r=e.body_regions||[]; return r.length===1 && r[0]==='legs'; } },
+    { key:'core',      label:'Core',      test: e => { const r=e.body_regions||[]; return r.length===1 && r[0]==='core'; } },
+    { key:'mobility',  label:'Mobilität', test: e => { const r=e.body_regions||[]; return r.length===1 && r[0]==='mobility'; } },
+  ];
+
+  function weekBadgeHTML(ex) {
+    const wa = ex.week_assignment || [];
+    const hasA = wa.includes('A'), hasB = wa.includes('B');
+    if (wa.includes('snack')) return `<span class="week-badge badge-snack">Snack</span>`;
+    if (hasA && hasB) return `<span class="week-badge badge-ab">A+B</span>`;
+    if (hasA) return `<span class="week-badge badge-a">A</span>`;
+    if (hasB) return `<span class="week-badge badge-b">B</span>`;
+    return '';
+  }
+
+  function renderExCard(e) {
+    const dp = (e.dup_modes_recommended||[]).map(m=>`<span class="pill pill-${m}">${cap(m)}</span>`).join('');
+    const mp = (e.movement_patterns||[]).map(m=>`<span class="pill">${cap(m)}</span>`).join('');
+    const th = e.gif_base64 ? `<img src="${e.gif_base64}" loading="lazy">` : `<span class="thumb-placeholder">💪</span>`;
+    return `<div class="exercise-card" data-id="${e.id}"><div class="card-thumb">${th}</div><div class="card-content"><div class="card-top"><span class="card-name">${e.name}</span>${weekBadgeHTML(e)}</div><div class="card-tags">${dp}${mp}</div></div></div>`;
+  }
+
   function render() {
-    const list = activeFilter === 'alle' ? exercises : exercises.filter(e => e.week_assignment === activeFilter);
-    if (!list.length) {
-      listEl.innerHTML = `<div class="empty-state"><div class="icon">📭</div>${activeFilter === 'alle' ? 'Noch keine Übungen.<br>Tippe auf + um zu beginnen.' : 'Keine Übungen in dieser Kategorie.'}</div>`;
-      return;
+    let html = '';
+    if (activeFilter === 'alle') {
+      const seen = new Set();
+      CATS.forEach(cat => {
+        const group = exercises.filter(cat.test);
+        if (!group.length) return;
+        html += `<div class="cat-header">${cat.label}</div>`;
+        html += group.map(e => { seen.add(e.id); return renderExCard(e); }).join('');
+      });
+      const rest = exercises.filter(e => !seen.has(e.id));
+      if (rest.length) {
+        html += `<div class="cat-header">Andere</div>`;
+        html += rest.map(renderExCard).join('');
+      }
+    } else {
+      const cat = CATS.find(c => c.key === activeFilter);
+      const group = cat ? exercises.filter(cat.test) : exercises;
+      html = group.map(renderExCard).join('');
     }
-    listEl.innerHTML = list.map(e => {
-      const bc = e.week_assignment === 'snack' ? 'badge-snack' : e.week_assignment === 'A' ? 'badge-a' : 'badge-b';
-      const bl = e.week_assignment === 'snack' ? 'Snack' : `Woche ${e.week_assignment}`;
-      const dp = (e.dup_modes||[]).map(m=>`<span class="pill pill-${m}">${cap(m)}</span>`).join('');
-      const mp = (e.muscle_groups||[]).map(m=>`<span class="pill">${cap(m)}</span>`).join('');
-      const th = e.gif_base64 ? `<img src="${e.gif_base64}" loading="lazy">` : `<span class="thumb-placeholder">💪</span>`;
-      return `<div class="exercise-card" data-id="${e.id}"><div class="card-thumb">${th}</div><div class="card-content"><div class="card-top"><span class="card-name">${e.name}</span><span class="week-badge ${bc}">${bl}</span></div><div class="card-tags">${dp}${mp}</div></div></div>`;
-    }).join('');
+    if (!html) {
+      html = `<div class="empty-state"><div class="icon">📭</div>${exercises.length===0 ? 'Noch keine Übungen.<br>Tippe auf + um zu beginnen.' : 'Keine Übungen in dieser Kategorie.'}</div>`;
+    }
+    listEl.innerHTML = html;
     listEl.querySelectorAll('.exercise-card').forEach(c =>
       c.addEventListener('click', () => openModal(exercises.find(e => e.id === c.dataset.id))));
   }
@@ -767,26 +863,21 @@
     btnDelete.style.display = ex ? 'block' : 'none';
     if (gifBase64) { gifPreview.src = gifBase64; gifPreview.style.display = 'block'; uploadHint.style.display = 'none'; }
     else { gifPreview.style.display = 'none'; uploadHint.style.display = 'block'; gifInput.value = ''; }
-    document.querySelectorAll('.week-btn').forEach(b => b.classList.toggle('on', b.dataset.week === (ex?.week_assignment ?? null)));
-    setDupVis(ex?.week_assignment);
-    document.querySelectorAll('.t-toggle[data-dup]').forEach(b => b.classList.toggle('on', (ex?.dup_modes??[]).includes(b.dataset.dup)));
-    document.querySelectorAll('.t-toggle[data-muscle]').forEach(b => b.classList.toggle('on', (ex?.muscle_groups??[]).includes(b.dataset.muscle)));
+    document.querySelectorAll('.t-toggle[data-dup]').forEach(b => b.classList.toggle('on', (ex?.dup_modes_recommended??[]).includes(b.dataset.dup)));
+    document.querySelectorAll('.t-toggle[data-region]').forEach(b => b.classList.toggle('on', (ex?.body_regions??[]).includes(b.dataset.region)));
+    document.querySelectorAll('.t-toggle[data-movement]').forEach(b => b.classList.toggle('on', (ex?.movement_patterns??[]).includes(b.dataset.movement)));
+    document.querySelectorAll('.t-toggle[data-anatomical]').forEach(b => b.classList.toggle('on', (ex?.muscle_groups_anatomical??[]).includes(b.dataset.anatomical)));
     overlay.classList.add('open');
     setTimeout(() => inpName.focus(), 120);
   }
 
   function closeModal() { overlay.classList.remove('open'); editingId = null; gifBase64 = null; }
-  function setDupVis(week) { dupSection.classList.toggle('hidden', week === 'snack'); }
 
   form.addEventListener('submit', e => { e.preventDefault(); savExercise(); });
   document.getElementById('fab').addEventListener('click', () => openModal());
   document.getElementById('btn-close').addEventListener('click', closeModal);
   btnDelete.addEventListener('click', removeExercise);
   overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
-  document.querySelectorAll('.week-btn').forEach(btn => btn.addEventListener('click', () => {
-    document.querySelectorAll('.week-btn').forEach(b => b.classList.remove('on'));
-    btn.classList.add('on'); setDupVis(btn.dataset.week);
-  }));
   document.querySelectorAll('.t-toggle').forEach(btn => btn.addEventListener('click', () => btn.classList.toggle('on')));
   document.querySelectorAll('.filter-tab').forEach(tab => tab.addEventListener('click', () => {
     document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
@@ -804,25 +895,70 @@
   // MODUL 2 – Wochenplan
   // ═══════════════════════════════════════════════════════
   function renderPlan() {
-    const wex = exercises.filter(e => e.week_assignment === planWeek);
+    const wex = exercises.filter(e => (e.week_assignment || []).includes(planWeek));
     let html = '';
     DUP_META.forEach(({ key, label, schema }) => {
-      const grp = wex.filter(e => (e.dup_modes||[]).includes(key));
+      const grp = wex.filter(e => (e.dup_modes_recommended||[]).includes(key));
       const rows = grp.length ? grp.map(e => {
-        const mp = (e.muscle_groups||[]).map(m=>`<span class="pill">${cap(m)}</span>`).join('');
-        return `<div class="plan-exercise-row" data-id="${e.id}"><div class="plan-ex-thumb">${e.gif_base64?`<img src="${e.gif_base64}" loading="lazy">`:'💪'}</div><div class="plan-ex-info"><div class="plan-ex-name">${e.name}</div><div class="plan-ex-tags">${mp}</div></div></div>`;
-      }).join('') : `<div class="plan-empty">Keine Übungen – in der Bibliothek anlegen.</div>`;
+        const mp = (e.movement_patterns||[]).map(m=>`<span class="pill">${cap(m)}</span>`).join('');
+        return `<div class="plan-exercise-row" data-id="${e.id}">
+          <div class="plan-ex-thumb">${e.gif_base64?`<img src="${e.gif_base64}" loading="lazy">`:'💪'}</div>
+          <div class="plan-ex-info"><div class="plan-ex-name">${e.name}</div><div class="plan-ex-tags">${mp}</div></div>
+          <button class="plan-ex-remove" data-id="${e.id}" aria-label="Entfernen">−</button>
+        </div>`;
+      }).join('') : `<div class="plan-empty">Keine Übungen zugewiesen.</div>`;
       html += `<div class="dup-group"><div class="dup-group-header"><span class="dup-group-title ${key}">${label}</span><span class="dup-group-meta">${schema}</span></div>${rows}</div>`;
     });
     html += buildBiasHTML(wex);
+
+    const unassigned = exercises.filter(e => {
+      const wa = e.week_assignment || [];
+      return !wa.includes(planWeek) && !wa.includes('snack');
+    });
+    if (unassigned.length) {
+      html += `<div class="plan-add-section"><div class="plan-add-header">Hinzufügen</div>`;
+      html += unassigned.map(e =>
+        `<div class="plan-add-row">
+          <div class="plan-ex-thumb">${e.gif_base64?`<img src="${e.gif_base64}" loading="lazy">`:'💪'}</div>
+          <div class="plan-ex-info" style="flex:1;min-width:0"><div class="plan-ex-name">${e.name}</div></div>
+          <button class="plan-add-btn" data-id="${e.id}" aria-label="Hinzufügen">+</button>
+        </div>`).join('');
+      html += `</div>`;
+    }
+
     planContent.innerHTML = html;
-    planContent.querySelectorAll('.plan-exercise-row').forEach(r =>
-      r.addEventListener('click', () => openModal(exercises.find(e => e.id === r.dataset.id))));
+
+    planContent.querySelectorAll('.plan-ex-remove').forEach(btn =>
+      btn.addEventListener('click', e => { e.stopPropagation(); removeFromWeek(btn.dataset.id, planWeek); }));
+    planContent.querySelectorAll('.plan-add-btn').forEach(btn =>
+      btn.addEventListener('click', () => addToWeek(btn.dataset.id, planWeek)));
+  }
+
+  async function addToWeek(exId, week) {
+    const ex = exercises.find(e => e.id === exId);
+    if (!ex) return;
+    const updated = [...(ex.week_assignment || []), week];
+    const { error } = await db.from('exercises').update({ week_assignment: updated }).eq('id', exId);
+    if (error) { toast('Fehler beim Zuweisen'); return; }
+    ex.week_assignment = updated;
+    renderPlan();
+    render();
+  }
+
+  async function removeFromWeek(exId, week) {
+    const ex = exercises.find(e => e.id === exId);
+    if (!ex) return;
+    const updated = (ex.week_assignment || []).filter(w => w !== week);
+    const { error } = await db.from('exercises').update({ week_assignment: updated.length ? updated : null }).eq('id', exId);
+    if (error) { toast('Fehler beim Entfernen'); return; }
+    ex.week_assignment = updated.length ? updated : null;
+    renderPlan();
+    render();
   }
 
   function buildBiasHTML(wex) {
     const counts = Object.fromEntries(MUSCLES.map(m => [m, 0]));
-    wex.forEach(e => (e.muscle_groups||[]).forEach(m => { if (m in counts) counts[m]++; }));
+    wex.forEach(e => (e.movement_patterns||[]).forEach(m => { if (m in counts) counts[m]++; }));
     const max = Math.max(...Object.values(counts), 1);
     const bars = MUSCLES.map(m => {
       const c = counts[m], pct = Math.round(c/max*100);
@@ -897,8 +1033,8 @@
     const isSnack = selMode === 'snack';
     const cfg = DUP_CFG[isSnack ? 'snack' : tMode];
     const pool = isSnack
-      ? exercises.filter(e => e.week_assignment === 'snack')
-      : exercises.filter(e => e.week_assignment === tWeek && (e.dup_modes||[]).includes(tMode));
+      ? exercises.filter(e => (e.week_assignment || []).includes('snack'))
+      : exercises.filter(e => (e.week_assignment || []).includes(tWeek) && (e.dup_modes_recommended||[]).includes(tMode));
 
     if (selIds.size === 0) selIds = new Set(pool.map(e => e.id));
 
@@ -933,8 +1069,8 @@
   document.getElementById('btn-start').addEventListener('click', () => {
     const isSnack = selMode === 'snack';
     const pool = isSnack
-      ? exercises.filter(e => e.week_assignment === 'snack')
-      : exercises.filter(e => e.week_assignment === tWeek && (e.dup_modes||[]).includes(tMode));
+      ? exercises.filter(e => (e.week_assignment || []).includes('snack'))
+      : exercises.filter(e => (e.week_assignment || []).includes(tWeek) && (e.dup_modes_recommended||[]).includes(tMode));
     tExercises = pool.filter(e => selIds.has(e.id));
     if (!tExercises.length) { toast('Keine Übungen ausgewählt'); return; }
     tMode = isSnack ? 'snack' : tMode;
