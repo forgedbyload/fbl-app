@@ -343,9 +343,11 @@
     }
     .ta-mode-label { font-family: 'Bebas Neue', sans-serif; font-size: 15px; letter-spacing: 1px; color: var(--muted); }
     .ta-counter    { font-size: 13px; font-weight: 600; color: var(--muted); }
-    .ta-img { width: 100%; height: 160px; background: var(--surface); overflow: hidden; display: flex; align-items: center; justify-content: center; }
+    #timer-active { display: flex; flex-direction: column; height: calc(100svh - var(--nav-h)); overflow: hidden; }
+    .ta-img { flex: 1; min-height: 150px; width: 100%; background: var(--surface); overflow: hidden; display: flex; align-items: center; justify-content: center; }
     .ta-img img { width: 100%; height: 100%; object-fit: cover; }
     .ta-img-ph  { font-size: 64px; color: var(--border); }
+    .ta-bottom  { flex-shrink: 0; overflow-y: auto; }
     .ta-name {
       font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 1px;
       text-align: center; padding: 12px 16px 0; line-height: 1.1;
@@ -489,34 +491,36 @@
       <span class="ta-counter" id="ta-counter">1 / 1</span>
     </div>
     <div class="ta-img" id="ta-img"></div>
-    <div class="ta-name" id="ta-name"></div>
-    <div class="ta-dots" id="ta-dots"></div>
-    <div class="ta-weight-hint" id="ta-weight-hint" style="display:none"></div>
-    <div class="ta-ring-wrap" id="ta-ring-wrap">
-      <svg class="ta-ring-svg" viewBox="0 0 120 120">
-        <circle class="ring-bg"   cx="60" cy="60" r="54"/>
-        <circle class="ring-fill" cx="60" cy="60" r="54" id="ring-fill"/>
-      </svg>
-      <div class="ta-ring-center">
-        <div class="ta-time"  id="ta-time">—</div>
-        <div class="ta-phase" id="ta-phase">AUSFÜHREN</div>
-        <div class="ta-pause-hint" id="ta-pause-hint"></div>
+    <div class="ta-bottom">
+      <div class="ta-name" id="ta-name"></div>
+      <div class="ta-dots" id="ta-dots"></div>
+      <div class="ta-weight-hint" id="ta-weight-hint" style="display:none"></div>
+      <div class="ta-ring-wrap" id="ta-ring-wrap">
+        <svg class="ta-ring-svg" viewBox="0 0 120 120">
+          <circle class="ring-bg"   cx="60" cy="60" r="54"/>
+          <circle class="ring-fill" cx="60" cy="60" r="54" id="ring-fill"/>
+        </svg>
+        <div class="ta-ring-center">
+          <div class="ta-time"  id="ta-time">—</div>
+          <div class="ta-phase" id="ta-phase">AUSFÜHREN</div>
+          <div class="ta-pause-hint" id="ta-pause-hint"></div>
+        </div>
       </div>
-    </div>
-    <div class="ta-next-preview" id="ta-next-preview" style="display:none">
-      <div class="ta-next-label">NÄCHSTE ÜBUNG</div>
-      <div class="ta-next-row">
-        <div class="ta-next-thumb" id="ta-next-thumb"></div>
-        <div class="ta-next-ex-name" id="ta-next-ex-name"></div>
+      <div class="ta-next-preview" id="ta-next-preview" style="display:none">
+        <div class="ta-next-label">NÄCHSTE ÜBUNG</div>
+        <div class="ta-next-row">
+          <div class="ta-next-thumb" id="ta-next-thumb"></div>
+          <div class="ta-next-ex-name" id="ta-next-ex-name"></div>
+        </div>
       </div>
-    </div>
-    <div class="ta-flex-controls" id="ta-flex-controls">
-      <button class="ta-skip" id="ta-flex-prev">← Zurück</button>
-      <button class="ta-main" id="ta-flex-next">Weiter →</button>
-    </div>
-    <div class="ta-btns" id="ta-btns">
-      <button class="ta-skip" id="ta-skip">Überspringen</button>
-      <button class="ta-main" id="ta-main">SATZ FERTIG</button>
+      <div class="ta-flex-controls" id="ta-flex-controls">
+        <button class="ta-skip" id="ta-flex-prev">← Zurück</button>
+        <button class="ta-main" id="ta-flex-next">Weiter →</button>
+      </div>
+      <div class="ta-btns" id="ta-btns">
+        <button class="ta-skip" id="ta-skip">Überspringen</button>
+        <button class="ta-main" id="ta-main">SATZ FERTIG</button>
+      </div>
     </div>
   </div>
 
@@ -1328,7 +1332,7 @@
 
   function showTimerSub(which) {
     timerSelect.style.display = which==='select' ? 'block' : 'none';
-    timerActive.style.display = which==='active' ? 'block' : 'none';
+    timerActive.style.display = which==='active' ? 'flex' : 'none';
     timerDone.style.display   = which==='done'   ? 'block' : 'none';
   }
 
