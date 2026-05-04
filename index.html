@@ -371,6 +371,74 @@
     .done-title { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 1px; margin-bottom: 10px; }
     .done-meta  { color: var(--muted); font-size: 14px; line-height: 1.7; margin-bottom: 32px; }
 
+    /* ── Rolling Schedule Card ── */
+    .schedule-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .schedule-card.ready  { border-color: rgba(168,197,160,.5); }
+    .schedule-card.soon   { border-color: rgba(200,169,110,.4); }
+    .schedule-left { display: flex; flex-direction: column; gap: 3px; }
+    .schedule-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+    .schedule-date-label { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 1px; }
+    .schedule-card.ready .schedule-date-label { color: var(--snack); }
+    .schedule-card.soon  .schedule-date-label { color: var(--kraft); }
+    .schedule-right { font-size: 12px; color: var(--muted); text-align: right; line-height: 1.4; }
+
+    /* ── Verlauf View ── */
+    .log-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      padding: 16px 16px 12px;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 10px;
+      text-align: center;
+    }
+    .stat-value { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 1px; line-height: 1; margin-bottom: 4px; }
+    .stat-label { font-size: 10px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; color: var(--muted); }
+
+    .log-list { padding: 0 16px 24px; display: flex; flex-direction: column; gap: 8px; }
+
+    .log-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+    }
+    .log-card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .log-badges { display: flex; gap: 6px; align-items: center; }
+    .log-mode-badge {
+      font-size: 11px; font-weight: 700; padding: 3px 10px;
+      border-radius: 4px; letter-spacing: .5px; text-transform: uppercase;
+    }
+    .log-mode-kraft { background: rgba(200,169,110,.15); color: var(--kraft); }
+    .log-mode-hyper { background: rgba(93,170,176,.15);  color: var(--hyper); }
+    .log-mode-vol   { background: rgba(155,138,180,.15); color: var(--vol);   }
+    .log-mode-snack { background: rgba(168,197,160,.15); color: var(--snack); }
+    .log-week-label { font-size: 11px; color: var(--muted); font-weight: 500; }
+    .log-date { font-size: 12px; color: var(--muted); }
+    .log-card-meta { font-size: 13px; color: var(--muted); }
+    .log-card-meta span { color: var(--text); font-weight: 500; }
+
+    .log-empty { text-align: center; color: var(--muted); padding: 60px 20px; font-size: 14px; line-height: 1.6; }
+    .log-empty .icon { font-size: 40px; margin-bottom: 12px; }
+
     /* ── Toast ── */
     .toast {
       position: fixed; bottom: calc(var(--nav-h) + 12px); left: 50%; transform: translateX(-50%);
@@ -424,6 +492,7 @@
       </div>
     </div>
     <div class="sel-body">
+      <div id="schedule-card" class="schedule-card" style="display:none"></div>
       <div class="sel-info" id="sel-info"></div>
       <div id="sel-list"></div>
       <button class="btn-primary" id="btn-start">Training starten</button>
@@ -467,6 +536,20 @@
       <button class="btn-danger"  id="btn-discard">Verwerfen</button>
     </div>
   </div>
+</div>
+
+<!-- ══ View 4: Verlauf ══ -->
+<div id="log-view" class="view hidden">
+  <div class="view-header">
+    <h1>Verlauf</h1>
+    <div class="filter-tabs">
+      <button class="log-tab filter-tab active" data-lf="alle">Alle</button>
+      <button class="log-tab filter-tab" data-lf="full">Volleinheit</button>
+      <button class="log-tab filter-tab" data-lf="snack">Snack</button>
+    </div>
+  </div>
+  <div class="log-stats" id="log-stats"></div>
+  <div class="log-list" id="log-list"></div>
 </div>
 
 <!-- ══ Modal: Übung erstellen / bearbeiten ══ -->
@@ -537,7 +620,7 @@
   <button class="nav-btn" data-view="timer-view">
     <span class="nav-icon">▶︎</span><span class="nav-label">Training</span>
   </button>
-  <button class="nav-btn" data-view="log-view" disabled style="opacity:.3">
+  <button class="nav-btn" data-view="log-view">
     <span class="nav-icon">📊</span><span class="nav-label">Verlauf</span>
   </button>
 </nav>
@@ -600,6 +683,7 @@
       btn.classList.add('active');
       if (id === 'plan-view')  renderPlan();
       if (id === 'timer-view') openTimerSelect();
+      if (id === 'log-view')   { loadAppState().then(() => loadLog()); }
     });
   });
 
@@ -802,7 +886,10 @@
     selMode = 'full';
     document.querySelectorAll('.sel-tab').forEach(t => t.classList.toggle('active', t.dataset.sel==='full'));
     selIds = new Set();
+    await recalcCurrentWeek();
+    tWeek = appState.current_week || 'A';
     renderSelScreen();
+    renderScheduleCard();
     showTimerSub('select');
   }
 
@@ -840,6 +927,7 @@
     document.querySelectorAll('.sel-tab').forEach(t => t.classList.toggle('active', t===btn));
     selIds = new Set();
     renderSelScreen();
+    renderScheduleCard();
   }));
 
   document.getElementById('btn-start').addEventListener('click', () => {
@@ -977,8 +1065,13 @@
     }]);
     if (error) { toast('Fehler beim Speichern'); return; }
     if (!isSnack) {
-      const newIdx = (appState.current_dup_index+1) % 3;
-      const patch  = { last_training_date: new Date().toISOString().split('T')[0], current_dup_index: newIdx };
+      const newIdx  = (appState.current_dup_index+1) % 3;
+      const newWeek = await recalcCurrentWeek();
+      const patch   = {
+        last_training_date: new Date().toISOString().split('T')[0],
+        current_dup_index:  newIdx,
+        current_week:       newWeek,
+      };
       Object.assign(appState, patch);
       if (appState.id) await db.from('app_state').update(patch).eq('id', appState.id);
     }
@@ -1007,6 +1100,143 @@
   function setTimeDisplay(seconds) {
     const s = Math.ceil(seconds), m = Math.floor(s/60), sec = s%60;
     taTime.textContent = `${m}:${String(sec).padStart(2,'0')}`;
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // MODUL 4 – Rolling Schedule & Verlauf
+  // ═══════════════════════════════════════════════════════
+  let logData      = [];
+  let logFilter    = 'alle';
+
+  // ── Rolling Schedule ─────────────────────────────────
+  function getNextTrainingDate(lastDateStr) {
+    if (!lastDateStr) return new Date();
+    const next = new Date(new Date(lastDateStr).getTime() + 48 * 3600 * 1000);
+    // Volleinheiten nie am Sonntag (0)
+    while (next.getDay() === 0) next.setDate(next.getDate() + 1);
+    return next;
+  }
+
+  function renderScheduleCard() {
+    const card = document.getElementById('schedule-card');
+    if (selMode === 'snack') { card.style.display = 'none'; return; }
+
+    const next  = getNextTrainingDate(appState.last_training_date);
+    const now   = new Date();
+    const diffH = (next - now) / 3600000;
+
+    card.style.display = 'flex';
+    card.className = 'schedule-card';
+
+    let dateLabel, sub;
+    if (diffH <= 0) {
+      card.classList.add('ready');
+      const isToday = next.toDateString() === now.toDateString();
+      dateLabel = isToday ? 'Heute' : formatDay(next);
+      sub = 'Volleinheit möglich';
+    } else if (diffH < 12) {
+      card.classList.add('soon');
+      dateLabel = `In ${Math.round(diffH)}h`;
+      sub = formatDay(next);
+    } else {
+      const days = Math.ceil(diffH / 24);
+      dateLabel = days === 1 ? 'Morgen' : formatDay(next);
+      sub = `noch ~${Math.round(diffH)}h`;
+    }
+
+    card.innerHTML = `
+      <div class="schedule-left">
+        <span class="schedule-eyebrow">Nächstes Training</span>
+        <span class="schedule-date-label">${dateLabel}</span>
+      </div>
+      <div class="schedule-right">${sub}</div>`;
+  }
+
+  // ── Week A/B auto-calculation ─────────────────────────
+  async function recalcCurrentWeek() {
+    const { count } = await db.from('training_log')
+      .select('*', { count: 'exact', head: true })
+      .neq('session_type', 'snack');
+    const week = Math.floor((count || 0) / 6) % 2 === 0 ? 'A' : 'B';
+    appState.current_week = week;
+    return week;
+  }
+
+  // ── Verlauf: Load & Render ────────────────────────────
+  async function loadLog() {
+    const { data, error } = await db.from('training_log')
+      .select('*').order('date', { ascending: false });
+    if (error) { toast('Fehler beim Laden des Verlaufs'); return; }
+    logData = data || [];
+    renderLog();
+  }
+
+  function renderLog() {
+    const full   = logData.filter(e => e.session_type !== 'snack');
+    const snacks = logData.filter(e => e.session_type === 'snack');
+    const week   = appState.current_week || 'A';
+
+    // Stats
+    document.getElementById('log-stats').innerHTML = `
+      <div class="stat-card">
+        <div class="stat-value">${full.length}</div>
+        <div class="stat-label">Volleinheiten</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" style="color:var(--${week==='A'?'kraft':'hyper'})">${week}</div>
+        <div class="stat-label">Akt. Woche</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">${snacks.length}</div>
+        <div class="stat-label">Snacks</div>
+      </div>`;
+
+    // Filter
+    const list = logFilter === 'full'  ? full
+               : logFilter === 'snack' ? snacks
+               : logData;
+
+    if (!list.length) {
+      document.getElementById('log-list').innerHTML = `
+        <div class="log-empty"><div class="icon">📋</div>Noch keine Einträge.</div>`;
+      return;
+    }
+
+    document.getElementById('log-list').innerHTML = list.map(e => {
+      const badgeCls = `log-mode-${e.session_type}`;
+      const modeLabel = cap(e.session_type);
+      const weekLabel = e.week ? `Woche ${e.week}` : '';
+      const exCount   = (e.exercises_done || []).length;
+      const dur       = e.duration_minutes ? `${e.duration_minutes} Min.` : '';
+      const sets      = e.sets_completed   ? `${e.sets_completed} Sätze` : '';
+      const meta      = [exCount ? `<span>${exCount} Übungen</span>` : '', sets ? `<span>${sets}</span>` : '', dur].filter(Boolean).join(' · ');
+
+      return `
+        <div class="log-card">
+          <div class="log-card-top">
+            <div class="log-badges">
+              <span class="log-mode-badge ${badgeCls}">${modeLabel}</span>
+              ${weekLabel ? `<span class="log-week-label">${weekLabel}</span>` : ''}
+            </div>
+            <span class="log-date">${formatDay(new Date(e.date))}</span>
+          </div>
+          <div class="log-card-meta">${meta}</div>
+        </div>`;
+    }).join('');
+  }
+
+  document.querySelectorAll('.log-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.log-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      logFilter = tab.dataset.lf;
+      renderLog();
+    });
+  });
+
+  // ── Date helper ───────────────────────────────────────
+  function formatDay(date) {
+    return date.toLocaleDateString('de-DE', { weekday:'short', day:'numeric', month:'short' });
   }
 
   // ═══════════════════════════════════════════════════════
