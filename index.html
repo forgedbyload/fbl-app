@@ -20,19 +20,62 @@
       --hyper:   #5daab0;
       --vol:     #9b8ab4;
       --snack:   #a8c5a0;
+      --nav-h:   62px;
     }
 
     html, body {
       background: var(--bg);
       color: var(--text);
       font-family: 'DM Sans', sans-serif;
-      min-height: 100vh;
+      height: 100%;
       overscroll-behavior: none;
       -webkit-font-smoothing: antialiased;
     }
 
-    /* ── Header ── */
-    .header {
+    /* ── Views ── */
+    .view {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      bottom: var(--nav-h);
+      overflow-y: auto;
+      overscroll-behavior: none;
+      -webkit-overflow-scrolling: touch;
+    }
+    .view.hidden { display: none; }
+
+    /* ── Bottom Nav ── */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      height: var(--nav-h);
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      display: flex;
+      z-index: 40;
+    }
+
+    .nav-btn {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: color .15s;
+      padding-bottom: env(safe-area-inset-bottom, 0);
+    }
+    .nav-btn.active { color: var(--text); }
+
+    .nav-icon { font-size: 20px; line-height: 1; }
+    .nav-label { font-size: 10px; font-weight: 600; letter-spacing: .5px; text-transform: uppercase; }
+
+    /* ── Shared Header ── */
+    .view-header {
       position: sticky;
       top: 0;
       z-index: 10;
@@ -41,7 +84,7 @@
       border-bottom: 1px solid var(--border);
     }
 
-    .header h1 {
+    .view-header h1 {
       font-family: 'Bebas Neue', sans-serif;
       font-size: 32px;
       letter-spacing: 1px;
@@ -49,6 +92,7 @@
       margin-bottom: 16px;
     }
 
+    /* ── Filter Tabs ── */
     .filter-tabs {
       display: flex;
       gap: 8px;
@@ -72,15 +116,11 @@
       transition: all .15s;
       -webkit-tap-highlight-color: transparent;
     }
-    .filter-tab.active {
-      background: var(--text);
-      color: var(--bg);
-      border-color: var(--text);
-    }
+    .filter-tab.active { background: var(--text); color: var(--bg); border-color: var(--text); }
 
-    /* ── Liste ── */
+    /* ── Übungsliste ── */
     .list {
-      padding: 12px 16px 100px;
+      padding: 12px 16px 24px;
       display: flex;
       flex-direction: column;
       gap: 10px;
@@ -141,18 +181,9 @@
       justify-content: center;
     }
 
-    .card-top {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
+    .card-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
-    .card-name {
-      font-weight: 600;
-      font-size: 15px;
-      line-height: 1.2;
-    }
+    .card-name { font-weight: 600; font-size: 15px; line-height: 1.2; }
 
     .week-badge {
       font-size: 10px;
@@ -181,8 +212,8 @@
 
     /* ── FAB ── */
     .fab {
-      position: fixed;
-      bottom: 28px;
+      position: absolute;
+      bottom: 20px;
       right: 20px;
       width: 56px;
       height: 56px;
@@ -207,7 +238,7 @@
       position: fixed;
       inset: 0;
       background: rgba(0,0,0,.7);
-      z-index: 30;
+      z-index: 50;
       display: none;
       align-items: flex-end;
     }
@@ -278,7 +309,6 @@
     }
     .form-input:focus { border-color: var(--muted); }
 
-    /* GIF-Upload */
     .upload-area {
       border: 1px dashed var(--border);
       border-radius: 10px;
@@ -310,7 +340,6 @@
     .upload-hint { color: var(--muted); font-size: 14px; }
     .upload-hint .upload-icon { font-size: 30px; margin-bottom: 6px; }
 
-    /* Tag-Toggles */
     .tag-group { display: flex; flex-wrap: wrap; gap: 8px; }
 
     .t-toggle {
@@ -327,12 +356,10 @@
       -webkit-tap-highlight-color: transparent;
     }
     .t-toggle.on { background: var(--border); color: var(--text); border-color: var(--muted); }
-
     .t-toggle[data-dup="kraft"].on { background: rgba(200,169,110,.15); border-color: var(--kraft); color: var(--kraft); }
     .t-toggle[data-dup="hyper"].on { background: rgba(93,170,176,.15);  border-color: var(--hyper); color: var(--hyper); }
     .t-toggle[data-dup="vol"].on   { background: rgba(155,138,180,.15); border-color: var(--vol);   color: var(--vol);   }
 
-    /* Wochenzuweisung */
     .week-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
 
     .week-btn {
@@ -355,7 +382,6 @@
 
     #dup-section.hidden { display: none; }
 
-    /* Buttons */
     .btn-primary {
       width: 100%;
       padding: 16px;
@@ -390,10 +416,182 @@
     }
     .btn-danger:active { background: rgba(224,85,85,.1); }
 
-    /* Toast */
+    /* ── Wochenplan View ── */
+    .plan-week-switch {
+      display: flex;
+      gap: 8px;
+      padding-bottom: 12px;
+    }
+
+    .plan-week-btn {
+      flex: 1;
+      padding: 8px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 18px;
+      letter-spacing: 1px;
+      cursor: pointer;
+      text-align: center;
+      transition: all .15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .plan-week-btn[data-week="A"].active { background: rgba(200,169,110,.15); border-color: var(--kraft); color: var(--kraft); }
+    .plan-week-btn[data-week="B"].active { background: rgba(93,170,176,.15);  border-color: var(--hyper); color: var(--hyper); }
+
+    .plan-body { padding: 16px 16px 24px; }
+
+    /* DUP-Gruppe */
+    .dup-group { margin-bottom: 24px; }
+
+    .dup-group-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .dup-group-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 20px;
+      letter-spacing: 1px;
+    }
+    .dup-group-title.kraft { color: var(--kraft); }
+    .dup-group-title.hyper { color: var(--hyper); }
+    .dup-group-title.vol   { color: var(--vol);   }
+
+    .dup-group-meta {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .plan-exercise-row {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      margin-bottom: 6px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: border-color .15s;
+    }
+    .plan-exercise-row:active { border-color: var(--muted); }
+
+    .plan-ex-thumb {
+      width: 36px;
+      height: 36px;
+      border-radius: 6px;
+      background: var(--border);
+      flex-shrink: 0;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      color: var(--muted);
+    }
+    .plan-ex-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+    .plan-ex-info { flex: 1; min-width: 0; }
+    .plan-ex-name { font-size: 14px; font-weight: 600; line-height: 1.2; }
+    .plan-ex-tags { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 4px; }
+    .plan-ex-tags .pill { font-size: 10px; padding: 1px 6px; }
+
+    .plan-empty {
+      color: var(--muted);
+      font-size: 13px;
+      padding: 12px 0 4px;
+    }
+
+    /* ── Bias Score ── */
+    .bias-section {
+      margin-top: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+    }
+
+    .bias-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 18px;
+      letter-spacing: 1px;
+      margin-bottom: 14px;
+      color: var(--text);
+    }
+
+    .bias-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .bias-label {
+      width: 72px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+
+    .bias-bar-track {
+      flex: 1;
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .bias-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: var(--text);
+      transition: width .4s ease;
+    }
+    .bias-bar-fill.zero { background: var(--border); }
+
+    .bias-count {
+      width: 20px;
+      text-align: right;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+    .bias-count.nonzero { color: var(--text); }
+
+    .bias-balance {
+      display: flex;
+      gap: 8px;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+    }
+
+    .balance-chip {
+      flex: 1;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-size: 11px;
+      font-weight: 600;
+      text-align: center;
+      line-height: 1.4;
+    }
+    .balance-chip .balance-label { color: var(--muted); display: block; margin-bottom: 2px; }
+    .balance-chip.balanced { border-color: rgba(168,197,160,.4); color: var(--snack); }
+    .balance-chip.warn     { border-color: rgba(200,169,110,.4); color: var(--kraft); }
+
+    /* ── Toast ── */
     .toast {
       position: fixed;
-      bottom: 96px;
+      bottom: calc(var(--nav-h) + 16px);
       left: 50%;
       transform: translateX(-50%);
       background: var(--text);
@@ -402,7 +600,7 @@
       border-radius: 20px;
       font-size: 14px;
       font-weight: 500;
-      z-index: 50;
+      z-index: 60;
       opacity: 0;
       pointer-events: none;
       white-space: nowrap;
@@ -413,22 +611,43 @@
 </head>
 <body>
 
-<div class="header">
-  <h1>Übungen</h1>
-  <div class="filter-tabs">
-    <button class="filter-tab active" data-filter="alle">Alle</button>
-    <button class="filter-tab" data-filter="A">Woche A</button>
-    <button class="filter-tab" data-filter="B">Woche B</button>
-    <button class="filter-tab" data-filter="snack">Snack</button>
+<!-- ══════════════════════════════════════════
+     View 1: Übungsbibliothek
+     ══════════════════════════════════════════ -->
+<div id="library-view" class="view">
+  <div class="view-header">
+    <h1>Übungen</h1>
+    <div class="filter-tabs">
+      <button class="filter-tab active" data-filter="alle">Alle</button>
+      <button class="filter-tab" data-filter="A">Woche A</button>
+      <button class="filter-tab" data-filter="B">Woche B</button>
+      <button class="filter-tab" data-filter="snack">Snack</button>
+    </div>
   </div>
+
+  <div class="loading active" id="loading">Lädt…</div>
+  <div class="list" id="exercise-list"></div>
+
+  <button class="fab" id="fab" aria-label="Übung hinzufügen">+</button>
 </div>
 
-<div class="loading active" id="loading">Lädt…</div>
-<div class="list" id="exercise-list"></div>
+<!-- ══════════════════════════════════════════
+     View 2: Wochenplan
+     ══════════════════════════════════════════ -->
+<div id="plan-view" class="view hidden">
+  <div class="view-header">
+    <h1>Wochenplan</h1>
+    <div class="plan-week-switch">
+      <button class="plan-week-btn active" data-week="A">Woche A</button>
+      <button class="plan-week-btn" data-week="B">Woche B</button>
+    </div>
+  </div>
+  <div class="plan-body" id="plan-content"></div>
+</div>
 
-<button class="fab" id="fab" aria-label="Übung hinzufügen">+</button>
-
-<!-- Modal -->
+<!-- ══════════════════════════════════════════
+     Modal: Übung erstellen / bearbeiten
+     ══════════════════════════════════════════ -->
 <div class="overlay" id="overlay">
   <div class="modal">
     <div class="modal-head">
@@ -437,7 +656,6 @@
     </div>
 
     <form id="form" novalidate>
-
       <div class="form-group">
         <label class="form-label" for="inp-name">Name</label>
         <input class="form-input" type="text" id="inp-name" placeholder="z.B. Romanian Deadlift" autocomplete="off" required>
@@ -488,10 +706,31 @@
 
       <button type="submit" class="btn-primary" id="btn-save">Speichern</button>
       <button type="button" class="btn-danger" id="btn-delete" style="display:none">Übung löschen</button>
-
     </form>
   </div>
 </div>
+
+<!-- ══════════════════════════════════════════
+     Bottom Navigation
+     ══════════════════════════════════════════ -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" data-view="library-view">
+    <span class="nav-icon">📚</span>
+    <span class="nav-label">Übungen</span>
+  </button>
+  <button class="nav-btn" data-view="plan-view">
+    <span class="nav-icon">📅</span>
+    <span class="nav-label">Wochenplan</span>
+  </button>
+  <button class="nav-btn" data-view="timer-view" disabled style="opacity:.3">
+    <span class="nav-icon">▶︎</span>
+    <span class="nav-label">Training</span>
+  </button>
+  <button class="nav-btn" data-view="log-view" disabled style="opacity:.3">
+    <span class="nav-icon">📊</span>
+    <span class="nav-label">Verlauf</span>
+  </button>
+</nav>
 
 <div class="toast" id="toast"></div>
 
@@ -503,27 +742,48 @@
     'sb_publishable_diAOa1sPJmdVUXeoY_6lhw_1BHxExT3'
   );
 
-  let exercises   = [];
+  let exercises    = [];
   let activeFilter = 'alle';
   let editingId    = null;
   let gifBase64    = null;
+  let planWeek     = 'A';
 
-  // ── DOM ──────────────────────────────────────────────
-  const listEl      = document.getElementById('exercise-list');
-  const loadingEl   = document.getElementById('loading');
-  const overlay     = document.getElementById('overlay');
-  const modalTitle  = document.getElementById('modal-title');
-  const form        = document.getElementById('form');
-  const inpName     = document.getElementById('inp-name');
-  const gifInput    = document.getElementById('gif-input');
-  const gifPreview  = document.getElementById('gif-preview');
-  const uploadHint  = document.getElementById('upload-hint');
-  const btnDelete   = document.getElementById('btn-delete');
-  const btnSave     = document.getElementById('btn-save');
-  const dupSection  = document.getElementById('dup-section');
-  const toastEl     = document.getElementById('toast');
+  const MUSCLES = ['push','pull','hinge','squat','core','isometrie','mobility'];
+  const DUP_MODES = [
+    { key: 'kraft', label: 'Kraft',  schema: '4–6 Wdh. · 3 Min. Pause' },
+    { key: 'hyper', label: 'Hyper',  schema: '40s Arbeit · 90s Pause'  },
+    { key: 'vol',   label: 'Vol',    schema: '40s Arbeit · 60s Pause'  },
+  ];
 
-  // ── Supabase ─────────────────────────────────────────
+  // ── DOM refs ──────────────────────────────────────────
+  const listEl     = document.getElementById('exercise-list');
+  const loadingEl  = document.getElementById('loading');
+  const overlay    = document.getElementById('overlay');
+  const modalTitle = document.getElementById('modal-title');
+  const form       = document.getElementById('form');
+  const inpName    = document.getElementById('inp-name');
+  const gifInput   = document.getElementById('gif-input');
+  const gifPreview = document.getElementById('gif-preview');
+  const uploadHint = document.getElementById('upload-hint');
+  const btnDelete  = document.getElementById('btn-delete');
+  const btnSave    = document.getElementById('btn-save');
+  const dupSection = document.getElementById('dup-section');
+  const planContent= document.getElementById('plan-content');
+  const toastEl    = document.getElementById('toast');
+
+  // ── Navigation ────────────────────────────────────────
+  document.querySelectorAll('.nav-btn:not([disabled])').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const viewId = btn.dataset.view;
+      document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+      document.getElementById(viewId)?.classList.remove('hidden');
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      if (viewId === 'plan-view') renderPlan();
+    });
+  });
+
+  // ── Supabase ──────────────────────────────────────────
   async function load() {
     loadingEl.classList.add('active');
     const { data, error } = await db
@@ -548,10 +808,15 @@
     }
 
     btnSave.disabled = false;
-    if (error) { toast('Fehler beim Speichern'); return; }
+    if (error) {
+      console.error('Supabase Fehler:', error);
+      toast('Fehler: ' + (error.message || error.code || 'Unbekannt'));
+      return;
+    }
     closeModal();
     toast(editingId ? 'Gespeichert' : 'Übung hinzugefügt');
-    load();
+    await load();
+    renderPlan();
   }
 
   async function remove() {
@@ -560,7 +825,8 @@
     if (error) { toast('Fehler beim Löschen'); return; }
     closeModal();
     toast('Gelöscht');
-    load();
+    await load();
+    renderPlan();
   }
 
   function buildPayload() {
@@ -576,7 +842,7 @@
     };
   }
 
-  // ── Render ────────────────────────────────────────────
+  // ── Render: Übungsliste ───────────────────────────────
   function render() {
     const list = activeFilter === 'alle'
       ? exercises
@@ -597,13 +863,10 @@
       const badgeClass = e.week_assignment === 'snack' ? 'badge-snack'
                        : e.week_assignment === 'A'     ? 'badge-a' : 'badge-b';
       const badgeLabel = e.week_assignment === 'snack' ? 'Snack' : `Woche ${e.week_assignment}`;
-
-      const dupPills = (e.dup_modes || []).map(m =>
+      const dupPills   = (e.dup_modes || []).map(m =>
         `<span class="pill pill-${m}">${cap(m)}</span>`).join('');
-
       const musclePills = (e.muscle_groups || []).map(m =>
         `<span class="pill">${cap(m)}</span>`).join('');
-
       const thumb = e.gif_base64
         ? `<img src="${e.gif_base64}" alt="${e.name}" loading="lazy">`
         : `<span class="thumb-placeholder">💪</span>`;
@@ -627,6 +890,99 @@
     });
   }
 
+  // ── Render: Wochenplan ────────────────────────────────
+  function renderPlan() {
+    const weekExercises = exercises.filter(e => e.week_assignment === planWeek);
+
+    let html = '';
+
+    // DUP-Gruppen
+    DUP_MODES.forEach(({ key, label, schema }) => {
+      const group = weekExercises.filter(e => (e.dup_modes || []).includes(key));
+
+      const rows = group.length
+        ? group.map(e => {
+            const musclePills = (e.muscle_groups || []).map(m =>
+              `<span class="pill">${cap(m)}</span>`).join('');
+            const thumb = e.gif_base64
+              ? `<img src="${e.gif_base64}" alt="${e.name}" loading="lazy">`
+              : '💪';
+            return `
+              <div class="plan-exercise-row" data-id="${e.id}">
+                <div class="plan-ex-thumb">${e.gif_base64 ? `<img src="${e.gif_base64}" loading="lazy">` : '💪'}</div>
+                <div class="plan-ex-info">
+                  <div class="plan-ex-name">${e.name}</div>
+                  <div class="plan-ex-tags">${musclePills}</div>
+                </div>
+              </div>`;
+          }).join('')
+        : `<div class="plan-empty">Keine Übungen – in der Bibliothek hinzufügen.</div>`;
+
+      html += `
+        <div class="dup-group">
+          <div class="dup-group-header">
+            <span class="dup-group-title ${key}">${label}</span>
+            <span class="dup-group-meta">${schema}</span>
+          </div>
+          ${rows}
+        </div>`;
+    });
+
+    // Bias Score
+    html += buildBiasHTML(weekExercises);
+
+    planContent.innerHTML = html;
+
+    planContent.querySelectorAll('.plan-exercise-row').forEach(row => {
+      row.addEventListener('click', () =>
+        openModal(exercises.find(e => e.id === row.dataset.id)));
+    });
+  }
+
+  function buildBiasHTML(weekExercises) {
+    const counts = {};
+    MUSCLES.forEach(m => { counts[m] = 0; });
+    weekExercises.forEach(e =>
+      (e.muscle_groups || []).forEach(m => { if (counts[m] !== undefined) counts[m]++; })
+    );
+
+    const max = Math.max(...Object.values(counts), 1);
+
+    const bars = MUSCLES.map(m => {
+      const c = counts[m];
+      const pct = Math.round((c / max) * 100);
+      return `
+        <div class="bias-row">
+          <span class="bias-label">${cap(m)}</span>
+          <div class="bias-bar-track">
+            <div class="bias-bar-fill ${c === 0 ? 'zero' : ''}" style="width:${pct}%"></div>
+          </div>
+          <span class="bias-count ${c > 0 ? 'nonzero' : ''}">${c}</span>
+        </div>`;
+    }).join('');
+
+    const pushPull  = balanceChip('Push / Pull',   counts.push,  counts.pull);
+    const squatHinge= balanceChip('Squat / Hinge', counts.squat, counts.hinge);
+
+    return `
+      <div class="bias-section">
+        <div class="bias-title">Muskel-Bias</div>
+        ${bars}
+        <div class="bias-balance">
+          ${pushPull}
+          ${squatHinge}
+        </div>
+      </div>`;
+  }
+
+  function balanceChip(label, a, b) {
+    const diff = Math.abs(a - b);
+    const balanced = diff === 0;
+    const cls = balanced ? 'balanced' : 'warn';
+    const status = balanced ? '✓ Ausgeglichen' : (diff === 1 ? '± 1 leicht' : `± ${diff} unausg.`);
+    return `<div class="balance-chip ${cls}"><span class="balance-label">${label}</span>${status}</div>`;
+  }
+
   // ── Modal ─────────────────────────────────────────────
   function openModal(ex = null) {
     editingId = ex?.id ?? null;
@@ -636,7 +992,6 @@
     inpName.value = ex?.name ?? '';
     btnDelete.style.display = ex ? 'block' : 'none';
 
-    // GIF
     if (gifBase64) {
       gifPreview.src = gifBase64;
       gifPreview.style.display = 'block';
@@ -647,16 +1002,13 @@
       gifInput.value = '';
     }
 
-    // Woche
     document.querySelectorAll('.week-btn').forEach(b =>
       b.classList.toggle('on', b.dataset.week === (ex?.week_assignment ?? null)));
     setDupVisibility(ex?.week_assignment);
 
-    // DUP
     document.querySelectorAll('.t-toggle[data-dup]').forEach(b =>
       b.classList.toggle('on', (ex?.dup_modes ?? []).includes(b.dataset.dup)));
 
-    // Muskelgruppen
     document.querySelectorAll('.t-toggle[data-muscle]').forEach(b =>
       b.classList.toggle('on', (ex?.muscle_groups ?? []).includes(b.dataset.muscle)));
 
@@ -680,7 +1032,6 @@
   document.getElementById('fab').addEventListener('click', () => openModal());
   document.getElementById('btn-close').addEventListener('click', closeModal);
   btnDelete.addEventListener('click', remove);
-
   overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
 
   document.querySelectorAll('.week-btn').forEach(btn => {
@@ -703,9 +1054,23 @@
     });
   });
 
+  document.querySelectorAll('.plan-week-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.plan-week-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      planWeek = btn.dataset.week;
+      renderPlan();
+    });
+  });
+
   gifInput.addEventListener('change', e => {
     const file = e.target.files[0];
     if (!file) return;
+    if (file.size > 3 * 1024 * 1024) {
+      toast('Datei zu gross (max. 3 MB)');
+      gifInput.value = '';
+      return;
+    }
     const reader = new FileReader();
     reader.onload = ev => {
       gifBase64 = ev.target.result;
