@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>fbl-app</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #0d0d0d;
+      --surface: #161616;
+      --border:  #242424;
+      --text:    #f0ece4;
+      --muted:   #666666;
+      --kraft:   #c8a96e;
+      --hyper:   #5daab0;
+      --vol:     #9b8ab4;
+      --snack:   #a8c5a0;
+    }
+
+    html, body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      overscroll-behavior: none;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Header ── */
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--bg);
+      padding: 20px 16px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .header h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 32px;
+      letter-spacing: 1px;
+      line-height: 1;
+      margin-bottom: 16px;
+    }
+
+    .filter-tabs {
+      display: flex;
+      gap: 8px;
+      padding-bottom: 12px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .filter-tabs::-webkit-scrollbar { display: none; }
+
+    .filter-tab {
+      flex-shrink: 0;
+      padding: 6px 16px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all .15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .filter-tab.active {
+      background: var(--text);
+      color: var(--bg);
+      border-color: var(--text);
+    }
+
+    /* ── Liste ── */
+    .list {
+      padding: 12px 16px 100px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .empty-state {
+      text-align: center;
+      color: var(--muted);
+      padding: 60px 20px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    .empty-state .icon { font-size: 40px; margin-bottom: 12px; }
+
+    .loading {
+      text-align: center;
+      padding: 48px 20px;
+      color: var(--muted);
+      font-size: 14px;
+      display: none;
+    }
+    .loading.active { display: block; }
+
+    /* ── Übungs-Karte ── */
+    .exercise-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      display: flex;
+      gap: 12px;
+      padding: 12px;
+      cursor: pointer;
+      transition: border-color .15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .exercise-card:active { border-color: var(--muted); }
+
+    .card-thumb {
+      width: 64px;
+      height: 64px;
+      border-radius: 8px;
+      background: var(--border);
+      flex-shrink: 0;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .thumb-placeholder { color: var(--muted); font-size: 26px; }
+
+    .card-content {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      justify-content: center;
+    }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .card-name {
+      font-weight: 600;
+      font-size: 15px;
+      line-height: 1.2;
+    }
+
+    .week-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+      letter-spacing: .6px;
+      text-transform: uppercase;
+    }
+    .badge-a     { background: rgba(200,169,110,.15); color: var(--kraft); }
+    .badge-b     { background: rgba(93,170,176,.15);  color: var(--hyper); }
+    .badge-snack { background: rgba(168,197,160,.15); color: var(--snack); }
+
+    .card-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+
+    .pill {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+    .pill-kraft { border-color: rgba(200,169,110,.4); color: var(--kraft); }
+    .pill-hyper { border-color: rgba(93,170,176,.4);  color: var(--hyper); }
+    .pill-vol   { border-color: rgba(155,138,180,.4); color: var(--vol);   }
+
+    /* ── FAB ── */
+    .fab {
+      position: fixed;
+      bottom: 28px;
+      right: 20px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--text);
+      color: var(--bg);
+      border: none;
+      font-size: 28px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 20px rgba(0,0,0,.5);
+      z-index: 20;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform .15s;
+    }
+    .fab:active { transform: scale(.93); }
+
+    /* ── Modal ── */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.7);
+      z-index: 30;
+      display: none;
+      align-items: flex-end;
+    }
+    .overlay.open { display: flex; }
+
+    .modal {
+      background: var(--surface);
+      border-radius: 20px 20px 0 0;
+      border-top: 1px solid var(--border);
+      width: 100%;
+      max-height: 92vh;
+      overflow-y: auto;
+      padding: 24px 16px 44px;
+    }
+
+    .modal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .modal-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 26px;
+      letter-spacing: 1px;
+    }
+
+    .btn-close {
+      background: var(--border);
+      border: none;
+      color: var(--text);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ── Formular ── */
+    .form-group { margin-bottom: 20px; }
+
+    .form-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .form-input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 13px 14px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 16px;
+      outline: none;
+      transition: border-color .15s;
+    }
+    .form-input:focus { border-color: var(--muted); }
+
+    /* GIF-Upload */
+    .upload-area {
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      position: relative;
+      transition: border-color .15s;
+    }
+    .upload-area:hover { border-color: var(--muted); }
+
+    .upload-area input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+
+    #gif-preview {
+      width: 100%;
+      max-height: 160px;
+      object-fit: contain;
+      border-radius: 8px;
+      display: none;
+    }
+
+    .upload-hint { color: var(--muted); font-size: 14px; }
+    .upload-hint .upload-icon { font-size: 30px; margin-bottom: 6px; }
+
+    /* Tag-Toggles */
+    .tag-group { display: flex; flex-wrap: wrap; gap: 8px; }
+
+    .t-toggle {
+      padding: 7px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all .15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .t-toggle.on { background: var(--border); color: var(--text); border-color: var(--muted); }
+
+    .t-toggle[data-dup="kraft"].on { background: rgba(200,169,110,.15); border-color: var(--kraft); color: var(--kraft); }
+    .t-toggle[data-dup="hyper"].on { background: rgba(93,170,176,.15);  border-color: var(--hyper); color: var(--hyper); }
+    .t-toggle[data-dup="vol"].on   { background: rgba(155,138,180,.15); border-color: var(--vol);   color: var(--vol);   }
+
+    /* Wochenzuweisung */
+    .week-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+
+    .week-btn {
+      padding: 14px 8px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 22px;
+      letter-spacing: 1px;
+      cursor: pointer;
+      text-align: center;
+      transition: all .15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .week-btn[data-week="A"].on     { background: rgba(200,169,110,.15); border-color: var(--kraft); color: var(--kraft); }
+    .week-btn[data-week="B"].on     { background: rgba(93,170,176,.15);  border-color: var(--hyper); color: var(--hyper); }
+    .week-btn[data-week="snack"].on { background: rgba(168,197,160,.15); border-color: var(--snack); color: var(--snack); }
+
+    #dup-section.hidden { display: none; }
+
+    /* Buttons */
+    .btn-primary {
+      width: 100%;
+      padding: 16px;
+      background: var(--text);
+      color: var(--bg);
+      border: none;
+      border-radius: 12px;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 20px;
+      letter-spacing: 1px;
+      cursor: pointer;
+      margin-top: 8px;
+      -webkit-tap-highlight-color: transparent;
+      transition: opacity .15s;
+    }
+    .btn-primary:active { opacity: .8; }
+    .btn-primary:disabled { opacity: .4; cursor: default; }
+
+    .btn-danger {
+      width: 100%;
+      padding: 14px;
+      background: transparent;
+      color: #e05555;
+      border: 1px solid rgba(224,85,85,.3);
+      border-radius: 12px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      margin-top: 10px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-danger:active { background: rgba(224,85,85,.1); }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 96px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--text);
+      color: var(--bg);
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 500;
+      z-index: 50;
+      opacity: 0;
+      pointer-events: none;
+      white-space: nowrap;
+      transition: opacity .2s;
+    }
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Übungen</h1>
+  <div class="filter-tabs">
+    <button class="filter-tab active" data-filter="alle">Alle</button>
+    <button class="filter-tab" data-filter="A">Woche A</button>
+    <button class="filter-tab" data-filter="B">Woche B</button>
+    <button class="filter-tab" data-filter="snack">Snack</button>
+  </div>
+</div>
+
+<div class="loading active" id="loading">Lädt…</div>
+<div class="list" id="exercise-list"></div>
+
+<button class="fab" id="fab" aria-label="Übung hinzufügen">+</button>
+
+<!-- Modal -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title" id="modal-title">Neue Übung</span>
+      <button class="btn-close" id="btn-close">✕</button>
+    </div>
+
+    <form id="form" novalidate>
+
+      <div class="form-group">
+        <label class="form-label" for="inp-name">Name</label>
+        <input class="form-input" type="text" id="inp-name" placeholder="z.B. Romanian Deadlift" autocomplete="off" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Wochenzuweisung</label>
+        <div class="week-grid">
+          <button type="button" class="week-btn" data-week="A">A</button>
+          <button type="button" class="week-btn" data-week="B">B</button>
+          <button type="button" class="week-btn" data-week="snack">Snack</button>
+        </div>
+      </div>
+
+      <div class="form-group" id="dup-section">
+        <label class="form-label">DUP-Modi</label>
+        <div class="tag-group">
+          <button type="button" class="t-toggle" data-dup="kraft">Kraft</button>
+          <button type="button" class="t-toggle" data-dup="hyper">Hyper</button>
+          <button type="button" class="t-toggle" data-dup="vol">Vol</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Muskelgruppen</label>
+        <div class="tag-group">
+          <button type="button" class="t-toggle" data-muscle="push">Push</button>
+          <button type="button" class="t-toggle" data-muscle="pull">Pull</button>
+          <button type="button" class="t-toggle" data-muscle="hinge">Hinge</button>
+          <button type="button" class="t-toggle" data-muscle="squat">Squat</button>
+          <button type="button" class="t-toggle" data-muscle="core">Core</button>
+          <button type="button" class="t-toggle" data-muscle="isometrie">Isometrie</button>
+          <button type="button" class="t-toggle" data-muscle="mobility">Mobility</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">GIF / Bild (optional)</label>
+        <div class="upload-area" id="upload-area">
+          <input type="file" id="gif-input" accept="image/*">
+          <img id="gif-preview" alt="Vorschau">
+          <div class="upload-hint" id="upload-hint">
+            <div class="upload-icon">🎬</div>
+            Bild vom Gerät hochladen
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-primary" id="btn-save">Speichern</button>
+      <button type="button" class="btn-danger" id="btn-delete" style="display:none">Übung löschen</button>
+
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+  // Supabase-Anon-Key ist öffentlich (publishable) – RLS schützt die Daten.
+  const db = supabase.createClient(
+    'https://qbmoclbzhixsfvkazjpd.supabase.co',
+    'sb_publishable_diAOa1sPJmdVUXeoY_6lhw_1BHxExT3'
+  );
+
+  let exercises   = [];
+  let activeFilter = 'alle';
+  let editingId    = null;
+  let gifBase64    = null;
+
+  // ── DOM ──────────────────────────────────────────────
+  const listEl      = document.getElementById('exercise-list');
+  const loadingEl   = document.getElementById('loading');
+  const overlay     = document.getElementById('overlay');
+  const modalTitle  = document.getElementById('modal-title');
+  const form        = document.getElementById('form');
+  const inpName     = document.getElementById('inp-name');
+  const gifInput    = document.getElementById('gif-input');
+  const gifPreview  = document.getElementById('gif-preview');
+  const uploadHint  = document.getElementById('upload-hint');
+  const btnDelete   = document.getElementById('btn-delete');
+  const btnSave     = document.getElementById('btn-save');
+  const dupSection  = document.getElementById('dup-section');
+  const toastEl     = document.getElementById('toast');
+
+  // ── Supabase ─────────────────────────────────────────
+  async function load() {
+    loadingEl.classList.add('active');
+    const { data, error } = await db
+      .from('exercises')
+      .select('*')
+      .order('created_at', { ascending: false });
+    loadingEl.classList.remove('active');
+    if (error) { toast('Fehler beim Laden'); return; }
+    exercises = data || [];
+    render();
+  }
+
+  async function save() {
+    btnSave.disabled = true;
+    const payload = buildPayload();
+    let error;
+
+    if (editingId) {
+      ({ error } = await db.from('exercises').update(payload).eq('id', editingId));
+    } else {
+      ({ error } = await db.from('exercises').insert([payload]));
+    }
+
+    btnSave.disabled = false;
+    if (error) { toast('Fehler beim Speichern'); return; }
+    closeModal();
+    toast(editingId ? 'Gespeichert' : 'Übung hinzugefügt');
+    load();
+  }
+
+  async function remove() {
+    if (!editingId) return;
+    const { error } = await db.from('exercises').delete().eq('id', editingId);
+    if (error) { toast('Fehler beim Löschen'); return; }
+    closeModal();
+    toast('Gelöscht');
+    load();
+  }
+
+  function buildPayload() {
+    const week = document.querySelector('.week-btn.on')?.dataset.week ?? null;
+    return {
+      name:            inpName.value.trim(),
+      gif_base64:      gifBase64,
+      week_assignment: week,
+      dup_modes:       week === 'snack'
+        ? []
+        : [...document.querySelectorAll('.t-toggle[data-dup].on')].map(b => b.dataset.dup),
+      muscle_groups:   [...document.querySelectorAll('.t-toggle[data-muscle].on')].map(b => b.dataset.muscle),
+    };
+  }
+
+  // ── Render ────────────────────────────────────────────
+  function render() {
+    const list = activeFilter === 'alle'
+      ? exercises
+      : exercises.filter(e => e.week_assignment === activeFilter);
+
+    if (!list.length) {
+      listEl.innerHTML = `
+        <div class="empty-state">
+          <div class="icon">📭</div>
+          ${activeFilter === 'alle'
+            ? 'Noch keine Übungen.<br>Tippe auf + um zu beginnen.'
+            : 'Keine Übungen in dieser Kategorie.'}
+        </div>`;
+      return;
+    }
+
+    listEl.innerHTML = list.map(e => {
+      const badgeClass = e.week_assignment === 'snack' ? 'badge-snack'
+                       : e.week_assignment === 'A'     ? 'badge-a' : 'badge-b';
+      const badgeLabel = e.week_assignment === 'snack' ? 'Snack' : `Woche ${e.week_assignment}`;
+
+      const dupPills = (e.dup_modes || []).map(m =>
+        `<span class="pill pill-${m}">${cap(m)}</span>`).join('');
+
+      const musclePills = (e.muscle_groups || []).map(m =>
+        `<span class="pill">${cap(m)}</span>`).join('');
+
+      const thumb = e.gif_base64
+        ? `<img src="${e.gif_base64}" alt="${e.name}" loading="lazy">`
+        : `<span class="thumb-placeholder">💪</span>`;
+
+      return `
+        <div class="exercise-card" data-id="${e.id}">
+          <div class="card-thumb">${thumb}</div>
+          <div class="card-content">
+            <div class="card-top">
+              <span class="card-name">${e.name}</span>
+              <span class="week-badge ${badgeClass}">${badgeLabel}</span>
+            </div>
+            <div class="card-tags">${dupPills}${musclePills}</div>
+          </div>
+        </div>`;
+    }).join('');
+
+    listEl.querySelectorAll('.exercise-card').forEach(card => {
+      card.addEventListener('click', () =>
+        openModal(exercises.find(e => e.id === card.dataset.id)));
+    });
+  }
+
+  // ── Modal ─────────────────────────────────────────────
+  function openModal(ex = null) {
+    editingId = ex?.id ?? null;
+    gifBase64 = ex?.gif_base64 ?? null;
+
+    modalTitle.textContent = ex ? 'Übung bearbeiten' : 'Neue Übung';
+    inpName.value = ex?.name ?? '';
+    btnDelete.style.display = ex ? 'block' : 'none';
+
+    // GIF
+    if (gifBase64) {
+      gifPreview.src = gifBase64;
+      gifPreview.style.display = 'block';
+      uploadHint.style.display = 'none';
+    } else {
+      gifPreview.style.display = 'none';
+      uploadHint.style.display = 'block';
+      gifInput.value = '';
+    }
+
+    // Woche
+    document.querySelectorAll('.week-btn').forEach(b =>
+      b.classList.toggle('on', b.dataset.week === (ex?.week_assignment ?? null)));
+    setDupVisibility(ex?.week_assignment);
+
+    // DUP
+    document.querySelectorAll('.t-toggle[data-dup]').forEach(b =>
+      b.classList.toggle('on', (ex?.dup_modes ?? []).includes(b.dataset.dup)));
+
+    // Muskelgruppen
+    document.querySelectorAll('.t-toggle[data-muscle]').forEach(b =>
+      b.classList.toggle('on', (ex?.muscle_groups ?? []).includes(b.dataset.muscle)));
+
+    overlay.classList.add('open');
+    setTimeout(() => inpName.focus(), 120);
+  }
+
+  function closeModal() {
+    overlay.classList.remove('open');
+    editingId = null;
+    gifBase64 = null;
+  }
+
+  function setDupVisibility(week) {
+    dupSection.classList.toggle('hidden', week === 'snack');
+  }
+
+  // ── Events ────────────────────────────────────────────
+  form.addEventListener('submit', e => { e.preventDefault(); save(); });
+
+  document.getElementById('fab').addEventListener('click', () => openModal());
+  document.getElementById('btn-close').addEventListener('click', closeModal);
+  btnDelete.addEventListener('click', remove);
+
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+
+  document.querySelectorAll('.week-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.week-btn').forEach(b => b.classList.remove('on'));
+      btn.classList.add('on');
+      setDupVisibility(btn.dataset.week);
+    });
+  });
+
+  document.querySelectorAll('.t-toggle').forEach(btn =>
+    btn.addEventListener('click', () => btn.classList.toggle('on')));
+
+  document.querySelectorAll('.filter-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      activeFilter = tab.dataset.filter;
+      render();
+    });
+  });
+
+  gifInput.addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      gifBase64 = ev.target.result;
+      gifPreview.src = gifBase64;
+      gifPreview.style.display = 'block';
+      uploadHint.style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // ── Util ──────────────────────────────────────────────
+  function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+  let toastTimer;
+  function toast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2200);
+  }
+
+  // ── Init ──────────────────────────────────────────────
+  load();
+</script>
+</body>
+</html>
