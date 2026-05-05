@@ -402,10 +402,10 @@
     .ta-mode-label { font-family: 'Bebas Neue', sans-serif; font-size: 15px; letter-spacing: 1px; color: var(--muted); }
     .ta-counter    { font-size: 13px; font-weight: 600; color: var(--muted); }
     #timer-active { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
-    .ta-img { flex: 1; min-height: 150px; width: 100%; background: var(--surface); overflow: hidden; display: flex; align-items: center; justify-content: center; }
+    .ta-img { flex: 1 1 0; min-height: 0; width: 100%; background: var(--surface); overflow: hidden; display: flex; align-items: center; justify-content: center; }
     .ta-img img { width: 100%; height: 100%; object-fit: cover; }
     .ta-img-ph  { font-size: 64px; color: var(--border); }
-    .ta-bottom  { flex-shrink: 0; overflow-y: auto; }
+    .ta-bottom  { flex: 0 0 auto; }
     .ta-name {
       font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 1px;
       text-align: center; padding: 12px 16px 0; line-height: 1.1;
@@ -452,7 +452,7 @@
     .ta-hidden { visibility: hidden; }
 
     /* Pause-Layout */
-    #ta-work-layout  { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    #ta-work-layout  { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
     #ta-pause-layout { flex: 1; flex-direction: column; overflow: hidden; }
     .tap-prev-row  { display: flex; align-items: center; gap: 10px; padding: 8px 16px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
     .tap-prev-thumb { width: 40px; height: 40px; border-radius: 6px; overflow: hidden; flex-shrink: 0; background: var(--border); display: flex; align-items: center; justify-content: center; }
@@ -2187,7 +2187,7 @@
     document.getElementById('ta-work-layout').style.display  = 'flex';
     document.getElementById('ta-pause-layout').style.display = 'none';
     setRing(1); ringFill.classList.add('pulsing');
-    taTime.textContent='—'; taPhase.textContent='AUSFÜHREN'; taPauseHint.textContent='';
+    taTime.textContent='GO'; taPhase.textContent='AUSFÜHREN'; taPauseHint.textContent='';
     taMain.textContent='Satz beendet'; taMain.classList.remove('ta-hidden');
     taSkip.classList.add('ta-hidden');
   }
