@@ -258,6 +258,42 @@
     .mode-hyper       { background: rgba(93,170,176,.15);  color: var(--hyper); }
     .mode-vol         { background: rgba(155,138,180,.15); color: var(--vol);   }
     .mode-flexibility { background: rgba(123,168,196,.15); color: var(--flex);  }
+    .session-start-btn {
+      background: none; border: 1px solid var(--border); border-radius: 8px;
+      color: var(--text); padding: 5px 10px; font-size: 11px; font-weight: 700;
+      letter-spacing: .5px; cursor: pointer; flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent; transition: background .15s;
+    }
+    .session-start-btn:active { background: var(--border); }
+
+    /* ── Plan Detail / Session-Detailansicht ── */
+    #plan-timer-sub { height: 100%; overflow: hidden; }
+    .plan-detail-nav { display: flex; align-items: center; gap: 8px; padding-bottom: 6px; }
+    .plan-back-btn { background: none; border: none; color: var(--muted); font-size: 22px; cursor: pointer; padding: 0; -webkit-tap-highlight-color: transparent; flex-shrink: 0; width: 28px; }
+    .plan-detail-title { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 1px; flex: 1; }
+    .plan-detail-meta { font-size: 12px; color: var(--muted); padding-bottom: 12px; }
+    .plan-detail-body { padding: 12px 16px 90px; }
+    .plan-detail-footer { position: fixed; bottom: var(--nav-h); left: 0; right: 0; padding: 10px 16px; background: var(--bg); border-top: 1px solid var(--border); z-index: 5; }
+    .det-ex-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .det-ex-row:last-child { border-bottom: none; }
+    .det-ex-skipped { opacity: .4; }
+    .det-ex-check {
+      width: 22px; height: 22px; border-radius: 6px; border: 1.5px solid var(--muted);
+      flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+      font-size: 13px; cursor: pointer; transition: all .15s; -webkit-tap-highlight-color: transparent;
+    }
+    .det-ex-check.on { background: var(--text); border-color: var(--text); color: var(--bg); }
+    .det-ex-info { flex: 1; min-width: 0; }
+    .det-ex-name { font-size: 14px; font-weight: 600; line-height: 1.2; }
+    .det-ex-sub  { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .det-ex-stepper { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+    .det-step-btn {
+      background: none; border: 1px solid var(--border); border-radius: 6px;
+      width: 26px; height: 26px; color: var(--text); font-size: 16px; line-height: 1;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; -webkit-tap-highlight-color: transparent;
+    }
+    .det-step-val { font-size: 14px; font-weight: 600; min-width: 18px; text-align: center; }
 
     /* ── Bias ── */
     .bias-section { margin-top: 24px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; }
@@ -361,7 +397,7 @@
     }
     .ta-mode-label { font-family: 'Bebas Neue', sans-serif; font-size: 15px; letter-spacing: 1px; color: var(--muted); }
     .ta-counter    { font-size: 13px; font-weight: 600; color: var(--muted); }
-    #timer-active { display: flex; flex-direction: column; height: calc(100svh - var(--nav-h)); overflow: hidden; }
+    #timer-active { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
     .ta-img { flex: 1; min-height: 150px; width: 100%; background: var(--surface); overflow: hidden; display: flex; align-items: center; justify-content: center; }
     .ta-img img { width: 100%; height: 100%; object-fit: cover; }
     .ta-img-ph  { font-size: 64px; color: var(--border); }
@@ -530,120 +566,115 @@
   <button class="fab" id="fab" aria-label="Übung hinzufügen">+</button>
 </div>
 
-<!-- ══ View 2: Wochenplan ══ -->
+<!-- ══ View 2: Wochenplan + Timer ══ -->
 <div id="plan-view" class="view hidden">
-  <div class="view-header">
-    <h1>Wochenplan</h1>
-    <div class="plan-toggle-row">
-      <span class="plan-toggle-label">Woche B aktivieren</span>
-      <label class="toggle-switch">
-        <input type="checkbox" id="week-b-toggle">
-        <span class="toggle-slider"></span>
-      </label>
-    </div>
-    <div class="plan-week-switch">
-      <button class="plan-week-btn active" data-week="A">Woche A</button>
-      <button class="plan-week-btn hidden" data-week="B">Woche B</button>
-    </div>
-  </div>
-  <div class="plan-body" id="plan-content"></div>
-</div>
 
-<!-- ══ View 3: Timer ══ -->
-<div id="timer-view" class="view hidden">
-
-  <!-- Sub: Session-Auswahl -->
-  <div id="timer-select">
+  <!-- Sub: Wochenansicht -->
+  <div id="plan-week-sub">
     <div class="view-header">
-      <h1>Training</h1>
-    </div>
-    <div class="sel-body">
-      <span class="sel-week-label" id="sel-week-label"></span>
-      <div id="sel-sessions-list"></div>
-      <div id="sel-exercises-container" style="display:none">
-        <button class="btn-back" id="btn-back-sessions">← Zurück zur Auswahl</button>
-        <div class="sel-info" id="sel-info"></div>
-        <div id="sel-list"></div>
-        <button class="btn-primary" id="btn-start">Training starten</button>
+      <h1>Wochenplan</h1>
+      <div class="plan-toggle-row">
+        <span class="plan-toggle-label">Woche B aktivieren</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="week-b-toggle">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="plan-week-switch">
+        <button class="plan-week-btn active" data-week="A">Woche A</button>
+        <button class="plan-week-btn hidden" data-week="B">Woche B</button>
       </div>
     </div>
+    <div class="plan-body" id="plan-content"></div>
   </div>
 
-  <!-- Sub: Aktiver Timer -->
-  <div id="timer-active" style="display:none">
-    <div class="ta-header">
-      <button class="ta-exit" id="ta-exit">✕</button>
-      <span class="ta-mode-label" id="ta-mode-label"></span>
-      <span class="ta-counter" id="ta-counter">1 / 1</span>
+  <!-- Sub: Session-Detail -->
+  <div id="plan-detail-sub" style="display:none">
+    <div class="view-header">
+      <div class="plan-detail-nav">
+        <button class="plan-back-btn" id="plan-detail-back">←</button>
+        <span class="plan-detail-title" id="plan-detail-title"></span>
+        <button class="btn-edit-ses" id="plan-detail-edit">Edit</button>
+      </div>
+      <div class="plan-detail-meta" id="plan-detail-meta"></div>
     </div>
+    <div class="plan-detail-body" id="plan-detail-body"></div>
+    <div class="plan-detail-footer">
+      <button class="btn-primary" id="plan-detail-start">Training starten</button>
+    </div>
+  </div>
 
-    <!-- Work-Layout -->
-    <div id="ta-work-layout">
-      <div class="ta-img" id="ta-img"></div>
-      <div class="ta-bottom">
-        <div class="ta-name" id="ta-name"></div>
-        <div class="ta-dots" id="ta-dots"></div>
-        <div class="ta-weight-hint" id="ta-weight-hint" style="display:none"></div>
-        <div class="ta-ring-wrap" id="ta-ring-wrap">
-          <svg class="ta-ring-svg" viewBox="0 0 120 120">
-            <circle class="ring-bg"   cx="60" cy="60" r="54"/>
-            <circle class="ring-fill" cx="60" cy="60" r="54" id="ring-fill"/>
-          </svg>
-          <div class="ta-ring-center">
-            <div class="ta-time"  id="ta-time">—</div>
-            <div class="ta-phase" id="ta-phase">AUSFÜHREN</div>
-            <div class="ta-pause-hint" id="ta-pause-hint"></div>
+  <!-- Sub: Timer -->
+  <div id="plan-timer-sub" style="display:none">
+
+    <!-- Aktiver Timer -->
+    <div id="timer-active" style="display:none">
+      <div class="ta-header">
+        <button class="ta-exit" id="ta-exit">←</button>
+        <span class="ta-mode-label" id="ta-mode-label"></span>
+        <span class="ta-counter" id="ta-counter">1 / 1</span>
+      </div>
+      <div id="ta-work-layout">
+        <div class="ta-img" id="ta-img"></div>
+        <div class="ta-bottom">
+          <div class="ta-name" id="ta-name"></div>
+          <div class="ta-dots" id="ta-dots"></div>
+          <div class="ta-weight-hint" id="ta-weight-hint" style="display:none"></div>
+          <div class="ta-ring-wrap" id="ta-ring-wrap">
+            <svg class="ta-ring-svg" viewBox="0 0 120 120">
+              <circle class="ring-bg"   cx="60" cy="60" r="54"/>
+              <circle class="ring-fill" cx="60" cy="60" r="54" id="ring-fill"/>
+            </svg>
+            <div class="ta-ring-center">
+              <div class="ta-time"  id="ta-time">—</div>
+              <div class="ta-phase" id="ta-phase">AUSFÜHREN</div>
+              <div class="ta-pause-hint" id="ta-pause-hint"></div>
+            </div>
+          </div>
+          <div class="ta-flex-controls" id="ta-flex-controls">
+            <button class="ta-skip" id="ta-flex-prev">← Zurück</button>
+            <button class="ta-main" id="ta-flex-next">Weiter →</button>
+          </div>
+          <div class="ta-btns" id="ta-btns">
+            <button class="ta-skip" id="ta-skip">Überspringen</button>
+            <button class="ta-main" id="ta-main">SATZ FERTIG</button>
           </div>
         </div>
-        <div class="ta-flex-controls" id="ta-flex-controls">
-          <button class="ta-skip" id="ta-flex-prev">← Zurück</button>
-          <button class="ta-main" id="ta-flex-next">Weiter →</button>
+      </div>
+      <div id="ta-pause-layout" style="display:none">
+        <div class="tap-prev-row">
+          <div class="tap-prev-thumb" id="tap-prev-thumb"></div>
+          <span class="tap-prev-lbl" id="tap-prev-lbl"></span>
         </div>
-        <div class="ta-btns" id="ta-btns">
-          <button class="ta-skip" id="ta-skip">Überspringen</button>
-          <button class="ta-main" id="ta-main">SATZ FERTIG</button>
+        <div class="tap-next-img" id="tap-next-img"></div>
+        <div class="tap-next-name" id="tap-next-name"></div>
+        <div class="tap-time-row" id="tap-time-row">
+          <div class="tap-time" id="tap-time">—</div>
+          <div class="tap-phase-lbl">PAUSE</div>
+        </div>
+        <div class="tap-weights" id="tap-weights"></div>
+        <div class="tap-btns" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <button class="ta-skip" id="ta-pause-log">Gewicht nachtragen</button>
+          <button class="ta-skip" id="ta-pause-skip">Pause skip</button>
         </div>
       </div>
     </div>
 
-    <!-- Pause-Layout -->
-    <div id="ta-pause-layout" style="display:none">
-      <!-- A: Aktuell fertig -->
-      <div class="tap-prev-row">
-        <div class="tap-prev-thumb" id="tap-prev-thumb"></div>
-        <span class="tap-prev-lbl" id="tap-prev-lbl"></span>
-      </div>
-      <!-- B: Nächste Übung -->
-      <div class="tap-next-img" id="tap-next-img"></div>
-      <div class="tap-next-name" id="tap-next-name"></div>
-      <!-- Countdown -->
-      <div class="tap-time-row" id="tap-time-row">
-        <div class="tap-time" id="tap-time">—</div>
-        <div class="tap-phase-lbl">PAUSE</div>
-      </div>
-      <!-- C: Gewichtsvorschau -->
-      <div class="tap-weights" id="tap-weights"></div>
-      <!-- Buttons -->
-      <div class="tap-btns" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <button class="ta-skip" id="ta-pause-log">Gewicht nachtragen</button>
-        <button class="ta-skip" id="ta-pause-skip">Pause skip</button>
+    <!-- Training abgeschlossen -->
+    <div id="timer-done" style="display:none">
+      <div class="done-body">
+        <div class="done-icon">🏆</div>
+        <div class="done-title">Abgeschlossen</div>
+        <div class="done-meta" id="done-meta"></div>
+        <button class="btn-primary" id="btn-save-session">Speichern &amp; Beenden</button>
+        <button class="btn-danger"  id="btn-discard">Verwerfen</button>
       </div>
     </div>
-  </div>
 
-  <!-- Sub: Training abgeschlossen -->
-  <div id="timer-done" style="display:none">
-    <div class="done-body">
-      <div class="done-icon">🏆</div>
-      <div class="done-title">Abgeschlossen</div>
-      <div class="done-meta" id="done-meta"></div>
-      <button class="btn-primary" id="btn-save-session">Speichern &amp; Beenden</button>
-      <button class="btn-danger"  id="btn-discard">Verwerfen</button>
-    </div>
-  </div>
+  </div><!-- /plan-timer-sub -->
 </div>
 
-<!-- ══ View 4: Stats ══ -->
+<!-- ══ View 3: Stats ══ -->
 <div id="stats-view" class="view hidden">
   <div class="view-header">
     <h1>Stats</h1>
@@ -809,13 +840,8 @@
   <div class="modal">
     <div class="modal-head">
       <span class="modal-title" id="session-modal-title">Neue Session</span>
-      <div style="display:flex;gap:8px;align-items:center">
-        <button type="button" class="btn-edit-ses" id="ses-btn-edit" style="display:none">Edit</button>
-        <button class="btn-close" id="session-btn-close">✕</button>
-      </div>
+      <button class="btn-close" id="session-btn-close">✕</button>
     </div>
-    <div id="ses-overview" style="display:none"></div>
-    <div id="ses-ex-detail" style="display:none"></div>
     <form id="session-form" novalidate>
       <div class="form-group">
         <label class="form-label">Wochentag</label>
@@ -883,9 +909,6 @@
   <button class="nav-btn" data-view="plan-view">
     <span class="nav-icon">📅</span><span class="nav-label">Wochenplan</span>
   </button>
-  <button class="nav-btn" data-view="timer-view">
-    <span class="nav-icon">▶︎</span><span class="nav-label">Training</span>
-  </button>
   <button class="nav-btn" data-view="stats-view">
     <span class="nav-icon">📊</span><span class="nav-label">Stats</span>
   </button>
@@ -916,11 +939,13 @@
   let detExercise  = null;
   let detAllLogs   = [];
   let detPREditing = null;
-  let sesViewSes      = null;
-  let sesExDetailItem = null;
-  let sesExPREditing  = null;
   let detFilterTot = 'alle';
   let detGroupPage = 0;
+
+  let planDetailSes  = null;
+  let detailExSkip   = new Set();
+  let detailExSets   = {};
+  let planDetailLogs = {};
 
   const DUP_CFG = {
     kraft:       { sets:4, workTime:0,  restTime:180 },
@@ -960,8 +985,7 @@
       document.getElementById(id)?.classList.remove('hidden');
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      if (id === 'plan-view')  { loadAppState().then(() => { applyWeekBState(); loadSessions().then(renderPlan); }); }
-      if (id === 'timer-view') openTimerSelect();
+      if (id === 'plan-view')  { loadAppState().then(() => { applyWeekBState(); loadSessions().then(() => { showPlanSub('week'); renderPlan(); }); }); }
     });
   });
 
@@ -1286,6 +1310,7 @@
               <div class="session-meta">${exCount} Übungen${timeStr}</div>
             </div>
             <span class="session-mode-badge mode-${s.dup_mode}">${cap(s.dup_mode)}</span>
+            <button type="button" class="session-start-btn" data-id="${s.id}">▶</button>
           </div>`;
         }).join('');
       } else {
@@ -1301,8 +1326,13 @@
     planContent.innerHTML = html;
     planContent.querySelectorAll('.plan-day-add').forEach(btn =>
       btn.addEventListener('click', () => openSessionModal(null, btn.dataset.day)));
-    planContent.querySelectorAll('.session-card').forEach(card =>
-      card.addEventListener('click', () => openSessionModal(sessions.find(s=>s.id===card.dataset.id))));
+    planContent.querySelectorAll('.session-card').forEach(card => {
+      card.addEventListener('click', () => openPlanDetail(sessions.find(s => s.id === card.dataset.id)));
+      card.querySelector('.session-start-btn')?.addEventListener('click', e => {
+        e.stopPropagation();
+        startTrainingDirect(sessions.find(s => s.id === card.dataset.id));
+      });
+    });
   }
 
   function buildBiasHTML(wex) {
@@ -1331,139 +1361,118 @@
     btn.classList.add('active'); planWeek = btn.dataset.week; renderPlan();
   }));
 
-  // ── Session Modal ──────────────────────────────────────
-  const SES_REPS  = { kraft:'4–6 Wdh.', hyper:'8–12 Wdh.', vol:'15–20 Wdh.', flexibility:'–' };
-  const SW_LABELS = { barbell:'BB', dumbbell_1x:'DB 1x', dumbbell_2x:'DB 2x', kettlebell_1x:'KB 1x', kettlebell_2x:'KB 2x' };
-
-  function renderSesOverview(ses) {
-    sesViewSes = ses;
-    const mode    = ses.dup_mode;
-    const isFlex  = mode === 'flexibility';
-    const timeStr = isFlex ? '' : mode === 'kraft'
-      ? `Pause: ${ses.rest_seconds}s`
-      : `${ses.work_seconds}s Arbeit · ${ses.rest_seconds}s Pause`;
-
-    const rows = sesSelectedIds.map((item, idx) => {
-      const ex = exercises.find(e => e.id === item.exercise_id);
-      if (!ex) return '';
-      return `<div class="ses-ov-row" data-exidx="${idx}">
-        <div class="ses-ov-name">${ex.name}</div>
-        <div class="ses-ov-meta">${item.sets}× ${SES_REPS[mode]||''}</div>
-      </div>`;
-    }).join('') || `<div style="color:var(--muted);font-size:13px;padding:8px 0">Keine Übungen.</div>`;
-
-    const el = document.getElementById('ses-overview');
-    el.innerHTML = (timeStr ? `<div class="ses-ov-time">${timeStr}</div>` : '') + rows;
-    el.querySelectorAll('.ses-ov-row[data-exidx]').forEach(row =>
-      row.addEventListener('click', () => openSesExDetail(sesSelectedIds[parseInt(row.dataset.exidx)]))
-    );
+  // ── Plan: Sub-view control ────────────────────────────
+  function showPlanSub(sub) {
+    document.getElementById('plan-week-sub').style.display   = sub === 'week'   ? '' : 'none';
+    document.getElementById('plan-detail-sub').style.display = sub === 'detail' ? '' : 'none';
+    document.getElementById('plan-timer-sub').style.display  = sub === 'timer'  ? '' : 'none';
+    document.getElementById('plan-view').style.overflowY     = sub === 'timer'  ? 'hidden' : 'auto';
   }
 
-  async function openSesExDetail(item) {
-    sesExDetailItem = item;
-    sesExPREditing  = null;
-    const ex = exercises.find(e => e.id === item.exercise_id);
-    if (!ex) return;
-    document.getElementById('ses-overview').style.display  = 'none';
-    const detEl = document.getElementById('ses-ex-detail');
-    detEl.style.display = 'block';
-    detEl.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:8px 0">Lädt…</div>';
-    const { data } = await db.from('set_log')
-      .select('weight_kg,equipment,total_sets_in_session,set_number,session_date')
-      .eq('exercise_id', item.exercise_id)
-      .order('session_date', { ascending: false });
-    renderSesExDetail(ex, data || [], item);
+  function showTimerState(which) {
+    document.getElementById('timer-active').style.display = which === 'active' ? 'flex'  : 'none';
+    document.getElementById('timer-done').style.display   = which === 'done'   ? 'block' : 'none';
   }
 
-  function renderSesExDetail(ex, logs, item) {
-    const detEl = document.getElementById('ses-ex-detail');
-    const sw    = ex.strength_weights || [];
-    const fromLogs = [...new Set(logs.map(r => r.equipment).filter(Boolean))];
-    const fromSW   = sw.map(w => w.type);
-    const allEq    = [...new Set([...fromLogs, ...fromSW])];
-
-    const prRows = allEq.length ? allEq.map(eq => {
-      const pr    = sw.find(w => w.type === eq)?.personal_record ?? null;
-      const label = DET_WL_LABELS[eq] || eq;
-      if (sesExPREditing === eq) {
-        return `<div class="ses-pr-row">
-          <span class="ses-pr-eq">${label}</span>
-          <input class="form-input det-pr-input" type="number" step="0.5" inputmode="decimal" id="ses-pr-inp-${eq}" value="${pr ?? ''}">
-          <button type="button" class="det-pr-save" data-eq="${eq}">✓</button>
-        </div>`;
-      }
-      if (pr != null) {
-        return `<div class="ses-pr-row">
-          <span class="ses-pr-eq">${label}</span>
-          <span class="ses-pr-val">PR: ${pr} kg</span>
-          <button type="button" class="det-pr-edit" data-eq="${eq}" title="Manuell setzen">✎</button>
-        </div>`;
-      }
-      return `<div class="ses-pr-row">
-        <span class="ses-pr-eq">${label}</span>
-        <span class="ses-pr-val" style="color:var(--muted)">PR: —</span>
-        <button type="button" class="ses-pr-add" data-eq="${eq}">+ Add PR</button>
-      </div>`;
-    }).join('') : `<div style="color:var(--muted);font-size:13px;padding:8px 0">Kein Equipment erfasst.</div>`;
-
-    const lastLog = logs.find(r => r.set_number === 1 && r.total_sets_in_session === item.sets);
-    const lastStr = lastLog?.weight_kg != null ? `${lastLog.weight_kg} kg` : '—';
-
-    detEl.innerHTML = `
-      <button type="button" class="ses-ex-back" id="ses-ex-back-btn">← Zurück</button>
-      <div class="ses-ex-title">${ex.name}</div>
-      <div>${prRows}</div>
-      <div class="ses-last-row">Last (${item.sets} Sätze): <strong style="color:var(--text)">${lastStr}</strong></div>`;
-
-    detEl.querySelector('#ses-ex-back-btn').addEventListener('click', () => {
-      detEl.style.display = 'none';
-      document.getElementById('ses-overview').style.display = 'block';
+  // ── Plan: Session-Detailansicht ───────────────────────
+  async function openPlanDetail(ses) {
+    if (!ses) return;
+    planDetailSes  = ses;
+    detailExSkip   = new Set();
+    detailExSets   = {};
+    planDetailLogs = {};
+    (ses.exercise_ids||[]).forEach(cfg => {
+      const id   = typeof cfg === 'string' ? cfg : cfg.exercise_id;
+      const sets = typeof cfg === 'object' ? (cfg.sets||3) : 3;
+      detailExSets[id] = sets;
     });
-    detEl.querySelectorAll('.det-pr-edit').forEach(btn =>
-      btn.addEventListener('click', () => { sesExPREditing = btn.dataset.eq; renderSesExDetail(ex, logs, item); })
+    document.getElementById('plan-detail-title').textContent = ses.title || cap(ses.dup_mode);
+    const isFlex = ses.dup_mode === 'flexibility';
+    const meta   = isFlex ? 'Flexibility'
+      : ses.dup_mode === 'kraft' ? `Pause: ${ses.rest_seconds}s`
+      : `${ses.work_seconds}s Arbeit · ${ses.rest_seconds}s Pause`;
+    document.getElementById('plan-detail-meta').textContent = meta;
+    document.getElementById('plan-detail-body').innerHTML   = '<div style="color:var(--muted);font-size:13px;padding:8px 0">Lädt…</div>';
+    showPlanSub('detail');
+    const exIds = (ses.exercise_ids||[]).map(cfg => typeof cfg === 'string' ? cfg : cfg.exercise_id);
+    if (exIds.length) {
+      const { data } = await db.from('set_log')
+        .select('exercise_id,weight_kg,equipment,total_sets_in_session,set_number,session_date')
+        .in('exercise_id', exIds)
+        .order('session_date', { ascending: false });
+      (data||[]).forEach(row => {
+        if (!planDetailLogs[row.exercise_id]) planDetailLogs[row.exercise_id] = [];
+        planDetailLogs[row.exercise_id].push(row);
+      });
+    }
+    renderDetailBody();
+  }
+
+  function renderDetailBody() {
+    const ses    = planDetailSes;
+    const isFlex = ses.dup_mode === 'flexibility';
+    const items  = (ses.exercise_ids||[]).map(cfg => ({
+      exercise_id: typeof cfg === 'string' ? cfg : cfg.exercise_id,
+      sets:        typeof cfg === 'object' ? (cfg.sets||3) : 3,
+    }));
+    const el = document.getElementById('plan-detail-body');
+    if (!items.length) { el.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:8px 0">Keine Übungen.</div>'; return; }
+    el.innerHTML = items.map(item => {
+      const ex      = exercises.find(e => e.id === item.exercise_id);
+      if (!ex) return '';
+      const skipped = detailExSkip.has(item.exercise_id);
+      const curSets = detailExSets[item.exercise_id] ?? item.sets ?? 3;
+      const logs    = planDetailLogs[item.exercise_id] || [];
+      const lastLog = logs.find(r => r.set_number === 1 && r.total_sets_in_session === curSets);
+      const lastStr = lastLog?.weight_kg != null ? `Last: ${lastLog.weight_kg}kg` : '';
+      const sw      = ex.strength_weights || [];
+      const pr      = [...new Set(logs.map(r => r.equipment).filter(Boolean))]
+        .map(eq => sw.find(w => w.type === eq)?.personal_record)
+        .find(v => v != null);
+      const sub = [lastStr, pr != null ? `PR: ${pr}kg` : ''].filter(Boolean).join(' · ');
+      return `<div class="det-ex-row${skipped?' det-ex-skipped':''}">
+        <div class="det-ex-check${skipped?'':' on'}" data-id="${item.exercise_id}">${skipped?'':'✓'}</div>
+        <div class="det-ex-info">
+          <div class="det-ex-name">${ex.name}</div>
+          ${sub ? `<div class="det-ex-sub">${sub}</div>` : ''}
+        </div>
+        ${isFlex ? '' : `<div class="det-ex-stepper">
+          <button type="button" class="det-step-btn" data-id="${item.exercise_id}" data-act="minus">−</button>
+          <span class="det-step-val">${curSets}</span>
+          <button type="button" class="det-step-btn" data-id="${item.exercise_id}" data-act="plus">+</button>
+        </div>`}
+      </div>`;
+    }).join('');
+    el.querySelectorAll('.det-ex-check').forEach(chk =>
+      chk.addEventListener('click', () => {
+        const id = chk.dataset.id;
+        if (detailExSkip.has(id)) detailExSkip.delete(id); else detailExSkip.add(id);
+        renderDetailBody();
+      })
     );
-    detEl.querySelectorAll('.ses-pr-add').forEach(btn =>
-      btn.addEventListener('click', () => { sesExPREditing = btn.dataset.eq; renderSesExDetail(ex, logs, item); })
-    );
-    detEl.querySelectorAll('.det-pr-save').forEach(btn =>
-      btn.addEventListener('click', () => saveSesExPROverride(btn.dataset.eq, ex, logs, item))
+    el.querySelectorAll('.det-step-btn').forEach(btn =>
+      btn.addEventListener('click', () => {
+        const id  = btn.dataset.id;
+        const cur = detailExSets[id] ?? 3;
+        detailExSets[id] = btn.dataset.act === 'plus' ? Math.min(10, cur+1) : Math.max(1, cur-1);
+        renderDetailBody();
+      })
     );
   }
 
-  async function saveSesExPROverride(eq, ex, logs, item) {
-    const val = parseFloat(document.getElementById(`ses-pr-inp-${eq}`)?.value);
-    if (isNaN(val) || val <= 0) { sesExPREditing = null; renderSesExDetail(ex, logs, item); return; }
-    const weights = (ex.strength_weights || []).map(w => ({...w}));
-    const entry   = weights.find(w => w.type === eq);
-    if (entry) { entry.personal_record = val; }
-    else       { weights.push({ type: eq, working_weight: null, personal_record: val }); }
-    const { error } = await db.from('exercises').update({ strength_weights: weights }).eq('id', ex.id);
-    if (error) { toast('Fehler beim Speichern'); return; }
-    const local = exercises.find(e => e.id === ex.id);
-    if (local) local.strength_weights = weights;
-    ex.strength_weights = weights;
-    sesExPREditing = null;
-    renderSesExDetail(ex, logs, item);
-    toast('PR gespeichert');
-  }
+  document.getElementById('plan-detail-back')?.addEventListener('click', () => showPlanSub('week'));
+  document.getElementById('plan-detail-edit')?.addEventListener('click', () => {
+    if (planDetailSes) openSessionModal(planDetailSes);
+  });
+  document.getElementById('plan-detail-start')?.addEventListener('click', launchTimer);
 
-  function enterSesViewMode(ses) {
-    document.getElementById('session-modal-title').textContent = ses.title || cap(ses.dup_mode);
-    document.getElementById('ses-btn-edit').style.display    = 'inline';
-    document.getElementById('ses-overview').style.display    = 'block';
-    document.getElementById('ses-ex-detail').style.display   = 'none';
-    document.getElementById('session-form').style.display    = 'none';
-    document.getElementById('ses-btn-delete').style.display  = 'none';
-    renderSesOverview(ses);
-  }
+  // ── Session Modal ──────────────────────────────────────
+  const SW_LABELS = { barbell:'BB', dumbbell_1x:'DB 1x', dumbbell_2x:'DB 2x', kettlebell_1x:'KB 1x', kettlebell_2x:'KB 2x' };
 
   function enterSesEditMode() {
     document.getElementById('session-modal-title').textContent = editingSessionId ? 'Session bearbeiten' : 'Neue Session';
-    document.getElementById('ses-btn-edit').style.display    = 'none';
-    document.getElementById('ses-overview').style.display    = 'none';
-    document.getElementById('ses-ex-detail').style.display   = 'none';
-    document.getElementById('session-form').style.display    = 'block';
-    document.getElementById('ses-btn-delete').style.display  = editingSessionId ? 'block' : 'none';
+    document.getElementById('session-form').style.display      = 'block';
+    document.getElementById('ses-btn-delete').style.display    = editingSessionId ? 'block' : 'none';
   }
 
   function openSessionModal(ses = null, preDay = null) {
@@ -1487,11 +1496,9 @@
     updateSesModeUI();
     renderSesPool('');
     renderSesSelected();
-    if (ses) { enterSesViewMode(ses); } else { enterSesEditMode(); }
+    enterSesEditMode();
     document.getElementById('session-overlay').classList.add('open');
   }
-
-  document.getElementById('ses-btn-edit').addEventListener('click', enterSesEditMode);
 
   function updateSesModeUI() {
     const mode = document.querySelector('.t-toggle[data-sesmode].on')?.dataset.sesmode;
@@ -1716,8 +1723,8 @@
     renderPlan();
     render();
     const saved = sessions.find(s => s.id === savedId);
-    if (saved) { enterSesViewMode(saved); return; }
     closeSessionModal();
+    if (saved && planDetailSes) { openPlanDetail(saved); }
   }
 
   async function deleteSession() {
@@ -1732,18 +1739,14 @@
 
   function closeSessionModal() {
     document.getElementById('session-overlay').classList.remove('open');
-    editingSessionId  = null;
-    sesSelectedIds    = [];
-    sesViewSes        = null;
-    sesExDetailItem   = null;
-    sesExPREditing    = null;
+    editingSessionId = null;
+    sesSelectedIds   = [];
   }
 
   // ═══════════════════════════════════════════════════════
-  // MODUL 3 – Timer
+  // MODUL 3 – Timer (lebt in plan-view)
   // ═══════════════════════════════════════════════════════
   let tSession     = null;
-  let selIds       = new Set();
   let skippedExIds = [];
   let doneExIds    = new Set();
   let tMode, tWeek, tExercises, exIdx, setIdx, phase;
@@ -1913,11 +1916,6 @@
     } catch(e) {}
   }
 
-  const timerSelect = document.getElementById('timer-select');
-  const timerActive = document.getElementById('timer-active');
-  const timerDone   = document.getElementById('timer-done');
-  const selInfo     = document.getElementById('sel-info');
-  const selListEl   = document.getElementById('sel-list');
   const taModeLbl   = document.getElementById('ta-mode-label');
   const taCounter   = document.getElementById('ta-counter');
   const taImg       = document.getElementById('ta-img');
@@ -1931,128 +1929,36 @@
   const taMain      = document.getElementById('ta-main');
   const doneMeta    = document.getElementById('done-meta');
 
-  function showTimerSub(which) {
-    timerSelect.style.display = which==='select' ? 'block' : 'none';
-    timerActive.style.display = which==='active' ? 'flex' : 'none';
-    timerDone.style.display   = which==='done'   ? 'block' : 'none';
-  }
-
-  async function loadAppState() {
-    const { data } = await db.from('app_state').select('*').limit(1).single();
-    if (data) appState = data;
-  }
-
-  function applyWeekBState() {
-    const enabled = !!appState.week_b_enabled;
-    const toggle  = document.getElementById('week-b-toggle');
-    if (toggle) toggle.checked = enabled;
-    const btnB = document.querySelector('.plan-week-btn[data-week="B"]');
-    if (!btnB) return;
-    if (enabled) {
-      btnB.classList.remove('hidden');
-    } else {
-      btnB.classList.add('hidden');
-      if (planWeek === 'B') {
-        planWeek = 'A';
-        document.querySelectorAll('.plan-week-btn').forEach(b => b.classList.remove('active'));
-        document.querySelector('.plan-week-btn[data-week="A"]').classList.add('active');
-      }
-    }
-  }
-
-  document.getElementById('week-b-toggle')?.addEventListener('change', async function() {
-    const enabled = this.checked;
-    appState.week_b_enabled = enabled;
-    if (appState.id) await db.from('app_state').update({ week_b_enabled: enabled }).eq('id', appState.id);
-    applyWeekBState();
-    renderPlan();
-  });
-
-  async function openTimerSelect() {
-    await loadAppState();
-    await loadSessions();
-    const rawWeek = appState.current_week || 'A';
-    tWeek = (!appState.week_b_enabled && rawWeek === 'B') ? 'A' : rawWeek;
-    tSession = null;
-    selIds = new Set();
-    const lbl = document.getElementById('sel-week-label');
-    lbl.textContent = `Woche ${tWeek}`;
-    lbl.style.color = tWeek==='A' ? 'var(--kraft)' : 'var(--hyper)';
-    renderTimerSessionList();
-    document.getElementById('sel-sessions-list').style.display = 'block';
-    document.getElementById('sel-exercises-container').style.display = 'none';
-    showTimerSub('select');
-  }
-
-  function renderTimerSessionList() {
-    const weekSessions = sessions.filter(s => s.week === tWeek);
-    let html = '';
-    DAYS.forEach(day => {
-      const ds = weekSessions.filter(s => s.weekday === day);
-      if (!ds.length) return;
-      html += `<div class="sel-day-header">${DAY_LABELS[day]}</div>`;
-      html += ds.map(s => {
-        const exCount = (s.exercise_ids||[]).length;
-        const timeStr = s.dup_mode==='flexibility' ? 'Flexibility' : `${s.work_seconds||'?'}s / ${s.rest_seconds||'?'}s`;
-        return `<div class="sel-session-item" data-id="${s.id}">
-          <div>
-            <div class="sel-session-title">${s.title || cap(s.dup_mode)}</div>
-            <div class="sel-session-meta">${exCount} Übungen · ${timeStr}</div>
-          </div>
-          <span class="session-mode-badge mode-${s.dup_mode}">${cap(s.dup_mode)}</span>
-        </div>`;
-      }).join('');
-    });
-    if (!html) html = `<div class="sel-empty">Keine Sessions für Woche ${tWeek}.<br>Im Wochenplan anlegen.</div>`;
-    document.getElementById('sel-sessions-list').innerHTML = html;
-    document.querySelectorAll('.sel-session-item').forEach(item =>
-      item.addEventListener('click', () => selectSession(sessions.find(s=>s.id===item.dataset.id))));
-  }
-
-  function selectSession(ses) {
+  function startTrainingDirect(ses) {
     if (!ses) return;
+    planDetailSes = ses;
+    detailExSkip  = new Set();
+    detailExSets  = {};
+    (ses.exercise_ids||[]).forEach(cfg => {
+      const id   = typeof cfg === 'string' ? cfg : cfg.exercise_id;
+      const sets = typeof cfg === 'object' ? (cfg.sets||3) : 3;
+      detailExSets[id] = sets;
+    });
+    launchTimer();
+  }
+
+  async function launchTimer() {
+    const ses = planDetailSes;
+    if (!ses) return;
+    await loadAppState();
+    const rawWeek = appState.current_week || 'A';
+    tWeek    = (!appState.week_b_enabled && rawWeek === 'B') ? 'A' : rawWeek;
     tSession = ses;
     tMode    = ses.dup_mode;
+    getAudioCtx().resume();
     const pool = (ses.exercise_ids||[]).map(cfg => {
       const id   = typeof cfg === 'string' ? cfg : cfg.exercise_id;
-      const sets = typeof cfg === 'object' ? (cfg.sets || 3) : 3;
+      const sets = detailExSets[id] ?? (typeof cfg === 'object' ? (cfg.sets||3) : 3);
       const ex   = exercises.find(e => e.id === id);
       return ex ? { ...ex, _sets: sets } : null;
     }).filter(Boolean);
-    selIds = new Set(pool.map(e=>e.id));
-    const isFlex = tMode === 'flexibility';
-    const timeStr = isFlex ? '' : ` · ${ses.work_seconds||'?'}s / ${ses.rest_seconds||'?'}s`;
-    selInfo.innerHTML = `<div class="sel-info-mode" style="color:var(--${isFlex?'flex':tMode})">${ses.title||cap(tMode)}</div><div class="sel-info-meta">${pool.length} Übungen${timeStr}</div>`;
-    selListEl.innerHTML = pool.map(e =>
-      `<div class="sel-exercise-item on" data-id="${e.id}"><div class="sel-check">✓</div><div class="sel-ex-name">${e.name}</div></div>`
-    ).join('');
-    selListEl.querySelectorAll('.sel-exercise-item').forEach(item => {
-      item.addEventListener('click', () => {
-        const id = item.dataset.id;
-        if (selIds.has(id)) { selIds.delete(id); item.classList.remove('on'); item.querySelector('.sel-check').textContent=''; }
-        else                { selIds.add(id);    item.classList.add('on');    item.querySelector('.sel-check').textContent='✓'; }
-      });
-    });
-    document.getElementById('sel-sessions-list').style.display = 'none';
-    document.getElementById('sel-exercises-container').style.display = 'block';
-  }
-
-  document.getElementById('btn-back-sessions').addEventListener('click', () => {
-    tSession = null;
-    document.getElementById('sel-sessions-list').style.display = 'block';
-    document.getElementById('sel-exercises-container').style.display = 'none';
-  });
-
-  document.getElementById('btn-start').addEventListener('click', async () => {
-    getAudioCtx().resume();
-    const pool = (tSession.exercise_ids||[]).map(cfg => {
-      const id   = typeof cfg === 'string' ? cfg : cfg.exercise_id;
-      const sets = typeof cfg === 'object' ? (cfg.sets || 3) : 3;
-      const ex   = exercises.find(e => e.id === id);
-      return ex ? { ...ex, _sets: sets } : null;
-    }).filter(Boolean);
-    tExercises   = pool.filter(e => selIds.has(e.id));
-    skippedExIds = pool.filter(e => !selIds.has(e.id)).map(e => e.id);
+    tExercises   = pool.filter(e => !detailExSkip.has(e.id));
+    skippedExIds = pool.filter(e =>  detailExSkip.has(e.id)).map(e => e.id);
     doneExIds    = new Set();
     if (!tExercises.length) { toast('Keine Übungen ausgewählt'); return; }
     exIdx = 0; setIdx = 0;
@@ -2060,15 +1966,16 @@
       if (!gifRows) return;
       const gifMap = Object.fromEntries(gifRows.map(r => [r.id, r.gif_base64]));
       tExercises = tExercises.map(e => ({ ...e, gif_base64: gifMap[e.id] ?? null }));
-      if (taImg) updateExDisplay();
+      updateExDisplay();
     });
     sessionStart = Date.now();
-    taModeLbl.textContent = tSession.title || `${cap(tMode)} · ${tWeek}`;
-    ringFill.style.stroke  = `var(--${tMode==='flexibility'?'flex':tMode})`;
+    taModeLbl.textContent = ses.title || `${cap(tMode)} · ${tWeek}`;
+    ringFill.style.stroke = `var(--${tMode==='flexibility'?'flex':tMode})`;
     resetTimerUI();
-    showTimerSub('active');
+    showPlanSub('timer');
+    showTimerState('active');
     startExercise();
-  });
+  }
 
   function resetTimerUI() {
     document.getElementById('ta-work-layout').style.display  = 'flex';
@@ -2331,12 +2238,9 @@
   });
 
   document.getElementById('ta-exit').addEventListener('click', () => {
-    if (rafId) { cancelAnimationFrame(rafId); rafId=null; }
+    if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
     resetTimerUI();
-    document.getElementById('sel-sessions-list').style.display = 'block';
-    document.getElementById('sel-exercises-container').style.display = 'none';
-    tSession = null;
-    showTimerSub('select');
+    if (planDetailSes) { showPlanSub('detail'); } else { showPlanSub('week'); }
   });
 
   function showDone() {
@@ -2348,7 +2252,7 @@
       : tExercises.length * DUP_CFG[tMode].sets;
     doneMeta.innerHTML = `${tSession?.title||cap(tMode)} · Woche ${tWeek}<br>${tExercises.length} Übungen · ${sets} ${isFlex?'Exercises':'Sätze'} · ${mins} Min.`;
     resetTimerUI();
-    showTimerSub('done');
+    showTimerState('done');
   }
 
   document.getElementById('btn-save-session').addEventListener('click', async () => {
@@ -2367,23 +2271,17 @@
     Object.assign(appState, patch);
     if (appState.id) await db.from('app_state').update(patch).eq('id', appState.id);
     toast('Training gespeichert');
-    goHome();
+    tSession = null;
+    await loadSessions();
+    renderPlan();
+    showPlanSub('week');
   });
 
   document.getElementById('btn-discard').addEventListener('click', () => {
-    if (rafId) { cancelAnimationFrame(rafId); rafId=null; }
+    if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
     resetTimerUI();
-    goHome();
+    if (planDetailSes) { showPlanSub('detail'); } else { showPlanSub('week'); }
   });
-
-  function goHome() {
-    tSession = null;
-    selIds = new Set();
-    document.querySelectorAll('.view').forEach(v=>v.classList.add('hidden'));
-    document.getElementById('library-view').classList.remove('hidden');
-    document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-    document.querySelector('.nav-btn[data-view="library-view"]').classList.add('active');
-  }
 
   // ── Ring / time helpers ───────────────────────────────
   function setRing(progress) {
