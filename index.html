@@ -439,10 +439,13 @@
     .ses-ov-meta { font-size: 12px; color: var(--muted); }
 
     /* ── Übungsdetail ── */
-    .det-w-row { display:grid; grid-template-columns:78px 1fr 1fr 28px; align-items:center; gap:6px; margin-bottom:8px; }
-    .det-w-label { font-size:12px; font-weight:600; color:var(--muted); }
-    .det-w-remove { background:var(--border); border:none; color:var(--muted); border-radius:6px; width:28px; height:28px; font-size:15px; cursor:pointer; display:flex; align-items:center; justify-content:center; -webkit-tap-highlight-color:transparent; }
-    .det-add-btn { width:100%; padding:9px; background:transparent; border:1px dashed var(--border); color:var(--muted); border-radius:10px; font-family:'DM Sans',sans-serif; font-size:13px; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+    .det-pr-row { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px; }
+    .det-pr-badge { display:flex; align-items:center; gap:6px; background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:8px 12px; font-size:13px; }
+    .det-pr-name { font-weight:600; color:var(--muted); }
+    .det-pr-val { font-weight:700; color:var(--text); }
+    .det-pr-edit { background:none; border:none; color:var(--muted); cursor:pointer; font-size:14px; padding:0 2px; line-height:1; -webkit-tap-highlight-color:transparent; }
+    .det-pr-input { width:70px; }
+    .det-pr-save { background:var(--border); border:none; color:var(--text); border-radius:6px; padding:3px 8px; font-size:12px; cursor:pointer; font-family:'DM Sans',sans-serif; }
     .det-more-btn { width:100%; padding:10px; background:transparent; border:1px solid var(--border); color:var(--muted); border-radius:10px; font-family:'DM Sans',sans-serif; font-size:13px; cursor:pointer; margin-top:10px; -webkit-tap-highlight-color:transparent; }
     .det-group { margin-bottom:16px; }
     .det-group-header { font-size:12px; font-weight:700; color:var(--muted); margin-bottom:6px; }
@@ -602,16 +605,7 @@
       </div>
     </div>
     <!-- A: Gewichte -->
-    <div class="form-group">
-      <label class="form-label">Gewichte</label>
-      <div id="det-weight-rows"></div>
-      <div id="det-eq-picker" style="display:none;margin-top:8px">
-        <div class="tag-group" id="det-eq-picker-btns"></div>
-      </div>
-      <button type="button" class="det-add-btn" id="det-add-weight" style="margin-top:8px">+ Equipment hinzufügen</button>
-      <button type="button" class="btn-primary" id="det-save-weights" style="margin-top:10px">Gewichte speichern</button>
-    </div>
-    <!-- B: Trainingshistorie -->
+    <div id="det-pr-section"></div>
     <hr class="det-history-sep">
     <div class="form-group">
       <label class="form-label">Trainingshistorie</label>
@@ -873,8 +867,8 @@
   let sesRegion        = 'alle';
 
   let detExercise  = null;
-  let detWeights   = [];
   let detAllLogs   = [];
+  let detPREditing = null;
   let detFilterTot = 'alle';
   let detGroupPage = 0;
 
@@ -943,16 +937,15 @@
 
   async function openDetailModal(ex) {
     detExercise  = ex;
-    detWeights   = (ex.strength_weights || []).map(w => ({...w}));
     detAllLogs   = [];
     detFilterTot = 'alle';
     detGroupPage = 0;
+    detPREditing = null;
     document.getElementById('det-name').textContent = ex.name;
+    document.getElementById('det-pr-section').innerHTML = '';
     document.getElementById('det-history-body').innerHTML = '<div style="color:var(--muted);font-size:13px">Lädt…</div>';
     document.getElementById('det-load-more').style.display = 'none';
     document.getElementById('det-filter-select').innerHTML = '<option value="alle">Alle Sätze</option>';
-    document.getElementById('det-eq-picker').style.display = 'none';
-    renderDetWeights();
     document.getElementById('detail-overlay').classList.add('open');
     const { data } = await db.from('set_log')
       .select('set_number,total_sets_in_session,weight_kg,reps,rir,equipment,session_date,session_id,sessions(dup_mode,weekday)')
@@ -960,33 +953,57 @@
       .order('session_date', { ascending: false })
       .order('set_number');
     detAllLogs = data || [];
+    renderDetPR();
     renderDetFilter();
     renderDetHistory();
   }
 
-  function renderDetWeights() {
-    const el = document.getElementById('det-weight-rows');
-    if (!detWeights.length) {
-      el.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:4px 0 8px">Keine Gewichte gespeichert.</div>';
-    } else {
-      el.innerHTML = detWeights.map((w, idx) => `<div class="det-w-row">
-        <span class="det-w-label">${DET_EQ_LABELS[w.type]||w.type}</span>
-        <input class="form-input weight-input" type="number" step="0.5" inputmode="decimal" placeholder="Arbeit kg" value="${w.working_weight||''}" data-widx="${idx}" data-wf="working_weight">
-        <input class="form-input weight-input" type="number" step="0.5" inputmode="decimal" placeholder="PR kg" value="${w.personal_record||''}" data-widx="${idx}" data-wf="personal_record">
-        <button type="button" class="det-w-remove" data-widx="${idx}">×</button>
-      </div>`).join('');
-      el.querySelectorAll('input[data-widx]').forEach(inp => inp.addEventListener('change', () => {
-        const val = parseFloat(inp.value);
-        detWeights[parseInt(inp.dataset.widx)][inp.dataset.wf] = isNaN(val) ? null : val;
-      }));
-      el.querySelectorAll('.det-w-remove').forEach(btn => btn.addEventListener('click', () => {
-        detWeights.splice(parseInt(btn.dataset.widx), 1);
-        document.getElementById('det-eq-picker').style.display = 'none';
-        renderDetWeights();
-      }));
-    }
-    const used = new Set(detWeights.map(w => w.type));
-    document.getElementById('det-add-weight').style.display = DET_EQ_TYPES.some(t => !used.has(t)) ? 'block' : 'none';
+  function renderDetPR() {
+    const el = document.getElementById('det-pr-section');
+    const eqTypes = [...new Set(detAllLogs.map(r => r.equipment).filter(Boolean))];
+    if (!eqTypes.length) { el.innerHTML = ''; return; }
+    const weights = detExercise.strength_weights || [];
+    el.innerHTML = '<div class="det-pr-row">' + eqTypes.map(eq => {
+      const sw  = weights.find(w => w.type === eq);
+      const pr  = sw?.personal_record ?? null;
+      const max = Math.max(0, ...detAllLogs.filter(r => r.equipment === eq && r.weight_kg != null).map(r => r.weight_kg));
+      const isManual = pr != null && max > 0 && pr > max;
+      if (detPREditing === eq) {
+        return `<div class="det-pr-badge">
+          <span class="det-pr-name">${DET_WL_LABELS[eq]||eq} – PR:</span>
+          <input class="form-input det-pr-input" type="number" step="0.5" inputmode="decimal" id="det-pr-inp-${eq}" value="${pr ?? ''}">
+          <button type="button" class="det-pr-save" data-eq="${eq}">✓</button>
+        </div>`;
+      }
+      return `<div class="det-pr-badge">
+        <span class="det-pr-name">${DET_WL_LABELS[eq]||eq} – PR:</span>
+        <span class="det-pr-val">${pr != null ? pr+' kg' : '—'}</span>
+        ${isManual ? `<button type="button" class="det-pr-edit" data-eq="${eq}" title="Manuell gesetzt">✎</button>` : ''}
+      </div>`;
+    }).join('') + '</div>';
+    el.querySelectorAll('.det-pr-edit').forEach(btn =>
+      btn.addEventListener('click', () => { detPREditing = btn.dataset.eq; renderDetPR(); })
+    );
+    el.querySelectorAll('.det-pr-save').forEach(btn =>
+      btn.addEventListener('click', () => savePROverride(btn.dataset.eq))
+    );
+  }
+
+  async function savePROverride(eq) {
+    const val = parseFloat(document.getElementById(`det-pr-inp-${eq}`)?.value);
+    if (isNaN(val) || val <= 0) { detPREditing = null; renderDetPR(); return; }
+    const weights = (detExercise.strength_weights || []).map(w => ({...w}));
+    const entry   = weights.find(w => w.type === eq);
+    if (entry) { entry.personal_record = val; }
+    else       { weights.push({ type: eq, working_weight: null, personal_record: val }); }
+    const { error } = await db.from('exercises').update({ strength_weights: weights }).eq('id', detExercise.id);
+    if (error) { toast('Fehler beim Speichern'); return; }
+    const local = exercises.find(e => e.id === detExercise.id);
+    if (local) local.strength_weights = weights;
+    detExercise.strength_weights = weights;
+    detPREditing = null;
+    renderDetPR();
+    toast('PR gespeichert');
   }
 
   function renderDetFilter() {
@@ -1050,31 +1067,6 @@
   document.getElementById('det-btn-edit').addEventListener('click', () => {
     document.getElementById('detail-overlay').classList.remove('open');
     openModal(detExercise);
-  });
-  document.getElementById('det-add-weight').addEventListener('click', () => {
-    const picker = document.getElementById('det-eq-picker');
-    const used   = new Set(detWeights.map(w => w.type));
-    document.getElementById('det-eq-picker-btns').innerHTML = DET_EQ_TYPES
-      .filter(t => !used.has(t))
-      .map(t => `<button type="button" class="filter-tab" data-eqtype="${t}">${DET_EQ_LABELS[t]}</button>`)
-      .join('');
-    document.querySelectorAll('#det-eq-picker-btns [data-eqtype]').forEach(btn =>
-      btn.addEventListener('click', () => {
-        detWeights.push({ type: btn.dataset.eqtype, working_weight: null, personal_record: null });
-        picker.style.display = 'none';
-        renderDetWeights();
-      })
-    );
-    picker.style.display = picker.style.display === 'none' ? 'block' : 'none';
-  });
-  document.getElementById('det-save-weights').addEventListener('click', async () => {
-    const weights = detWeights.filter(w => w.working_weight || w.personal_record);
-    const { error } = await db.from('exercises').update({ strength_weights: weights.length ? weights : null }).eq('id', detExercise.id);
-    if (error) { toast('Fehler beim Speichern'); return; }
-    const local = exercises.find(e => e.id === detExercise.id);
-    if (local) local.strength_weights = weights.length ? weights : null;
-    detExercise.strength_weights = weights.length ? weights : null;
-    toast('Gewichte gespeichert');
   });
   document.getElementById('det-filter-select').addEventListener('change', e => {
     detFilterTot = e.target.value; detGroupPage = 0; renderDetHistory();
@@ -1736,6 +1728,8 @@
           reps,
           rir:                   slRIR,
           equipment:             eq,
+          dup_mode:              tMode ?? null,
+          week:                  tWeek ?? null,
         });
       }
     });
@@ -1751,6 +1745,8 @@
         reps,
         rir:                   slRIR,
         equipment:             null,
+        dup_mode:              tMode ?? null,
+        week:                  tWeek ?? null,
       });
     }
     if (rows.length) {
@@ -2133,13 +2129,10 @@
     const isFlex = tMode === 'flexibility';
     const sets   = isFlex ? 0 : tMode === 'kraft' ? tExercises.reduce((s,e)=>s+(e._sets||3),0) : tExercises.length * DUP_CFG[tMode].sets;
     const { error } = await db.from('training_log').insert([{
-      date:             new Date().toISOString().split('T')[0],
-      session_type:     tMode,
-      week:             tWeek,
-      exercises_done:    [...doneExIds],
+      date:              new Date().toISOString().split('T')[0],
+      session_id:        tSession?.id ?? null,
       exercises_skipped: skippedExIds,
-      sets_completed:   sets,
-      duration_minutes: mins,
+      duration_minutes:  mins,
     }]);
     if (error) { toast('Fehler beim Speichern'); return; }
     const newWeek = await recalcCurrentWeek();
