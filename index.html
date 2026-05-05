@@ -191,11 +191,6 @@
     }
     .btn-danger:active { background: rgba(224,85,85,.1); }
 
-    /* ── Gewichts-Felder ── */
-    .weight-section { margin-top: 16px; }
-    .weight-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
-    .weight-row-label { font-size: 12px; font-weight: 600; color: var(--muted); width: 62px; flex-shrink: 0; }
-    .weight-input { padding: 10px 12px !important; font-size: 14px !important; }
     .ses-sets-input { width: 44px; background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 4px 0; text-align: center; font-size: 13px; }
     .ta-weight-hint { color: var(--kraft); font-size: 13px; font-weight: 600; text-align: center; padding: 0 16px 4px; letter-spacing: .5px; }
     .satz-progress { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 1px; color: var(--kraft); }
@@ -675,17 +670,6 @@
           <button type="button" class="t-toggle" data-dup="vol">Vol</button>
           <button type="button" class="t-toggle" data-dup="flexibility">Flexibility</button>
         </div>
-        <div class="weight-section" id="weight-section" style="display:none">
-          <label class="form-label" style="margin-top:12px">Gewichte (optional)</label>
-          <div class="tag-group" id="weight-type-select">
-            <button type="button" class="t-toggle" data-wtype="barbell">Barbell</button>
-            <button type="button" class="t-toggle" data-wtype="dumbbell_1x">DB 1x</button>
-            <button type="button" class="t-toggle" data-wtype="dumbbell_2x">DB 2x</button>
-            <button type="button" class="t-toggle" data-wtype="kettlebell_1x">KB 1x</button>
-            <button type="button" class="t-toggle" data-wtype="kettlebell_2x">KB 2x</button>
-          </div>
-          <div id="weight-inputs"></div>
-        </div>
       </div>
       <div class="form-group">
         <label class="form-label">Körperregion</label>
@@ -1114,23 +1098,10 @@
   }
 
   function buildPayload() {
-    const strengthWeights = [];
-    document.querySelectorAll('.t-toggle[data-wtype].on').forEach(b => {
-      const wt = b.dataset.wtype;
-      const ww = document.getElementById(`ww-${wt}`)?.value;
-      const pr = document.getElementById(`pr-${wt}`)?.value;
-      if (ww || pr) {
-        const item = { type: wt };
-        if (ww) item.working_weight = parseFloat(ww);
-        if (pr) item.personal_record = parseFloat(pr);
-        strengthWeights.push(item);
-      }
-    });
     return {
       name:                    inpName.value.trim(),
       gif_base64:              gifBase64,
       dup_modes:               [...document.querySelectorAll('.t-toggle[data-dup].on')].map(b => b.dataset.dup),
-      strength_weights:        strengthWeights.length ? strengthWeights : null,
       body_regions:            [...document.querySelectorAll('.t-toggle[data-region].on')].map(b => b.dataset.region),
       movement_patterns:       [...document.querySelectorAll('.t-toggle[data-movement].on')].map(b => b.dataset.movement),
       muscle_groups_anatomical:[...document.querySelectorAll('.t-toggle[data-anatomical].on')].map(b => b.dataset.anatomical),
@@ -1197,11 +1168,9 @@
     btnDelete.style.display = ex ? 'block' : 'none';
     gifPreview.style.display = 'none'; uploadHint.style.display = 'block'; gifInput.value = '';
     document.querySelectorAll('.t-toggle[data-dup]').forEach(b => b.classList.toggle('on', (ex?.dup_modes??[]).includes(b.dataset.dup)));
-    document.querySelectorAll('.t-toggle[data-wtype]').forEach(b => b.classList.toggle('on', !!(ex?.strength_weights?.find(sw => sw.type === b.dataset.wtype))));
     document.querySelectorAll('.t-toggle[data-region]').forEach(b => b.classList.toggle('on', (ex?.body_regions??[]).includes(b.dataset.region)));
     document.querySelectorAll('.t-toggle[data-movement]').forEach(b => b.classList.toggle('on', (ex?.movement_patterns??[]).includes(b.dataset.movement)));
     document.querySelectorAll('.t-toggle[data-anatomical]').forEach(b => b.classList.toggle('on', (ex?.muscle_groups_anatomical??[]).includes(b.dataset.anatomical)));
-    updateWeightUI();
     overlay.classList.add('open');
     setTimeout(() => inpName.focus(), 120);
     if (ex?.id) {
@@ -1209,24 +1178,6 @@
       gifBase64 = data?.gif_base64 ?? null;
       if (gifBase64) { gifPreview.src = gifBase64; gifPreview.style.display = 'block'; uploadHint.style.display = 'none'; }
     }
-  }
-
-  function updateWeightUI() {
-    const anyNonFlex = [...document.querySelectorAll('.t-toggle[data-dup].on')].some(b => b.dataset.dup !== 'flexibility');
-    document.getElementById('weight-section').style.display = anyNonFlex ? 'block' : 'none';
-    const inputsEl = document.getElementById('weight-inputs');
-    const selected = [...document.querySelectorAll('.t-toggle[data-wtype].on')];
-    if (!selected.length) { inputsEl.innerHTML = ''; return; }
-    const LABELS = { barbell:'Barbell', dumbbell_1x:'DB 1x', dumbbell_2x:'DB 2x', kettlebell_1x:'KB 1x', kettlebell_2x:'KB 2x' };
-    inputsEl.innerHTML = selected.map(b => {
-      const wt = b.dataset.wtype;
-      const sw = (editingEx?.strength_weights || []).find(item => item.type === wt) || {};
-      return `<div class="weight-row">
-        <span class="weight-row-label">${LABELS[wt]||wt}</span>
-        <input class="form-input weight-input" type="number" id="ww-${wt}" placeholder="Arbeit kg" value="${sw.working_weight||''}">
-        <input class="form-input weight-input" type="number" id="pr-${wt}" placeholder="PR kg" value="${sw.personal_record||''}">
-      </div>`;
-    }).join('');
   }
 
   function closeModal() { overlay.classList.remove('open'); editingId = null; editingEx = null; gifBase64 = null; }
@@ -1238,12 +1189,9 @@
   overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
 
   document.querySelectorAll('.t-toggle[data-dup]').forEach(btn => {
-    btn.addEventListener('click', () => { btn.classList.toggle('on'); updateWeightUI(); });
+    btn.addEventListener('click', () => btn.classList.toggle('on'));
   });
-  document.querySelectorAll('.t-toggle[data-wtype]').forEach(btn => {
-    btn.addEventListener('click', () => { btn.classList.toggle('on'); updateWeightUI(); });
-  });
-  document.querySelectorAll('.t-toggle:not([data-dup]):not([data-wtype]):not([data-weekday]):not([data-sesmode])').forEach(btn => {
+  document.querySelectorAll('.t-toggle:not([data-dup]):not([data-weekday]):not([data-sesmode])').forEach(btn => {
     btn.addEventListener('click', () => btn.classList.toggle('on'));
   });
   document.querySelectorAll('.filter-tab').forEach(tab => tab.addEventListener('click', () => {
