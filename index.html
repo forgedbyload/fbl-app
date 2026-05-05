@@ -433,10 +433,19 @@
       cursor: pointer; -webkit-tap-highlight-color: transparent;
     }
     .ses-ov-time { font-size: 12px; color: var(--muted); padding-bottom: 12px; margin-bottom: 4px; border-bottom: 1px solid var(--border); }
-    .ses-ov-row { padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .ses-ov-row { padding: 10px 0; border-bottom: 1px solid var(--border); cursor: pointer; -webkit-tap-highlight-color: transparent; }
     .ses-ov-row:last-child { border-bottom: none; }
+    .ses-ov-row:active { opacity: .6; }
     .ses-ov-name { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
     .ses-ov-meta { font-size: 12px; color: var(--muted); }
+    .ses-ex-back { background: none; border: none; color: var(--muted); font-size: 13px; cursor: pointer; padding: 4px 0 14px; display: block; -webkit-tap-highlight-color: transparent; }
+    .ses-ex-title { font-size: 15px; font-weight: 700; margin-bottom: 16px; }
+    .ses-pr-row { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); gap: 8px; }
+    .ses-pr-row:last-child { border-bottom: none; }
+    .ses-pr-eq { font-size: 13px; font-weight: 600; min-width: 72px; flex-shrink: 0; }
+    .ses-pr-val { flex: 1; font-size: 13px; }
+    .ses-pr-add { font-size: 12px; color: var(--muted); background: none; border: 1px dashed var(--border); border-radius: 6px; padding: 2px 8px; cursor: pointer; font-family: 'DM Sans',sans-serif; -webkit-tap-highlight-color: transparent; }
+    .ses-last-row { padding-top: 14px; font-size: 13px; color: var(--muted); border-top: 1px solid var(--border); margin-top: 4px; }
 
     /* ── Übungsdetail ── */
     .det-pr-row { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px; }
@@ -769,6 +778,7 @@
       </div>
     </div>
     <div id="ses-overview" style="display:none"></div>
+    <div id="ses-ex-detail" style="display:none"></div>
     <form id="session-form" novalidate>
       <div class="form-group">
         <label class="form-label">Wochentag</label>
@@ -869,6 +879,9 @@
   let detExercise  = null;
   let detAllLogs   = [];
   let detPREditing = null;
+  let sesViewSes      = null;
+  let sesExDetailItem = null;
+  let sesExPREditing  = null;
   let detFilterTot = 'alle';
   let detGroupPage = 0;
 
@@ -1321,63 +1334,123 @@
   const SES_REPS  = { kraft:'4–6 Wdh.', hyper:'8–12 Wdh.', vol:'15–20 Wdh.', flexibility:'–' };
   const SW_LABELS = { barbell:'BB', dumbbell_1x:'DB 1x', dumbbell_2x:'DB 2x', kettlebell_1x:'KB 1x', kettlebell_2x:'KB 2x' };
 
-  async function renderSesOverview(ses) {
+  function renderSesOverview(ses) {
+    sesViewSes = ses;
     const mode    = ses.dup_mode;
     const isFlex  = mode === 'flexibility';
     const timeStr = isFlex ? '' : mode === 'kraft'
       ? `Pause: ${ses.rest_seconds}s`
       : `${ses.work_seconds}s Arbeit · ${ses.rest_seconds}s Pause`;
 
-    const el = document.getElementById('ses-overview');
-    el.innerHTML = (timeStr ? `<div class="ses-ov-time">${timeStr}</div>` : '') +
-      '<div style="color:var(--muted);font-size:13px;padding:4px 0">Lädt…</div>';
-
-    const exIds = sesSelectedIds.map(i => i.exercise_id).filter(Boolean);
-    const logsByEx = {};
-    if (exIds.length) {
-      const { data } = await db.from('set_log')
-        .select('exercise_id,weight_kg,equipment,total_sets_in_session,session_date')
-        .in('exercise_id', exIds)
-        .eq('set_number', 1)
-        .order('session_date', { ascending: false });
-      (data || []).forEach(r => {
-        if (!logsByEx[r.exercise_id]) logsByEx[r.exercise_id] = [];
-        logsByEx[r.exercise_id].push(r);
-      });
-    }
-
-    const rows = sesSelectedIds.map(item => {
+    const rows = sesSelectedIds.map((item, idx) => {
       const ex = exercises.find(e => e.id === item.exercise_id);
       if (!ex) return '';
-
-      const logs      = (logsByEx[item.exercise_id] || []).filter(r => r.total_sets_in_session === item.sets);
-      const lastEntry = logs[0];
-      const lastStr   = lastEntry?.weight_kg != null ? `Last: ${lastEntry.weight_kg}kg` : null;
-
-      const eqTypes  = [...new Set(logs.map(r => r.equipment).filter(Boolean))];
-      const sw       = ex.strength_weights || [];
-      const prParts  = eqTypes.map(eq => {
-        const pr = sw.find(w => w.type === eq)?.personal_record;
-        if (pr == null) return null;
-        return eqTypes.length > 1 ? `${SW_LABELS[eq]||eq} PR: ${pr}kg` : `PR: ${pr}kg`;
-      }).filter(Boolean);
-
-      const parts   = [lastStr, ...prParts].filter(Boolean);
-      const infoStr = parts.length ? parts.join(' · ') : '—';
-
-      return `<div class="ses-ov-row">
+      return `<div class="ses-ov-row" data-exidx="${idx}">
         <div class="ses-ov-name">${ex.name}</div>
-        <div class="ses-ov-meta">${item.sets}× ${SES_REPS[mode]||''} · ${infoStr}</div>
+        <div class="ses-ov-meta">${item.sets}× ${SES_REPS[mode]||''}</div>
       </div>`;
     }).join('') || `<div style="color:var(--muted);font-size:13px;padding:8px 0">Keine Übungen.</div>`;
 
+    const el = document.getElementById('ses-overview');
     el.innerHTML = (timeStr ? `<div class="ses-ov-time">${timeStr}</div>` : '') + rows;
+    el.querySelectorAll('.ses-ov-row[data-exidx]').forEach(row =>
+      row.addEventListener('click', () => openSesExDetail(sesSelectedIds[parseInt(row.dataset.exidx)]))
+    );
+  }
+
+  async function openSesExDetail(item) {
+    sesExDetailItem = item;
+    sesExPREditing  = null;
+    const ex = exercises.find(e => e.id === item.exercise_id);
+    if (!ex) return;
+    document.getElementById('ses-overview').style.display  = 'none';
+    const detEl = document.getElementById('ses-ex-detail');
+    detEl.style.display = 'block';
+    detEl.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:8px 0">Lädt…</div>';
+    const { data } = await db.from('set_log')
+      .select('weight_kg,equipment,total_sets_in_session,set_number,session_date')
+      .eq('exercise_id', item.exercise_id)
+      .order('session_date', { ascending: false });
+    renderSesExDetail(ex, data || [], item);
+  }
+
+  function renderSesExDetail(ex, logs, item) {
+    const detEl = document.getElementById('ses-ex-detail');
+    const sw    = ex.strength_weights || [];
+    const fromLogs = [...new Set(logs.map(r => r.equipment).filter(Boolean))];
+    const fromSW   = sw.map(w => w.type);
+    const allEq    = [...new Set([...fromLogs, ...fromSW])];
+
+    const prRows = allEq.length ? allEq.map(eq => {
+      const pr    = sw.find(w => w.type === eq)?.personal_record ?? null;
+      const label = DET_WL_LABELS[eq] || eq;
+      if (sesExPREditing === eq) {
+        return `<div class="ses-pr-row">
+          <span class="ses-pr-eq">${label}</span>
+          <input class="form-input det-pr-input" type="number" step="0.5" inputmode="decimal" id="ses-pr-inp-${eq}" value="${pr ?? ''}">
+          <button type="button" class="det-pr-save" data-eq="${eq}">✓</button>
+        </div>`;
+      }
+      if (pr != null) {
+        return `<div class="ses-pr-row">
+          <span class="ses-pr-eq">${label}</span>
+          <span class="ses-pr-val">PR: ${pr} kg</span>
+          <button type="button" class="det-pr-edit" data-eq="${eq}" title="Manuell setzen">✎</button>
+        </div>`;
+      }
+      return `<div class="ses-pr-row">
+        <span class="ses-pr-eq">${label}</span>
+        <span class="ses-pr-val" style="color:var(--muted)">PR: —</span>
+        <button type="button" class="ses-pr-add" data-eq="${eq}">+ Add PR</button>
+      </div>`;
+    }).join('') : `<div style="color:var(--muted);font-size:13px;padding:8px 0">Kein Equipment erfasst.</div>`;
+
+    const lastLog = logs.find(r => r.set_number === 1 && r.total_sets_in_session === item.sets);
+    const lastStr = lastLog?.weight_kg != null ? `${lastLog.weight_kg} kg` : '—';
+
+    detEl.innerHTML = `
+      <button type="button" class="ses-ex-back" id="ses-ex-back-btn">← Zurück</button>
+      <div class="ses-ex-title">${ex.name}</div>
+      <div>${prRows}</div>
+      <div class="ses-last-row">Last (${item.sets} Sätze): <strong style="color:var(--text)">${lastStr}</strong></div>`;
+
+    detEl.querySelector('#ses-ex-back-btn').addEventListener('click', () => {
+      detEl.style.display = 'none';
+      document.getElementById('ses-overview').style.display = 'block';
+    });
+    detEl.querySelectorAll('.det-pr-edit').forEach(btn =>
+      btn.addEventListener('click', () => { sesExPREditing = btn.dataset.eq; renderSesExDetail(ex, logs, item); })
+    );
+    detEl.querySelectorAll('.ses-pr-add').forEach(btn =>
+      btn.addEventListener('click', () => { sesExPREditing = btn.dataset.eq; renderSesExDetail(ex, logs, item); })
+    );
+    detEl.querySelectorAll('.det-pr-save').forEach(btn =>
+      btn.addEventListener('click', () => saveSesExPROverride(btn.dataset.eq, ex, logs, item))
+    );
+  }
+
+  async function saveSesExPROverride(eq, ex, logs, item) {
+    const val = parseFloat(document.getElementById(`ses-pr-inp-${eq}`)?.value);
+    if (isNaN(val) || val <= 0) { sesExPREditing = null; renderSesExDetail(ex, logs, item); return; }
+    const weights = (ex.strength_weights || []).map(w => ({...w}));
+    const entry   = weights.find(w => w.type === eq);
+    if (entry) { entry.personal_record = val; }
+    else       { weights.push({ type: eq, working_weight: null, personal_record: val }); }
+    const { error } = await db.from('exercises').update({ strength_weights: weights }).eq('id', ex.id);
+    if (error) { toast('Fehler beim Speichern'); return; }
+    const local = exercises.find(e => e.id === ex.id);
+    if (local) local.strength_weights = weights;
+    ex.strength_weights = weights;
+    sesExPREditing = null;
+    renderSesExDetail(ex, logs, item);
+    toast('PR gespeichert');
   }
 
   function enterSesViewMode(ses) {
     document.getElementById('session-modal-title').textContent = ses.title || cap(ses.dup_mode);
     document.getElementById('ses-btn-edit').style.display    = 'inline';
     document.getElementById('ses-overview').style.display    = 'block';
+    document.getElementById('ses-ex-detail').style.display   = 'none';
     document.getElementById('session-form').style.display    = 'none';
     document.getElementById('ses-btn-delete').style.display  = 'none';
     renderSesOverview(ses);
@@ -1387,6 +1460,7 @@
     document.getElementById('session-modal-title').textContent = editingSessionId ? 'Session bearbeiten' : 'Neue Session';
     document.getElementById('ses-btn-edit').style.display    = 'none';
     document.getElementById('ses-overview').style.display    = 'none';
+    document.getElementById('ses-ex-detail').style.display   = 'none';
     document.getElementById('session-form').style.display    = 'block';
     document.getElementById('ses-btn-delete').style.display  = editingSessionId ? 'block' : 'none';
   }
@@ -1657,8 +1731,11 @@
 
   function closeSessionModal() {
     document.getElementById('session-overlay').classList.remove('open');
-    editingSessionId = null;
-    sesSelectedIds = [];
+    editingSessionId  = null;
+    sesSelectedIds    = [];
+    sesViewSes        = null;
+    sesExDetailItem   = null;
+    sesExPREditing    = null;
   }
 
   // ═══════════════════════════════════════════════════════
