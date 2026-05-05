@@ -1871,6 +1871,7 @@
   let tMode, tWeek, tExercises, exIdx, setIdx, phase;
   let tStart, tDuration, tPaused, tPausedRem, rafId, sessionStart;
   let lastBeepSecond = -1;
+  let timerLaunchedAt = 0;
 
   // ── Set-Log state ─────────────────────────────────────
   let slCallback = null;
@@ -2090,10 +2091,13 @@
     sessionStart = Date.now();
     taModeLbl.textContent = ses.title || `${cap(tMode)} · ${tWeek}`;
     ringFill.style.stroke = `var(--${tMode==='flexibility'?'flex':tMode})`;
+    document.getElementById('setlog-overlay').classList.remove('open');
+    slCallback = null;
     resetTimerUI();
     showPlanSub('timer');
     showTimerState('active');
     startExercise();
+    timerLaunchedAt = Date.now();
   }
 
   function resetTimerUI() {
@@ -2355,11 +2359,14 @@
 
   taMain.addEventListener('click', () => {
     if (phase!=='reps') return;
+    if (Date.now() - timerLaunchedAt < 500) return;
     openSetLogModal(() => startPhase('rest', tSession?.rest_seconds ?? DUP_CFG[tMode].restTime));
   });
 
   document.getElementById('ta-exit').addEventListener('click', () => {
     if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+    document.getElementById('setlog-overlay').classList.remove('open');
+    slCallback = null;
     resetTimerUI();
     if (preWorkoutFrom === 'direct') { showPlanSub('week'); }
     else if (planDetailSes) { showPlanSub('detail'); }
@@ -2402,6 +2409,8 @@
 
   document.getElementById('btn-discard').addEventListener('click', () => {
     if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+    document.getElementById('setlog-overlay').classList.remove('open');
+    slCallback = null;
     resetTimerUI();
     if (preWorkoutFrom === 'direct') { showPlanSub('week'); }
     else if (planDetailSes) { showPlanSub('detail'); }
