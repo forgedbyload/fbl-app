@@ -1839,6 +1839,8 @@
 
   async function deleteSession() {
     if (!editingSessionId) return;
+    await db.from('set_log').update({ session_id: null }).eq('session_id', editingSessionId);
+    await db.from('training_log').update({ session_id: null }).eq('session_id', editingSessionId);
     const { error } = await db.from('sessions').delete().eq('id', editingSessionId);
     if (error) { toast('Fehler beim Löschen'); return; }
     toast('Session gelöscht');
