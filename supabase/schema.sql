@@ -59,8 +59,9 @@ create table if not exists sessions (
 
 -- App-State (genau eine Zeile)
 create table if not exists app_state (
-  id            uuid primary key default gen_random_uuid(),
-  current_week  text default 'A'       -- 'A' oder 'B'
+  id              uuid primary key default gen_random_uuid(),
+  current_week    text    default 'A',      -- 'A' oder 'B'
+  week_b_enabled  boolean default false
 );
 
 -- ============================================================
@@ -152,6 +153,9 @@ grant all on table set_log to anon, authenticated;
 -- alter table training_log drop column if exists sets_completed;
 -- alter table training_log add column if not exists session_id uuid references sessions(id);
 -- alter table training_log add column if not exists exercises_skipped uuid[];
+--
+-- Migration: week_b_enabled auf app_state
+-- alter table app_state add column if not exists week_b_enabled boolean default false;
 
 -- ============================================================
 -- Funktion & Trigger: PR auto-update nach set_log insert

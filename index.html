@@ -205,6 +205,25 @@
     }
     .plan-week-btn[data-week="A"].active { background: rgba(200,169,110,.15); border-color: var(--kraft); color: var(--kraft); }
     .plan-week-btn[data-week="B"].active { background: rgba(93,170,176,.15);  border-color: var(--hyper); color: var(--hyper); }
+    .plan-week-btn[data-week="B"].hidden { display: none; }
+    .plan-toggle-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 0 14px; border-bottom: 1px solid var(--border); margin-bottom: 4px;
+    }
+    .plan-toggle-label { font-size: 13px; color: var(--muted); }
+    .toggle-switch { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+      position: absolute; inset: 0; background: var(--border); border-radius: 24px;
+      cursor: pointer; transition: background .2s;
+    }
+    .toggle-slider::before {
+      content: ''; position: absolute; left: 3px; top: 3px;
+      width: 18px; height: 18px; background: var(--muted); border-radius: 50%;
+      transition: transform .2s, background .2s;
+    }
+    .toggle-switch input:checked + .toggle-slider { background: rgba(93,170,176,.25); border: 1px solid var(--hyper); }
+    .toggle-switch input:checked + .toggle-slider::before { transform: translateX(20px); background: var(--hyper); }
     .plan-body { padding: 16px 16px 120px; }
 
     /* ── Sessions im Plan ── */
@@ -515,9 +534,16 @@
 <div id="plan-view" class="view hidden">
   <div class="view-header">
     <h1>Wochenplan</h1>
+    <div class="plan-toggle-row">
+      <span class="plan-toggle-label">Woche B aktivieren</span>
+      <label class="toggle-switch">
+        <input type="checkbox" id="week-b-toggle">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
     <div class="plan-week-switch">
       <button class="plan-week-btn active" data-week="A">Woche A</button>
-      <button class="plan-week-btn" data-week="B">Woche B</button>
+      <button class="plan-week-btn hidden" data-week="B">Woche B</button>
     </div>
   </div>
   <div class="plan-body" id="plan-content"></div>
@@ -882,7 +908,7 @@
   let editingEx      = null;
   let gifBase64      = null;
   let planWeek       = 'A';
-  let appState       = { id: null, current_week: 'A' };
+  let appState       = { id: null, current_week: 'A', week_b_enabled: false };
   let editingSessionId = null;
   let sesSelectedIds   = [];
   let sesRegion        = 'alle';
@@ -934,7 +960,7 @@
       document.getElementById(id)?.classList.remove('hidden');
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      if (id === 'plan-view')  { loadSessions().then(renderPlan); }
+      if (id === 'plan-view')  { loadAppState().then(() => { applyWeekBState(); loadSessions().then(renderPlan); }); }
       if (id === 'timer-view') openTimerSelect();
     });
   });
@@ -1916,10 +1942,37 @@
     if (data) appState = data;
   }
 
+  function applyWeekBState() {
+    const enabled = !!appState.week_b_enabled;
+    const toggle  = document.getElementById('week-b-toggle');
+    if (toggle) toggle.checked = enabled;
+    const btnB = document.querySelector('.plan-week-btn[data-week="B"]');
+    if (!btnB) return;
+    if (enabled) {
+      btnB.classList.remove('hidden');
+    } else {
+      btnB.classList.add('hidden');
+      if (planWeek === 'B') {
+        planWeek = 'A';
+        document.querySelectorAll('.plan-week-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector('.plan-week-btn[data-week="A"]').classList.add('active');
+      }
+    }
+  }
+
+  document.getElementById('week-b-toggle')?.addEventListener('change', async function() {
+    const enabled = this.checked;
+    appState.week_b_enabled = enabled;
+    if (appState.id) await db.from('app_state').update({ week_b_enabled: enabled }).eq('id', appState.id);
+    applyWeekBState();
+    renderPlan();
+  });
+
   async function openTimerSelect() {
     await loadAppState();
     await loadSessions();
-    tWeek = appState.current_week || 'A';
+    const rawWeek = appState.current_week || 'A';
+    tWeek = (!appState.week_b_enabled && rawWeek === 'B') ? 'A' : rawWeek;
     tSession = null;
     selIds = new Set();
     const lbl = document.getElementById('sel-week-label');
