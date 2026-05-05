@@ -1842,9 +1842,11 @@
     const { error } = await db.from('sessions').delete().eq('id', editingSessionId);
     if (error) { toast('Fehler beim Löschen'); return; }
     toast('Session gelöscht');
+    planDetailSes = null;
     closeSessionModal();
     await loadSessions();
     renderPlan();
+    showPlanSub('week');
   }
 
   function closeSessionModal() {
