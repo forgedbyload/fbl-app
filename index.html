@@ -2131,6 +2131,10 @@
     taCounter.textContent = `${exIdx+1} / ${tExercises.length}`;
     if (tMode === 'kraft' || tMode === 'hyper') {
       taDots.innerHTML = `<span class="satz-progress">Satz ${setIdx+1} / ${ex._sets||3}</span>`;
+    } else if (tMode === 'vol') {
+      const ps = exIdx % 2 === 0 ? exIdx : exIdx - 1;
+      const pt = tExercises[ps]?._sets || DUP_CFG.vol.sets;
+      taDots.innerHTML = `<span class="satz-progress">Satz ${setIdx+1} / ${pt}</span>`;
     } else if (tMode !== 'flexibility') {
       taDots.innerHTML = Array.from({length:cfg.sets},(_,i)=>
         `<span class="set-dot${i<setIdx?' done':i===setIdx?' active':''}"></span>`).join('');
@@ -2282,6 +2286,16 @@
   }
 
   function getNextExercise() {
+    if (tMode === 'vol') {
+      const pairStart = exIdx % 2 === 0 ? exIdx : exIdx - 1;
+      const pairTotal = tExercises[pairStart]?._sets || DUP_CFG.vol.sets;
+      const isA       = exIdx % 2 === 0;
+      const hasPair   = pairStart + 1 < tExercises.length;
+      if (isA && hasPair)          return tExercises[pairStart + 1];
+      if (setIdx + 1 < pairTotal)  return tExercises[pairStart];          // B → A next set
+      if (pairStart + 2 < tExercises.length) return tExercises[pairStart + 2]; // next pair
+      return null;
+    }
     const totalSets = (tMode === 'kraft' || tMode === 'hyper') ? (tExercises[exIdx]?._sets || 3) : DUP_CFG[tMode].sets;
     const nextExIdx = (setIdx+1 >= totalSets) ? exIdx+1 : exIdx;
     return nextExIdx < tExercises.length ? tExercises[nextExIdx] : null;
@@ -2308,9 +2322,25 @@
   }
 
   function nextSet() {
+    if (tMode === 'vol') {
+      const pairStart = exIdx % 2 === 0 ? exIdx : exIdx - 1;
+      const pairTotal = tExercises[pairStart]?._sets || DUP_CFG.vol.sets;
+      const isA       = exIdx % 2 === 0;
+      const hasPair   = pairStart + 1 < tExercises.length;
+      if (isA && hasPair) {
+        exIdx = pairStart + 1;                              // A → B (same set)
+      } else {
+        setIdx++;
+        if (setIdx >= pairTotal) { exIdx = pairStart + 2; setIdx = 0; } // pair done → next pair
+        else                     { exIdx = pairStart; }                  // B → A (next set)
+      }
+      if (exIdx >= tExercises.length) { showDone(); return; }
+      startExercise();
+      return;
+    }
     setIdx++;
     const totalSets = (tMode === 'kraft' || tMode === 'hyper') ? (tExercises[exIdx]?._sets || 3) : DUP_CFG[tMode].sets;
-    if (setIdx >= totalSets) { exIdx++; setIdx=0; }
+    if (setIdx >= totalSets) { exIdx++; setIdx = 0; }
     if (exIdx >= tExercises.length) { showDone(); return; }
     startExercise();
   }
