@@ -2118,7 +2118,7 @@
       enterRepsPhase();
       updateWorkHint();
     } else {
-      startPhase('work', tSession?.work_seconds ?? DUP_CFG[tMode].workTime);
+      startPhase('work', tSession?.work_seconds || DUP_CFG[tMode].workTime);
       updateWorkHint();
     }
   }
@@ -2303,7 +2303,7 @@
 
   function onPhaseEnd() {
     if (rafId) { cancelAnimationFrame(rafId); rafId=null; }
-    if (phase==='work') openSetLogModal(() => startPhase('rest', tSession?.rest_seconds ?? DUP_CFG[tMode].restTime));
+    if (phase==='work') openSetLogModal(() => startPhase('rest', tSession?.rest_seconds || DUP_CFG[tMode].restTime));
     else nextSet();
   }
 
@@ -2332,7 +2332,7 @@
 
   taSkip.addEventListener('click', () => {
     if (rafId) { cancelAnimationFrame(rafId); rafId=null; }
-    if (phase==='work') startPhase('rest', tSession?.rest_seconds ?? DUP_CFG[tMode].restTime);
+    if (phase==='work') startPhase('rest', tSession?.rest_seconds || DUP_CFG[tMode].restTime);
     else nextSet();
   });
 
@@ -2360,7 +2360,7 @@
   taMain.addEventListener('click', () => {
     if (phase!=='reps') return;
     if (Date.now() - timerLaunchedAt < 500) return;
-    openSetLogModal(() => startPhase('rest', tSession?.rest_seconds ?? DUP_CFG[tMode].restTime));
+    openSetLogModal(() => startPhase('rest', tSession?.rest_seconds || DUP_CFG[tMode].restTime));
   });
 
   document.getElementById('ta-exit').addEventListener('click', () => {
