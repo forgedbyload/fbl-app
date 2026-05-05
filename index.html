@@ -294,6 +294,10 @@
       cursor: pointer; -webkit-tap-highlight-color: transparent;
     }
     .det-step-val { font-size: 14px; font-weight: 600; min-width: 18px; text-align: center; }
+    .plan-start-row { padding: 12px 0; border-bottom: 1px solid var(--border); }
+    .plan-start-row:last-child { border-bottom: none; }
+    .plan-start-name { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+    .plan-start-weights { font-size: 12px; color: var(--muted); line-height: 1.5; }
 
     /* ── Bias ── */
     .bias-section { margin-top: 24px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; }
@@ -601,6 +605,20 @@
     <div class="plan-detail-body" id="plan-detail-body"></div>
     <div class="plan-detail-footer">
       <button class="btn-primary" id="plan-detail-start">Training starten</button>
+    </div>
+  </div>
+
+  <!-- Sub: Pre-workout Gewichtsübersicht -->
+  <div id="plan-start-sub" style="display:none">
+    <div class="view-header">
+      <div class="plan-detail-nav">
+        <button class="plan-back-btn" id="plan-start-back">←</button>
+        <span class="plan-detail-title" id="plan-start-title"></span>
+      </div>
+    </div>
+    <div class="plan-detail-body" id="plan-start-body"></div>
+    <div class="plan-detail-footer">
+      <button class="btn-primary" id="plan-start-go">Training starten</button>
     </div>
   </div>
 
@@ -1334,7 +1352,9 @@
       if (daySessions.length) {
         html += daySessions.map(s => {
           const exCount = (s.exercise_ids||[]).length;
-          const timeStr = s.dup_mode==='flexibility' ? '' : ` · ${s.work_seconds||'?'}s / ${s.rest_seconds||'?'}s`;
+          const timeStr = s.dup_mode === 'flexibility' ? ''
+            : s.dup_mode === 'kraft' ? ` · Pause: ${s.rest_seconds||'?'}s`
+            : ` · ${s.work_seconds||'?'}s / ${s.rest_seconds||'?'}s`;
           return `<div class="session-card" data-id="${s.id}">
             <div class="session-info">
               <div class="session-title">${s.title || cap(s.dup_mode)}</div>
@@ -1394,10 +1414,11 @@
 
   // ── Plan: Sub-view control ────────────────────────────
   function showPlanSub(sub) {
-    document.getElementById('plan-week-sub').style.display   = sub === 'week'   ? '' : 'none';
-    document.getElementById('plan-detail-sub').style.display = sub === 'detail' ? '' : 'none';
-    document.getElementById('plan-timer-sub').style.display  = sub === 'timer'  ? '' : 'none';
-    document.getElementById('plan-view').style.overflowY     = sub === 'timer'  ? 'hidden' : 'auto';
+    document.getElementById('plan-week-sub').style.display    = sub === 'week'   ? '' : 'none';
+    document.getElementById('plan-detail-sub').style.display  = sub === 'detail' ? '' : 'none';
+    document.getElementById('plan-start-sub').style.display   = sub === 'start'  ? '' : 'none';
+    document.getElementById('plan-timer-sub').style.display   = sub === 'timer'  ? '' : 'none';
+    document.getElementById('plan-view').style.overflowY      = sub === 'timer'  ? 'hidden' : 'auto';
   }
 
   function showTimerState(which) {
@@ -1454,13 +1475,16 @@
       const skipped = detailExSkip.has(item.exercise_id);
       const curSets = detailExSets[item.exercise_id] ?? item.sets ?? 3;
       const logs    = planDetailLogs[item.exercise_id] || [];
-      const lastLog = logs.find(r => r.set_number === 1 && r.total_sets_in_session === curSets);
-      const lastStr = lastLog?.weight_kg != null ? `Last: ${lastLog.weight_kg}kg` : '';
       const sw      = ex.strength_weights || [];
       const pr      = [...new Set(logs.map(r => r.equipment).filter(Boolean))]
         .map(eq => sw.find(w => w.type === eq)?.personal_record)
         .find(v => v != null);
-      const sub = [lastStr, pr != null ? `PR: ${pr}kg` : ''].filter(Boolean).join(' · ');
+      const setStrs = isFlex ? [] : Array.from({length: curSets}, (_, i) => {
+        const n   = i + 1;
+        const log = logs.find(r => r.set_number === n && r.total_sets_in_session === curSets && r.weight_kg != null);
+        return log ? `S${n}: ${log.weight_kg}kg` : `S${n}: —`;
+      });
+      const sub = [...setStrs, pr != null ? `PR: ${pr}kg` : ''].filter(Boolean).join(' · ');
       return `<div class="det-ex-row${skipped?' det-ex-skipped':''}">
         <div class="det-ex-check${skipped?'':' on'}" data-id="${item.exercise_id}">${skipped?'':'✓'}</div>
         <div class="det-ex-info">
@@ -1495,7 +1519,62 @@
   document.getElementById('plan-detail-edit')?.addEventListener('click', () => {
     if (planDetailSes) openSessionModal(planDetailSes);
   });
-  document.getElementById('plan-detail-start')?.addEventListener('click', launchTimer);
+  document.getElementById('plan-detail-start')?.addEventListener('click', () => openPreWorkoutScreen('detail'));
+
+  let preWorkoutFrom = 'detail';
+
+  async function openPreWorkoutScreen(from) {
+    preWorkoutFrom = from;
+    const ses = planDetailSes;
+    if (!ses) return;
+    document.getElementById('plan-start-title').textContent = ses.title || cap(ses.dup_mode);
+    document.getElementById('plan-start-body').innerHTML = '<div style="color:var(--muted);font-size:13px;padding:8px 0">Lädt…</div>';
+    showPlanSub('start');
+    if (!Object.keys(planDetailLogs).length) {
+      const exIds = (ses.exercise_ids||[]).map(cfg => typeof cfg === 'string' ? cfg : cfg.exercise_id);
+      if (exIds.length) {
+        const { data } = await db.from('set_log')
+          .select('exercise_id,weight_kg,equipment,total_sets_in_session,set_number,session_date')
+          .in('exercise_id', exIds)
+          .order('session_date', { ascending: false });
+        (data||[]).forEach(row => {
+          if (!planDetailLogs[row.exercise_id]) planDetailLogs[row.exercise_id] = [];
+          planDetailLogs[row.exercise_id].push(row);
+        });
+      }
+    }
+    renderPreWorkoutBody();
+  }
+
+  function renderPreWorkoutBody() {
+    const ses    = planDetailSes;
+    const isFlex = ses.dup_mode === 'flexibility';
+    const items  = (ses.exercise_ids||[])
+      .map(cfg => ({ exercise_id: typeof cfg==='string'?cfg:cfg.exercise_id, sets: typeof cfg==='object'?(cfg.sets||3):3 }))
+      .filter(item => !detailExSkip.has(item.exercise_id));
+    const el = document.getElementById('plan-start-body');
+    if (!items.length) { el.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:8px 0">Keine Übungen.</div>'; return; }
+    el.innerHTML = items.map(item => {
+      const ex      = exercises.find(e => e.id === item.exercise_id);
+      if (!ex) return '';
+      const curSets = detailExSets[item.exercise_id] ?? item.sets ?? 3;
+      const logs    = planDetailLogs[item.exercise_id] || [];
+      const setStrs = isFlex ? [] : Array.from({length: curSets}, (_, i) => {
+        const n   = i + 1;
+        const log = logs.find(r => r.set_number === n && r.total_sets_in_session === curSets && r.weight_kg != null);
+        return log ? `S${n}: ${log.weight_kg}kg` : `S${n}: —`;
+      });
+      return `<div class="plan-start-row">
+        <div class="plan-start-name">${ex.name}</div>
+        ${setStrs.length ? `<div class="plan-start-weights">${setStrs.join(' · ')}</div>` : ''}
+      </div>`;
+    }).join('');
+  }
+
+  document.getElementById('plan-start-back')?.addEventListener('click', () => {
+    if (preWorkoutFrom === 'detail') showPlanSub('detail'); else showPlanSub('week');
+  });
+  document.getElementById('plan-start-go')?.addEventListener('click', launchTimer);
 
   // ── Session Modal ──────────────────────────────────────
   const SW_LABELS = { barbell:'BB', dumbbell_1x:'DB 1x', dumbbell_2x:'DB 2x', kettlebell_1x:'KB 1x', kettlebell_2x:'KB 2x' };
@@ -1970,7 +2049,7 @@
       const sets = typeof cfg === 'object' ? (cfg.sets||3) : 3;
       detailExSets[id] = sets;
     });
-    launchTimer();
+    openPreWorkoutScreen('direct');
   }
 
   async function launchTimer() {
@@ -2271,7 +2350,9 @@
   document.getElementById('ta-exit').addEventListener('click', () => {
     if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
     resetTimerUI();
-    if (planDetailSes) { showPlanSub('detail'); } else { showPlanSub('week'); }
+    if (preWorkoutFrom === 'direct') { showPlanSub('week'); }
+    else if (planDetailSes) { showPlanSub('detail'); }
+    else { showPlanSub('week'); }
   });
 
   function showDone() {
@@ -2311,7 +2392,9 @@
   document.getElementById('btn-discard').addEventListener('click', () => {
     if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
     resetTimerUI();
-    if (planDetailSes) { showPlanSub('detail'); } else { showPlanSub('week'); }
+    if (preWorkoutFrom === 'direct') { showPlanSub('week'); }
+    else if (planDetailSes) { showPlanSub('detail'); }
+    else { showPlanSub('week'); }
   });
 
   // ── Ring / time helpers ───────────────────────────────
