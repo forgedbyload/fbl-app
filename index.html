@@ -1642,8 +1642,10 @@
   // ═══════════════════════════════════════════════════════
   // MODUL 3 – Timer
   // ═══════════════════════════════════════════════════════
-  let tSession = null;
-  let selIds   = new Set();
+  let tSession     = null;
+  let selIds       = new Set();
+  let skippedExIds = [];
+  let doneExIds    = new Set();
   let tMode, tWeek, tExercises, exIdx, setIdx, phase;
   let tStart, tDuration, tPaused, tPausedRem, rafId, sessionStart;
   let lastBeepSecond = -1;
@@ -1753,7 +1755,12 @@
     }
     if (rows.length) {
       const { error } = await db.from('set_log').insert(rows);
-      if (error) toast('Fehler beim Speichern');
+      if (error) {
+        console.error('set_log insert error:', JSON.stringify(error), rows);
+        toast(error.message || error.code || 'Fehler beim Speichern');
+      } else {
+        doneExIds.add(ex.id);
+      }
     }
 
     document.getElementById('setlog-overlay').classList.remove('open');
@@ -1909,14 +1916,17 @@
       const ex   = exercises.find(e => e.id === id);
       return ex ? { ...ex, _sets: sets } : null;
     }).filter(Boolean);
-    tExercises = pool.filter(e=>selIds.has(e.id));
+    tExercises   = pool.filter(e => selIds.has(e.id));
+    skippedExIds = pool.filter(e => !selIds.has(e.id)).map(e => e.id);
+    doneExIds    = new Set();
     if (!tExercises.length) { toast('Keine Übungen ausgewählt'); return; }
-    const { data: gifRows } = await db.from('exercises').select('id,gif_base64').in('id', tExercises.map(e=>e.id));
-    if (gifRows) {
+    exIdx = 0; setIdx = 0;
+    db.from('exercises').select('id,gif_base64').in('id', tExercises.map(e=>e.id)).then(({ data: gifRows }) => {
+      if (!gifRows) return;
       const gifMap = Object.fromEntries(gifRows.map(r => [r.id, r.gif_base64]));
       tExercises = tExercises.map(e => ({ ...e, gif_base64: gifMap[e.id] ?? null }));
-    }
-    exIdx = 0; setIdx = 0;
+      if (taImg) updateExDisplay();
+    });
     sessionStart = Date.now();
     taModeLbl.textContent = tSession.title || `${cap(tMode)} · ${tWeek}`;
     ringFill.style.stroke  = `var(--${tMode==='flexibility'?'flex':tMode})`;
@@ -2126,7 +2136,8 @@
       date:             new Date().toISOString().split('T')[0],
       session_type:     tMode,
       week:             tWeek,
-      exercises_done:   tExercises.map(e=>e.id),
+      exercises_done:    [...doneExIds],
+      exercises_skipped: skippedExIds,
       sets_completed:   sets,
       duration_minutes: mins,
     }]);
