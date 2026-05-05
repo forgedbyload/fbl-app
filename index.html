@@ -597,9 +597,10 @@
       </div>
       <!-- C: Gewichtsvorschau -->
       <div class="tap-weights" id="tap-weights"></div>
-      <!-- Skip -->
-      <div class="tap-btns">
-        <button class="ta-skip" style="width:100%" id="ta-pause-skip">Pause skip</button>
+      <!-- Buttons -->
+      <div class="tap-btns" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <button class="ta-skip" id="ta-pause-log">Gewicht nachtragen</button>
+        <button class="ta-skip" id="ta-pause-skip">Pause skip</button>
       </div>
     </div>
   </div>
@@ -2253,6 +2254,10 @@
   document.getElementById('ta-pause-skip').addEventListener('click', () => {
     if (rafId) { cancelAnimationFrame(rafId); rafId=null; }
     nextSet();
+  });
+
+  document.getElementById('ta-pause-log').addEventListener('click', () => {
+    openSetLogModal(() => {});
   });
 
   document.getElementById('tap-time-row').addEventListener('click', () => {
