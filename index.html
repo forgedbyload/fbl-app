@@ -1599,7 +1599,7 @@
     const mode = ses?.dup_mode || 'hyper';
     document.querySelector(`.t-toggle[data-sesmode="${mode}"]`)?.classList.add('on');
     document.getElementById('ses-work').value       = (ses?.dup_mode === 'vol'   ? ses?.work_seconds : '') ?? '';
-    document.getElementById('ses-rep-target').value = (ses?.dup_mode === 'hyper' ? ses?.work_seconds : '') ?? '';
+    document.getElementById('ses-rep-target').value = '';
     document.getElementById('ses-rest').value       = ses?.rest_seconds ?? '';
     document.getElementById('ses-title').value = ses?.title ?? '';
     sesSelectedIds = (ses?.exercise_ids || []).map(cfg =>
@@ -1622,12 +1622,10 @@
     const isVol   = mode === 'vol';
     document.getElementById('ses-timer-section').style.display  = isFlex ? 'none' : 'block';
     document.getElementById('ses-work-section').style.display   = isVol   ? 'block' : 'none';
-    document.getElementById('ses-rep-section').style.display    = isHyper ? 'block' : 'none';
     if (!isFlex && mode) {
       const rEl = document.getElementById('ses-rest');
       if (!rEl.value) rEl.value = { kraft:180, hyper:90, vol:60 }[mode] || 60;
-      if (isVol)   { const wEl = document.getElementById('ses-work');       if (!wEl.value)  wEl.value  = 40; }
-      if (isHyper) { const rEl2 = document.getElementById('ses-rep-target'); if (!rEl2.value) rEl2.value = 10; }
+      if (isVol) { const wEl = document.getElementById('ses-work'); if (!wEl.value) wEl.value = 40; }
     }
     autoFillSesTitle();
   }
@@ -1810,8 +1808,7 @@
       weekday,
       dup_mode:     mode,
       exercise_ids: sesSelectedIds.map(s => ({ exercise_id: s.exercise_id, sets: s.sets || 3 })),
-      work_seconds: (isFlex || mode === 'kraft') ? null
-        : mode === 'hyper' ? (parseInt(document.getElementById('ses-rep-target').value) || null)
+      work_seconds: (isFlex || mode === 'kraft' || mode === 'hyper') ? null
         : (parseInt(document.getElementById('ses-work').value) || null),
       rest_seconds: isFlex ? null : (parseInt(document.getElementById('ses-rest').value) || null),
       title:        document.getElementById('ses-title').value.trim() || null,
@@ -2199,8 +2196,7 @@
     document.getElementById('ta-work-layout').style.display  = 'flex';
     document.getElementById('ta-pause-layout').style.display = 'none';
     setRing(1); ringFill.classList.add('pulsing');
-    const repLabel = tMode === 'hyper' ? String(tSession?.work_seconds ?? DUP_CFG.hyper.repTarget) : 'GO';
-    taTime.textContent = repLabel;
+    taTime.textContent = tMode === 'hyper' ? 'REPS' : 'GO';
     taPhase.textContent = tMode === 'hyper' ? 'REPS' : 'AUSFÜHREN';
     taPauseHint.textContent = '';
     taMain.textContent='Satz beendet'; taMain.classList.remove('ta-hidden');
