@@ -1321,27 +1321,57 @@
   const SES_REPS  = { kraft:'4–6 Wdh.', hyper:'8–12 Wdh.', vol:'15–20 Wdh.', flexibility:'–' };
   const SW_LABELS = { barbell:'BB', dumbbell_1x:'DB 1x', dumbbell_2x:'DB 2x', kettlebell_1x:'KB 1x', kettlebell_2x:'KB 2x' };
 
-  function renderSesOverview(ses) {
-    const mode   = ses.dup_mode;
-    const isFlex = mode === 'flexibility';
+  async function renderSesOverview(ses) {
+    const mode    = ses.dup_mode;
+    const isFlex  = mode === 'flexibility';
     const timeStr = isFlex ? '' : mode === 'kraft'
       ? `Pause: ${ses.rest_seconds}s`
       : `${ses.work_seconds}s Arbeit · ${ses.rest_seconds}s Pause`;
 
+    const el = document.getElementById('ses-overview');
+    el.innerHTML = (timeStr ? `<div class="ses-ov-time">${timeStr}</div>` : '') +
+      '<div style="color:var(--muted);font-size:13px;padding:4px 0">Lädt…</div>';
+
+    const exIds = sesSelectedIds.map(i => i.exercise_id).filter(Boolean);
+    const logsByEx = {};
+    if (exIds.length) {
+      const { data } = await db.from('set_log')
+        .select('exercise_id,weight_kg,equipment,total_sets_in_session,session_date')
+        .in('exercise_id', exIds)
+        .eq('set_number', 1)
+        .order('session_date', { ascending: false });
+      (data || []).forEach(r => {
+        if (!logsByEx[r.exercise_id]) logsByEx[r.exercise_id] = [];
+        logsByEx[r.exercise_id].push(r);
+      });
+    }
+
     const rows = sesSelectedIds.map(item => {
       const ex = exercises.find(e => e.id === item.exercise_id);
       if (!ex) return '';
-      const sw    = ex.strength_weights;
-      const first = sw?.find(w => w.working_weight);
-      const wStr  = first ? ` · ${SW_LABELS[first.type]||first.type}: ${first.working_weight}kg` : '';
+
+      const logs      = (logsByEx[item.exercise_id] || []).filter(r => r.total_sets_in_session === item.sets);
+      const lastEntry = logs[0];
+      const lastStr   = lastEntry?.weight_kg != null ? `Last: ${lastEntry.weight_kg}kg` : null;
+
+      const eqTypes  = [...new Set(logs.map(r => r.equipment).filter(Boolean))];
+      const sw       = ex.strength_weights || [];
+      const prParts  = eqTypes.map(eq => {
+        const pr = sw.find(w => w.type === eq)?.personal_record;
+        if (pr == null) return null;
+        return eqTypes.length > 1 ? `${SW_LABELS[eq]||eq} PR: ${pr}kg` : `PR: ${pr}kg`;
+      }).filter(Boolean);
+
+      const parts   = [lastStr, ...prParts].filter(Boolean);
+      const infoStr = parts.length ? parts.join(' · ') : '—';
+
       return `<div class="ses-ov-row">
         <div class="ses-ov-name">${ex.name}</div>
-        <div class="ses-ov-meta">${item.sets}× ${SES_REPS[mode]||''}${wStr}</div>
+        <div class="ses-ov-meta">${item.sets}× ${SES_REPS[mode]||''} · ${infoStr}</div>
       </div>`;
     }).join('') || `<div style="color:var(--muted);font-size:13px;padding:8px 0">Keine Übungen.</div>`;
 
-    document.getElementById('ses-overview').innerHTML =
-      (timeStr ? `<div class="ses-ov-time">${timeStr}</div>` : '') + rows;
+    el.innerHTML = (timeStr ? `<div class="ses-ov-time">${timeStr}</div>` : '') + rows;
   }
 
   function enterSesViewMode(ses) {
