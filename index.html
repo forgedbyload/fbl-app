@@ -192,7 +192,7 @@
     .btn-danger:active { background: rgba(224,85,85,.1); }
 
     .ses-sets-input { width: 44px; background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 4px 0; text-align: center; font-size: 13px; }
-    .ta-weight-hint { color: var(--kraft); font-size: 13px; font-weight: 600; text-align: center; padding: 0 16px 4px; letter-spacing: .5px; }
+    .ta-weight-hint { color: var(--text); font-size: 12px; text-align: center; padding: 0 16px 4px; }
     .satz-progress { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 1px; color: var(--kraft); }
 
     /* ── Wochenplan ── */
@@ -392,16 +392,22 @@
     .ta-main:active { opacity: .8; }
     .ta-hidden { visibility: hidden; }
 
-    /* Nächste Übung Vorschau */
-    .ta-next-preview { padding: 6px 16px 0; }
-    .ta-next-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; color: var(--muted); margin-bottom: 5px; }
-    .ta-next-row { display: flex; align-items: center; gap: 10px; }
-    .ta-next-thumb {
-      width: 40px; height: 40px; border-radius: 6px; overflow: hidden;
-      flex-shrink: 0; background: var(--border); display: flex; align-items: center; justify-content: center; font-size: 20px;
-    }
-    .ta-next-thumb img { width: 100%; height: 100%; object-fit: cover; }
-    .ta-next-ex-name { font-size: 13px; font-weight: 500; color: var(--muted); }
+    /* Pause-Layout */
+    #ta-work-layout  { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    #ta-pause-layout { flex: 1; flex-direction: column; overflow: hidden; }
+    .tap-prev-row  { display: flex; align-items: center; gap: 10px; padding: 8px 16px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .tap-prev-thumb { width: 40px; height: 40px; border-radius: 6px; overflow: hidden; flex-shrink: 0; background: var(--border); display: flex; align-items: center; justify-content: center; }
+    .tap-prev-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .tap-prev-lbl { font-size: 11px; color: var(--muted); font-weight: 600; letter-spacing: .5px; }
+    .tap-next-img  { flex: 1; min-height: 0; width: 100%; background: var(--surface); overflow: hidden; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .tap-next-img img { width: 100%; height: 100%; object-fit: cover; }
+    .tap-next-name { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 1px; text-align: center; padding: 8px 16px 2px; flex-shrink: 0; }
+    .tap-time-row  { text-align: center; padding: 6px 16px; flex-shrink: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    .tap-time      { font-family: 'Bebas Neue', sans-serif; font-size: 48px; letter-spacing: 2px; line-height: 1; }
+    .tap-phase-lbl { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; color: var(--muted); }
+    .tap-weights   { padding: 6px 16px; font-size: 12px; color: var(--muted); flex-shrink: 0; }
+    .tap-w-label   { font-size: 11px; font-weight: 700; letter-spacing: .5px; margin-bottom: 4px; }
+    .tap-btns      { padding: 8px 16px 16px; flex-shrink: 0; }
 
     /* Flexibility Controls */
     .ta-flex-controls { display: none; gap: 10px; padding: 10px 16px 16px; }
@@ -544,36 +550,56 @@
       <span class="ta-mode-label" id="ta-mode-label"></span>
       <span class="ta-counter" id="ta-counter">1 / 1</span>
     </div>
-    <div class="ta-img" id="ta-img"></div>
-    <div class="ta-bottom">
-      <div class="ta-name" id="ta-name"></div>
-      <div class="ta-dots" id="ta-dots"></div>
-      <div class="ta-weight-hint" id="ta-weight-hint" style="display:none"></div>
-      <div class="ta-ring-wrap" id="ta-ring-wrap">
-        <svg class="ta-ring-svg" viewBox="0 0 120 120">
-          <circle class="ring-bg"   cx="60" cy="60" r="54"/>
-          <circle class="ring-fill" cx="60" cy="60" r="54" id="ring-fill"/>
-        </svg>
-        <div class="ta-ring-center">
-          <div class="ta-time"  id="ta-time">—</div>
-          <div class="ta-phase" id="ta-phase">AUSFÜHREN</div>
-          <div class="ta-pause-hint" id="ta-pause-hint"></div>
+
+    <!-- Work-Layout -->
+    <div id="ta-work-layout">
+      <div class="ta-img" id="ta-img"></div>
+      <div class="ta-bottom">
+        <div class="ta-name" id="ta-name"></div>
+        <div class="ta-dots" id="ta-dots"></div>
+        <div class="ta-weight-hint" id="ta-weight-hint" style="display:none"></div>
+        <div class="ta-ring-wrap" id="ta-ring-wrap">
+          <svg class="ta-ring-svg" viewBox="0 0 120 120">
+            <circle class="ring-bg"   cx="60" cy="60" r="54"/>
+            <circle class="ring-fill" cx="60" cy="60" r="54" id="ring-fill"/>
+          </svg>
+          <div class="ta-ring-center">
+            <div class="ta-time"  id="ta-time">—</div>
+            <div class="ta-phase" id="ta-phase">AUSFÜHREN</div>
+            <div class="ta-pause-hint" id="ta-pause-hint"></div>
+          </div>
+        </div>
+        <div class="ta-flex-controls" id="ta-flex-controls">
+          <button class="ta-skip" id="ta-flex-prev">← Zurück</button>
+          <button class="ta-main" id="ta-flex-next">Weiter →</button>
+        </div>
+        <div class="ta-btns" id="ta-btns">
+          <button class="ta-skip" id="ta-skip">Überspringen</button>
+          <button class="ta-main" id="ta-main">SATZ FERTIG</button>
         </div>
       </div>
-      <div class="ta-next-preview" id="ta-next-preview" style="display:none">
-        <div class="ta-next-label">NÄCHSTE ÜBUNG</div>
-        <div class="ta-next-row">
-          <div class="ta-next-thumb" id="ta-next-thumb"></div>
-          <div class="ta-next-ex-name" id="ta-next-ex-name"></div>
-        </div>
+    </div>
+
+    <!-- Pause-Layout -->
+    <div id="ta-pause-layout" style="display:none">
+      <!-- A: Aktuell fertig -->
+      <div class="tap-prev-row">
+        <div class="tap-prev-thumb" id="tap-prev-thumb"></div>
+        <span class="tap-prev-lbl" id="tap-prev-lbl"></span>
       </div>
-      <div class="ta-flex-controls" id="ta-flex-controls">
-        <button class="ta-skip" id="ta-flex-prev">← Zurück</button>
-        <button class="ta-main" id="ta-flex-next">Weiter →</button>
+      <!-- B: Nächste Übung -->
+      <div class="tap-next-img" id="tap-next-img"></div>
+      <div class="tap-next-name" id="tap-next-name"></div>
+      <!-- Countdown -->
+      <div class="tap-time-row" id="tap-time-row">
+        <div class="tap-time" id="tap-time">—</div>
+        <div class="tap-phase-lbl">PAUSE</div>
       </div>
-      <div class="ta-btns" id="ta-btns">
-        <button class="ta-skip" id="ta-skip">Überspringen</button>
-        <button class="ta-main" id="ta-main">SATZ FERTIG</button>
+      <!-- C: Gewichtsvorschau -->
+      <div class="tap-weights" id="tap-weights"></div>
+      <!-- Skip -->
+      <div class="tap-btns">
+        <button class="ta-skip" style="width:100%" id="ta-pause-skip">Pause skip</button>
       </div>
     </div>
   </div>
@@ -1720,25 +1746,30 @@
   async function openSetLogModal(cb) {
     slCallback = cb;
     slRIR      = null;
-    const ex   = tExercises[exIdx];
+    const ex     = tExercises[exIdx];
+    const setNum = setIdx + 1;
+    const total  = computeTotalSets();
 
     const { data } = await db.from('set_log')
       .select('equipment,weight_kg,reps,rir')
       .eq('exercise_id', ex.id)
-      .order('created_at', { ascending: false })
-      .limit(100);
+      .eq('set_number', setNum)
+      .eq('total_sets_in_session', total)
+      .order('session_date', { ascending: false })
+      .limit(10);
 
     const lastByEq = {};
-    slPRs = {};
     (data || []).forEach(row => {
       if (!lastByEq[row.equipment]) lastByEq[row.equipment] = row;
-      if (row.weight_kg != null && (slPRs[row.equipment] == null || row.weight_kg > slPRs[row.equipment]))
-        slPRs[row.equipment] = row.weight_kg;
     });
 
-    const totalSets = computeTotalSets();
+    slPRs = {};
+    (ex.strength_weights || []).forEach(w => {
+      if (w.personal_record) slPRs[w.type] = w.personal_record;
+    });
+
     document.getElementById('sl-title').textContent    = ex.name;
-    document.getElementById('sl-set-info').textContent = `Satz ${setIdx + 1} · Session gesamt: ${totalSets} Sätze`;
+    document.getElementById('sl-set-info').textContent = `Satz ${setNum} · Session gesamt: ${total} Sätze`;
 
     document.getElementById('sl-eq-rows').innerHTML = SL_EQ_ORDER.map(eq => {
       const val = lastByEq[eq]?.weight_kg ?? '';
@@ -1749,8 +1780,7 @@
       </div>`;
     }).join('');
 
-    const anyLast = Object.values(lastByEq)[0];
-    document.getElementById('sl-reps').value = anyLast?.reps ?? '';
+    document.getElementById('sl-reps').value = Object.values(lastByEq)[0]?.reps ?? '';
     document.querySelectorAll('.sl-rir-btn').forEach(b => b.classList.remove('on'));
 
     SL_EQ_ORDER.forEach(eq => {
@@ -1987,11 +2017,12 @@
   });
 
   function resetTimerUI() {
-    document.getElementById('ta-ring-wrap').style.display = 'block';
+    document.getElementById('ta-work-layout').style.display  = 'flex';
+    document.getElementById('ta-pause-layout').style.display = 'none';
+    document.getElementById('ta-ring-wrap').style.display    = 'block';
     document.getElementById('ta-flex-controls').style.display = 'none';
-    document.getElementById('ta-btns').style.display = 'grid';
-    document.getElementById('ta-next-preview').style.display = 'none';
-    document.getElementById('ta-weight-hint').style.display = 'none';
+    document.getElementById('ta-btns').style.display         = 'grid';
+    document.getElementById('ta-weight-hint').style.display  = 'none';
   }
 
   // ── Exercise / set logic ──────────────────────────────
@@ -2001,45 +2032,63 @@
       enterFlexMode();
     } else if (tMode === 'kraft') {
       enterRepsPhase();
+      updateWorkHint();
     } else {
       startPhase('work', tSession?.work_seconds ?? DUP_CFG[tMode].workTime);
+      updateWorkHint();
     }
   }
 
   function updateExDisplay() {
     const ex  = tExercises[exIdx];
     const cfg = DUP_CFG[tMode];
-    taImg.innerHTML  = ex.gif_base64 ? `<img src="${ex.gif_base64}" loading="lazy">` : `<span class="ta-img-ph">💪</span>`;
+    taImg.innerHTML   = ex.gif_base64 ? `<img src="${ex.gif_base64}" loading="lazy">` : `<span class="ta-img-ph">💪</span>`;
     taName.textContent = ex.name;
     taCounter.textContent = `${exIdx+1} / ${tExercises.length}`;
-    const wHint = document.getElementById('ta-weight-hint');
     if (tMode === 'kraft') {
-      const totalSets = ex._sets || 3;
-      taDots.innerHTML = `<span class="satz-progress">Satz ${setIdx+1} / ${totalSets}</span>`;
-      const sw = ex.strength_weights;
-      if (sw?.length) {
-        const WLBLS = { barbell:'BB', dumbbell_1x:'DB 1x', dumbbell_2x:'DB 2x', kettlebell_1x:'KB 1x', kettlebell_2x:'KB 2x' };
-        const parts = sw.filter(w=>w.working_weight).map(w=>`${WLBLS[w.type]||w.type}: ${w.working_weight}kg`);
-        wHint.textContent = parts.join(' · ');
-        wHint.style.display = parts.length ? 'block' : 'none';
-      } else { wHint.style.display = 'none'; }
+      taDots.innerHTML = `<span class="satz-progress">Satz ${setIdx+1} / ${ex._sets||3}</span>`;
     } else if (tMode !== 'flexibility') {
       taDots.innerHTML = Array.from({length:cfg.sets},(_,i)=>
         `<span class="set-dot${i<setIdx?' done':i===setIdx?' active':''}"></span>`).join('');
-      wHint.style.display = 'none';
     } else {
       taDots.innerHTML = '';
-      wHint.style.display = 'none';
     }
+    document.getElementById('ta-weight-hint').style.display = 'none';
+  }
+
+  async function updateWorkHint() {
+    const ex     = tExercises[exIdx];
+    const setNum = setIdx + 1;
+    const total  = computeTotalSets();
+    const { data } = await db.from('set_log')
+      .select('weight_kg,equipment,session_date')
+      .eq('exercise_id', ex.id)
+      .eq('set_number', setNum)
+      .eq('total_sets_in_session', total)
+      .order('session_date', { ascending: false })
+      .limit(10);
+    const WLBLS   = { barbell:'BB', dumbbell_1x:'DB 1x', dumbbell_2x:'DB 2x', kettlebell_1x:'KB 1x', kettlebell_2x:'KB 2x' };
+    const lastEntry = (data||[]).find(r => r.weight_kg != null);
+    const lastStr   = lastEntry?.weight_kg != null ? `Last: ${lastEntry.weight_kg}kg` : 'Last: —';
+    const eqTypes   = [...new Set((data||[]).map(r => r.equipment).filter(Boolean))];
+    const sw        = ex.strength_weights || [];
+    const prParts   = eqTypes.map(eq => {
+      const pr = sw.find(w => w.type === eq)?.personal_record;
+      return pr != null ? (eqTypes.length > 1 ? `${WLBLS[eq]||eq} PR: ${pr}kg` : `PR: ${pr}kg`) : null;
+    }).filter(Boolean);
+    const wHint = document.getElementById('ta-weight-hint');
+    wHint.textContent  = `Satz ${setNum} – ${[lastStr, ...prParts].join(' · ')}`;
+    wHint.style.display = 'block';
   }
 
   function enterFlexMode() {
     phase = 'flex';
     if (rafId) { cancelAnimationFrame(rafId); rafId=null; }
-    document.getElementById('ta-ring-wrap').style.display = 'none';
+    document.getElementById('ta-work-layout').style.display  = 'flex';
+    document.getElementById('ta-pause-layout').style.display = 'none';
+    document.getElementById('ta-ring-wrap').style.display    = 'none';
     document.getElementById('ta-flex-controls').style.display = 'flex';
-    document.getElementById('ta-btns').style.display = 'none';
-    document.getElementById('ta-next-preview').style.display = 'none';
+    document.getElementById('ta-btns').style.display         = 'none';
     taPhase.textContent = 'FLEXIBILITY';
     taPauseHint.textContent = '';
     taTime.textContent = '';
@@ -2064,11 +2113,12 @@
   function enterRepsPhase() {
     phase = 'reps';
     if (rafId) { cancelAnimationFrame(rafId); rafId=null; }
+    document.getElementById('ta-work-layout').style.display  = 'flex';
+    document.getElementById('ta-pause-layout').style.display = 'none';
     setRing(1); ringFill.classList.add('pulsing');
     taTime.textContent='—'; taPhase.textContent='AUSFÜHREN'; taPauseHint.textContent='';
     taMain.textContent='Satz beendet'; taMain.classList.remove('ta-hidden');
     taSkip.classList.add('ta-hidden');
-    document.getElementById('ta-next-preview').style.display = 'none';
   }
 
   function startPhase(ph, dur) {
@@ -2078,24 +2128,71 @@
     taPauseHint.textContent = 'Tippen zum Pausieren';
     taMain.classList.add('ta-hidden');
     taSkip.classList.remove('ta-hidden');
-    taSkip.textContent = ph==='work' ? 'Überspringen' : 'Pause skip';
+    taSkip.textContent = 'Überspringen';
     setRing(1); setTimeDisplay(dur);
     if (ph === 'rest') {
-      const nextEx = getNextExercise();
-      if (nextEx) {
-        document.getElementById('ta-next-preview').style.display = 'block';
-        document.getElementById('ta-next-thumb').innerHTML = nextEx.gif_base64
-          ? `<img src="${nextEx.gif_base64}" style="width:100%;height:100%;object-fit:cover">`
-          : '💪';
-        document.getElementById('ta-next-ex-name').textContent = nextEx.name;
-      } else {
-        document.getElementById('ta-next-preview').style.display = 'none';
-      }
+      document.getElementById('ta-work-layout').style.display  = 'none';
+      document.getElementById('ta-pause-layout').style.display = 'flex';
+      startPauseLayout(tExercises[exIdx], getNextExercise());
     } else {
-      document.getElementById('ta-next-preview').style.display = 'none';
+      document.getElementById('ta-work-layout').style.display  = 'flex';
+      document.getElementById('ta-pause-layout').style.display = 'none';
     }
     if (rafId) cancelAnimationFrame(rafId);
     rafId = requestAnimationFrame(timerTick);
+  }
+
+  function startPauseLayout(currentEx, nextEx) {
+    document.getElementById('tap-prev-thumb').innerHTML = currentEx.gif_base64
+      ? `<img src="${currentEx.gif_base64}">` : '💪';
+    document.getElementById('tap-prev-lbl').textContent = `Gerade fertig: ${currentEx.name}`;
+    const nextImgEl  = document.getElementById('tap-next-img');
+    const nextNameEl = document.getElementById('tap-next-name');
+    if (nextEx) {
+      nextImgEl.innerHTML = nextEx.gif_base64
+        ? `<img src="${nextEx.gif_base64}">` : '<span class="ta-img-ph">💪</span>';
+      nextNameEl.textContent  = nextEx.name;
+      nextImgEl.style.display  = 'flex';
+      nextNameEl.style.display = 'block';
+    } else {
+      nextImgEl.style.display  = 'none';
+      nextNameEl.style.display = 'none';
+    }
+    document.getElementById('tap-weights').innerHTML =
+      '<span style="font-size:12px">Lädt…</span>';
+    loadPauseWeights(nextEx);
+  }
+
+  async function loadPauseWeights(nextEx) {
+    const el = document.getElementById('tap-weights');
+    if (!nextEx) { el.innerHTML = ''; return; }
+    const total = nextEx._sets || 3;
+    const { data } = await db.from('set_log')
+      .select('weight_kg,equipment,set_number,session_date')
+      .eq('exercise_id', nextEx.id)
+      .eq('total_sets_in_session', total)
+      .gte('set_number', 1).lte('set_number', total)
+      .order('session_date', { ascending: false });
+    const WLBLS = { barbell:'BB', dumbbell_1x:'DB 1x', dumbbell_2x:'DB 2x', kettlebell_1x:'KB 1x', kettlebell_2x:'KB 2x' };
+    const byEq = {};
+    (data||[]).forEach(r => {
+      if (!r.equipment || r.weight_kg == null) return;
+      if (!byEq[r.equipment]) byEq[r.equipment] = {};
+      if (byEq[r.equipment][r.set_number] == null) byEq[r.equipment][r.set_number] = r.weight_kg;
+    });
+    const eqTypes = Object.keys(byEq);
+    if (!eqTypes.length) {
+      el.innerHTML = `<span>${nextEx.name} – ${total} Sätze · —</span>`;
+      return;
+    }
+    const header = `<div class="tap-w-label">${nextEx.name} – ${total} Sätze</div>`;
+    const rows = eqTypes.map(eq => {
+      const parts = Array.from({length:total},(_,i)=>i+1)
+        .map(n => byEq[eq][n] != null ? `S${n}: ${byEq[eq][n]}kg` : null).filter(Boolean);
+      const prefix = eqTypes.length > 1 ? `${WLBLS[eq]||eq}: ` : '';
+      return `<div>${prefix}${parts.length ? parts.join(' · ') : '—'}</div>`;
+    }).join('');
+    el.innerHTML = header + rows;
   }
 
   function getNextExercise() {
@@ -2151,6 +2248,23 @@
     if (rafId) { cancelAnimationFrame(rafId); rafId=null; }
     if (phase==='work') startPhase('rest', tSession?.rest_seconds ?? DUP_CFG[tMode].restTime);
     else nextSet();
+  });
+
+  document.getElementById('ta-pause-skip').addEventListener('click', () => {
+    if (rafId) { cancelAnimationFrame(rafId); rafId=null; }
+    nextSet();
+  });
+
+  document.getElementById('tap-time-row').addEventListener('click', () => {
+    if (tPaused) {
+      tStart  = Date.now() - (tDuration - tPausedRem) * 1000;
+      tPaused = false;
+      rafId   = requestAnimationFrame(timerTick);
+    } else {
+      tPausedRem = Math.max(0, tDuration - (Date.now() - tStart) / 1000);
+      tPaused    = true;
+      if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+    }
   });
 
   taMain.addEventListener('click', () => {
@@ -2219,7 +2333,10 @@
   }
   function setTimeDisplay(seconds) {
     const s = Math.ceil(seconds), m = Math.floor(s/60), sec = s%60;
-    taTime.textContent = `${m}:${String(sec).padStart(2,'0')}`;
+    const str = `${m}:${String(sec).padStart(2,'0')}`;
+    taTime.textContent = str;
+    const tapTimeEl = document.getElementById('tap-time');
+    if (tapTimeEl) tapTimeEl.textContent = str;
   }
 
   // ── Week A/B auto-calculation ──────────────────────────
