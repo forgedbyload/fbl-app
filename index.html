@@ -883,9 +883,13 @@
         </div>
       </div>
       <div class="form-group" id="ses-timer-section">
-        <div id="ses-work-section">
-          <label class="form-label">Arbeitszeit (Sekunden)</label>
+        <div id="ses-work-section" style="display:none">
+          <label class="form-label">AMRAP Dauer (Sekunden)</label>
           <input class="form-input" type="number" id="ses-work" placeholder="z.B. 40" min="5" max="300">
+        </div>
+        <div id="ses-rep-section" style="display:none">
+          <label class="form-label">Ziel-Reps</label>
+          <input class="form-input" type="number" id="ses-rep-target" placeholder="z.B. 10" min="1" max="50">
         </div>
         <label class="form-label" style="margin-top:10px">Pausenzeit (Sekunden)</label>
         <input class="form-input" type="number" id="ses-rest" placeholder="z.B. 90" min="10" max="600">
@@ -966,10 +970,10 @@
   let planDetailLogs = {};
 
   const DUP_CFG = {
-    kraft:       { sets:4, workTime:0,  restTime:180 },
-    hyper:       { sets:3, workTime:40, restTime:90  },
-    vol:         { sets:3, workTime:40, restTime:60  },
-    flexibility: { sets:1, workTime:0,  restTime:0   },
+    kraft:       { sets:4, workTime:0,  restTime:180, repTarget:null },
+    hyper:       { sets:3, workTime:0,  restTime:90,  repTarget:10  },
+    vol:         { sets:3, workTime:40, restTime:60,  repTarget:null },
+    flexibility: { sets:1, workTime:0,  restTime:0,   repTarget:null },
   };
   const DAYS       = ['mo','di','mi','do','fr','sa','so'];
   const DAY_LABELS = { mo:'Montag', di:'Dienstag', mi:'Mittwoch', do:'Donnerstag', fr:'Freitag', sa:'Samstag', so:'Sonntag' };
@@ -1353,8 +1357,8 @@
         html += daySessions.map(s => {
           const exCount = (s.exercise_ids||[]).length;
           const timeStr = s.dup_mode === 'flexibility' ? ''
-            : s.dup_mode === 'kraft' ? ` · Pause: ${s.rest_seconds||'?'}s`
-            : ` · ${s.work_seconds||'?'}s / ${s.rest_seconds||'?'}s`;
+            : (s.dup_mode === 'kraft' || s.dup_mode === 'hyper') ? ` · Pause: ${s.rest_seconds||'?'}s`
+            : ` · ${s.work_seconds||'?'}s AMRAP / ${s.rest_seconds||'?'}s`;
           return `<div class="session-card" data-id="${s.id}">
             <div class="session-info">
               <div class="session-title">${s.title || cap(s.dup_mode)}</div>
@@ -1441,8 +1445,8 @@
     document.getElementById('plan-detail-title').textContent = ses.title || cap(ses.dup_mode);
     const isFlex = ses.dup_mode === 'flexibility';
     const meta   = isFlex ? 'Flexibility'
-      : ses.dup_mode === 'kraft' ? `Pause: ${ses.rest_seconds}s`
-      : `${ses.work_seconds}s Arbeit · ${ses.rest_seconds}s Pause`;
+      : (ses.dup_mode === 'kraft' || ses.dup_mode === 'hyper') ? `Pause: ${ses.rest_seconds}s`
+      : `${ses.work_seconds||'?'}s AMRAP · ${ses.rest_seconds}s Pause`;
     document.getElementById('plan-detail-meta').textContent = meta;
     document.getElementById('plan-detail-body').innerHTML   = '<div style="color:var(--muted);font-size:13px;padding:8px 0">Lädt…</div>';
     showPlanSub('detail');
@@ -1594,8 +1598,9 @@
     if (day) document.querySelector(`.t-toggle[data-weekday="${day}"]`)?.classList.add('on');
     const mode = ses?.dup_mode || 'hyper';
     document.querySelector(`.t-toggle[data-sesmode="${mode}"]`)?.classList.add('on');
-    document.getElementById('ses-work').value  = ses?.work_seconds ?? '';
-    document.getElementById('ses-rest').value  = ses?.rest_seconds ?? '';
+    document.getElementById('ses-work').value       = (ses?.dup_mode === 'vol'   ? ses?.work_seconds : '') ?? '';
+    document.getElementById('ses-rep-target').value = (ses?.dup_mode === 'hyper' ? ses?.work_seconds : '') ?? '';
+    document.getElementById('ses-rest').value       = ses?.rest_seconds ?? '';
     document.getElementById('ses-title').value = ses?.title ?? '';
     sesSelectedIds = (ses?.exercise_ids || []).map(cfg =>
       typeof cfg === 'string' ? { exercise_id: cfg, sets: 3 } : { exercise_id: cfg.exercise_id, sets: cfg.sets || 3 }
@@ -1612,17 +1617,17 @@
 
   function updateSesModeUI() {
     const mode = document.querySelector('.t-toggle[data-sesmode].on')?.dataset.sesmode;
-    const isFlex = mode === 'flexibility';
-    const isKraft = mode === 'kraft';
-    document.getElementById('ses-timer-section').style.display = isFlex ? 'none' : 'block';
-    document.getElementById('ses-work-section').style.display = isKraft ? 'none' : 'block';
+    const isFlex  = mode === 'flexibility';
+    const isHyper = mode === 'hyper';
+    const isVol   = mode === 'vol';
+    document.getElementById('ses-timer-section').style.display  = isFlex ? 'none' : 'block';
+    document.getElementById('ses-work-section').style.display   = isVol   ? 'block' : 'none';
+    document.getElementById('ses-rep-section').style.display    = isHyper ? 'block' : 'none';
     if (!isFlex && mode) {
-      const defs = { kraft:[0,180], hyper:[40,90], vol:[40,60] };
-      const [w,r] = defs[mode] || [40,60];
-      const wEl = document.getElementById('ses-work');
       const rEl = document.getElementById('ses-rest');
-      if (!wEl.value) wEl.value = w || '';
-      if (!rEl.value) rEl.value = r;
+      if (!rEl.value) rEl.value = { kraft:180, hyper:90, vol:60 }[mode] || 60;
+      if (isVol)   { const wEl = document.getElementById('ses-work');       if (!wEl.value)  wEl.value  = 40; }
+      if (isHyper) { const rEl2 = document.getElementById('ses-rep-target'); if (!rEl2.value) rEl2.value = 10; }
     }
     autoFillSesTitle();
   }
@@ -1789,8 +1794,9 @@
   document.querySelectorAll('.t-toggle[data-sesmode]').forEach(btn => btn.addEventListener('click', () => {
     document.querySelectorAll('.t-toggle[data-sesmode]').forEach(b => b.classList.remove('on'));
     btn.classList.add('on');
-    document.getElementById('ses-work').value = '';
-    document.getElementById('ses-rest').value = '';
+    document.getElementById('ses-work').value       = '';
+    document.getElementById('ses-rest').value       = '';
+    document.getElementById('ses-rep-target').value = '';
     updateSesModeUI();
   }));
 
@@ -1804,7 +1810,9 @@
       weekday,
       dup_mode:     mode,
       exercise_ids: sesSelectedIds.map(s => ({ exercise_id: s.exercise_id, sets: s.sets || 3 })),
-      work_seconds: (isFlex || mode === 'kraft') ? null : (parseInt(document.getElementById('ses-work').value) || null),
+      work_seconds: (isFlex || mode === 'kraft') ? null
+        : mode === 'hyper' ? (parseInt(document.getElementById('ses-rep-target').value) || null)
+        : (parseInt(document.getElementById('ses-work').value) || null),
       rest_seconds: isFlex ? null : (parseInt(document.getElementById('ses-rest').value) || null),
       title:        document.getElementById('ses-title').value.trim() || null,
     };
@@ -2105,7 +2113,7 @@
     updateExDisplay();
     if (tMode === 'flexibility') {
       enterFlexMode();
-    } else if (tMode === 'kraft') {
+    } else if (tMode === 'kraft' || tMode === 'hyper') {
       enterRepsPhase();
       updateWorkHint();
     } else {
@@ -2120,7 +2128,7 @@
     taImg.innerHTML   = ex.gif_base64 ? `<img src="${ex.gif_base64}" loading="lazy">` : `<span class="ta-img-ph">💪</span>`;
     taName.textContent = ex.name;
     taCounter.textContent = `${exIdx+1} / ${tExercises.length}`;
-    if (tMode === 'kraft') {
+    if (tMode === 'kraft' || tMode === 'hyper') {
       taDots.innerHTML = `<span class="satz-progress">Satz ${setIdx+1} / ${ex._sets||3}</span>`;
     } else if (tMode !== 'flexibility') {
       taDots.innerHTML = Array.from({length:cfg.sets},(_,i)=>
@@ -2191,7 +2199,10 @@
     document.getElementById('ta-work-layout').style.display  = 'flex';
     document.getElementById('ta-pause-layout').style.display = 'none';
     setRing(1); ringFill.classList.add('pulsing');
-    taTime.textContent='GO'; taPhase.textContent='AUSFÜHREN'; taPauseHint.textContent='';
+    const repLabel = tMode === 'hyper' ? String(tSession?.work_seconds ?? DUP_CFG.hyper.repTarget) : 'GO';
+    taTime.textContent = repLabel;
+    taPhase.textContent = tMode === 'hyper' ? 'REPS' : 'AUSFÜHREN';
+    taPauseHint.textContent = '';
     taMain.textContent='Satz beendet'; taMain.classList.remove('ta-hidden');
     taSkip.classList.add('ta-hidden');
   }
@@ -2199,8 +2210,8 @@
   function startPhase(ph, dur) {
     phase=ph; tDuration=dur; tStart=Date.now(); tPaused=false; tPausedRem=dur; lastBeepSecond=-1;
     ringFill.classList.remove('pulsing');
-    taPhase.textContent = ph==='work' ? 'ARBEIT' : 'PAUSE';
-    taPauseHint.textContent = 'Tippen zum Pausieren';
+    taPhase.textContent = ph === 'work' ? (tMode === 'vol' ? 'AMRAP' : 'ARBEIT') : 'PAUSE';
+    taPauseHint.textContent = (ph === 'work' && tMode === 'vol') ? 'so viele Reps!' : 'Tippen zum Pausieren';
     taMain.classList.add('ta-hidden');
     taSkip.classList.remove('ta-hidden');
     taSkip.textContent = 'Überspringen';
@@ -2271,7 +2282,7 @@
   }
 
   function getNextExercise() {
-    const totalSets = tMode === 'kraft' ? (tExercises[exIdx]?._sets || 3) : DUP_CFG[tMode].sets;
+    const totalSets = (tMode === 'kraft' || tMode === 'hyper') ? (tExercises[exIdx]?._sets || 3) : DUP_CFG[tMode].sets;
     const nextExIdx = (setIdx+1 >= totalSets) ? exIdx+1 : exIdx;
     return nextExIdx < tExercises.length ? tExercises[nextExIdx] : null;
   }
@@ -2298,7 +2309,7 @@
 
   function nextSet() {
     setIdx++;
-    const totalSets = tMode === 'kraft' ? (tExercises[exIdx]?._sets || 3) : DUP_CFG[tMode].sets;
+    const totalSets = (tMode === 'kraft' || tMode === 'hyper') ? (tExercises[exIdx]?._sets || 3) : DUP_CFG[tMode].sets;
     if (setIdx >= totalSets) { exIdx++; setIdx=0; }
     if (exIdx >= tExercises.length) { showDone(); return; }
     startExercise();
@@ -2348,7 +2359,7 @@
 
   taMain.addEventListener('click', () => {
     if (phase!=='reps') return;
-    openSetLogModal(() => startPhase('rest', tSession?.rest_seconds ?? DUP_CFG.kraft.restTime));
+    openSetLogModal(() => startPhase('rest', tSession?.rest_seconds ?? DUP_CFG[tMode].restTime));
   });
 
   document.getElementById('ta-exit').addEventListener('click', () => {
@@ -2364,7 +2375,7 @@
     const mins = Math.round((Date.now()-sessionStart)/60000);
     const isFlex = tMode === 'flexibility';
     const sets = isFlex ? tExercises.length
-      : tMode === 'kraft' ? tExercises.reduce((s,e)=>s+(e._sets||3),0)
+      : (tMode === 'kraft' || tMode === 'hyper') ? tExercises.reduce((s,e)=>s+(e._sets||3),0)
       : tExercises.length * DUP_CFG[tMode].sets;
     doneMeta.innerHTML = `${tSession?.title||cap(tMode)} · Woche ${tWeek}<br>${tExercises.length} Übungen · ${sets} ${isFlex?'Exercises':'Sätze'} · ${mins} Min.`;
     resetTimerUI();
@@ -2374,7 +2385,7 @@
   document.getElementById('btn-save-session').addEventListener('click', async () => {
     const mins   = Math.round((Date.now()-sessionStart)/60000);
     const isFlex = tMode === 'flexibility';
-    const sets   = isFlex ? 0 : tMode === 'kraft' ? tExercises.reduce((s,e)=>s+(e._sets||3),0) : tExercises.length * DUP_CFG[tMode].sets;
+    const sets   = isFlex ? 0 : (tMode === 'kraft' || tMode === 'hyper') ? tExercises.reduce((s,e)=>s+(e._sets||3),0) : tExercises.length * DUP_CFG[tMode].sets;
     const { error } = await db.from('training_log').insert([{
       date:              new Date().toISOString().split('T')[0],
       session_id:        tSession?.id ?? null,
