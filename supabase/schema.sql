@@ -104,6 +104,26 @@ insert into app_state (current_week)
 values ('A')
 on conflict do nothing;
 
+-- set_log: Satzprotokoll pro Training
+create table if not exists set_log (
+  id                    uuid primary key default gen_random_uuid(),
+  exercise_id           uuid references exercises(id),
+  session_id            uuid references sessions(id),
+  session_date          date not null,
+  set_number            int not null,
+  total_sets_in_session int not null,
+  weight_kg             numeric,
+  reps                  int,
+  rir                   int,
+  equipment             text,
+  created_at            timestamptz default now()
+);
+
+alter table set_log enable row level security;
+create policy "Alle Zugriffe erlaubt (kein Auth)" on set_log
+  for all using (true) with check (true);
+grant all on table set_log to anon, authenticated;
+
 -- ============================================================
 -- Migration (in Supabase SQL Editor ausführen):
 -- ============================================================

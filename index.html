@@ -425,6 +425,21 @@
     /* ── Stats ── */
     .stats-placeholder { text-align: center; color: var(--muted); padding: 80px 24px; font-size: 15px; }
 
+    /* ── Set-Log Modal ── */
+    .sl-eq-row { display: grid; grid-template-columns: 88px 1fr 36px; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .sl-eq-label { font-size: 12px; font-weight: 600; color: var(--muted); }
+    .sl-pr-badge { font-size: 10px; font-weight: 700; padding: 2px 5px; border-radius: 4px; background: rgba(200,169,110,.2); color: var(--kraft); display: none; text-align: center; }
+    .sl-set-info { color: var(--muted); font-size: 13px; margin-bottom: 14px; }
+    .sl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+    .sl-rir-btns { display: flex; gap: 6px; }
+    .sl-rir-btn {
+      flex: 1; padding: 9px 0; border-radius: 8px; border: 1px solid var(--border);
+      background: transparent; color: var(--muted);
+      font-family: 'DM Sans', sans-serif; font-size: 14px; cursor: pointer;
+      -webkit-tap-highlight-color: transparent; transition: all .15s;
+    }
+    .sl-rir-btn.on { background: var(--border); color: var(--text); border-color: var(--muted); }
+
     /* ── Toast ── */
     .toast {
       position: fixed; bottom: calc(var(--nav-h) + 12px); left: 50%; transform: translateX(-50%);
@@ -548,6 +563,34 @@
     <h1>Stats</h1>
   </div>
   <div class="stats-placeholder">Stats folgen später.</div>
+</div>
+
+<!-- ══ Modal: Set-Log ══ -->
+<div class="overlay" id="setlog-overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title" id="sl-title">Satz protokollieren</span>
+      <button type="button" class="btn-close" id="sl-close">✕</button>
+    </div>
+    <div class="sl-set-info" id="sl-set-info"></div>
+    <div id="sl-eq-rows"></div>
+    <div class="sl-grid">
+      <div>
+        <label class="form-label">Reps</label>
+        <input class="form-input" type="number" id="sl-reps" min="1" max="99" placeholder="z.B. 8" inputmode="numeric">
+      </div>
+      <div>
+        <label class="form-label">RIR (optional)</label>
+        <div class="sl-rir-btns">
+          <button type="button" class="sl-rir-btn" data-rir="0">0</button>
+          <button type="button" class="sl-rir-btn" data-rir="1">1</button>
+          <button type="button" class="sl-rir-btn" data-rir="2">2</button>
+          <button type="button" class="sl-rir-btn" data-rir="3">3</button>
+        </div>
+      </div>
+    </div>
+    <button type="button" class="btn-primary" id="sl-confirm" style="margin-top:20px">Satz Fertig</button>
+  </div>
 </div>
 
 <!-- ══ Modal: Übung erstellen / bearbeiten ══ -->
@@ -812,9 +855,11 @@
   // ═══════════════════════════════════════════════════════
   // MODUL 1 – Übungsbibliothek
   // ═══════════════════════════════════════════════════════
+  const EX_META = 'id,name,dup_modes,body_regions,movement_patterns,muscle_groups_anatomical,strength_weights,week_assignment,created_at';
+
   async function load() {
     loadingEl.classList.add('active');
-    const { data, error } = await db.from('exercises').select('*').order('name');
+    const { data, error } = await db.from('exercises').select(EX_META).order('name');
     loadingEl.classList.remove('active');
     if (error) { toast('Fehler beim Laden'); return; }
     exercises = data || [];
@@ -921,15 +966,14 @@
       c.addEventListener('click', () => openModal(exercises.find(e => e.id === c.dataset.id))));
   }
 
-  function openModal(ex = null) {
+  async function openModal(ex = null) {
     editingId = ex?.id ?? null;
     editingEx = ex ?? null;
-    gifBase64 = ex?.gif_base64 ?? null;
+    gifBase64 = null;
     modalTitle.textContent = ex ? 'Übung bearbeiten' : 'Neue Übung';
     inpName.value = ex?.name ?? '';
     btnDelete.style.display = ex ? 'block' : 'none';
-    if (gifBase64) { gifPreview.src = gifBase64; gifPreview.style.display = 'block'; uploadHint.style.display = 'none'; }
-    else { gifPreview.style.display = 'none'; uploadHint.style.display = 'block'; gifInput.value = ''; }
+    gifPreview.style.display = 'none'; uploadHint.style.display = 'block'; gifInput.value = '';
     document.querySelectorAll('.t-toggle[data-dup]').forEach(b => b.classList.toggle('on', (ex?.dup_modes??[]).includes(b.dataset.dup)));
     document.querySelectorAll('.t-toggle[data-wtype]').forEach(b => b.classList.toggle('on', !!(ex?.strength_weights?.find(sw => sw.type === b.dataset.wtype))));
     document.querySelectorAll('.t-toggle[data-region]').forEach(b => b.classList.toggle('on', (ex?.body_regions??[]).includes(b.dataset.region)));
@@ -938,6 +982,11 @@
     updateWeightUI();
     overlay.classList.add('open');
     setTimeout(() => inpName.focus(), 120);
+    if (ex?.id) {
+      const { data } = await db.from('exercises').select('gif_base64').eq('id', ex.id).single();
+      gifBase64 = data?.gif_base64 ?? null;
+      if (gifBase64) { gifPreview.src = gifBase64; gifPreview.style.display = 'block'; uploadHint.style.display = 'none'; }
+    }
   }
 
   function updateWeightUI() {
@@ -1333,6 +1382,125 @@
   let tStart, tDuration, tPaused, tPausedRem, rafId, sessionStart;
   let lastBeepSecond = -1;
 
+  // ── Set-Log state ─────────────────────────────────────
+  let slCallback = null;
+  let slPRs      = {};
+  let slRIR      = null;
+
+  const SL_EQ_ORDER  = ['barbell','dumbbell_1x','dumbbell_2x','kettlebell_1x','kettlebell_2x'];
+  const SL_EQ_LABELS = { barbell:'Barbell', dumbbell_1x:'Dumbbell 1x', dumbbell_2x:'Dumbbell 2x', kettlebell_1x:'KB 1x', kettlebell_2x:'KB 2x' };
+
+  function computeTotalSets() {
+    return tExercises[exIdx]?._sets || 3;
+  }
+
+  function slCheckPR(eq) {
+    const inp   = document.getElementById(`sl-w-${eq}`);
+    const badge = document.getElementById(`sl-pr-${eq}`);
+    if (!inp || !badge) return;
+    const val = parseFloat(inp.value);
+    badge.style.display = (!isNaN(val) && val > 0 && (slPRs[eq] == null || val > slPRs[eq])) ? 'inline' : 'none';
+  }
+
+  async function openSetLogModal(cb) {
+    slCallback = cb;
+    slRIR      = null;
+    const ex   = tExercises[exIdx];
+
+    const { data } = await db.from('set_log')
+      .select('equipment,weight_kg,reps,rir')
+      .eq('exercise_id', ex.id)
+      .order('created_at', { ascending: false })
+      .limit(100);
+
+    const lastByEq = {};
+    slPRs = {};
+    (data || []).forEach(row => {
+      if (!lastByEq[row.equipment]) lastByEq[row.equipment] = row;
+      if (row.weight_kg != null && (slPRs[row.equipment] == null || row.weight_kg > slPRs[row.equipment]))
+        slPRs[row.equipment] = row.weight_kg;
+    });
+
+    const totalSets = computeTotalSets();
+    document.getElementById('sl-title').textContent    = ex.name;
+    document.getElementById('sl-set-info').textContent = `Satz ${setIdx + 1} · Session gesamt: ${totalSets} Sätze`;
+
+    document.getElementById('sl-eq-rows').innerHTML = SL_EQ_ORDER.map(eq => {
+      const val = lastByEq[eq]?.weight_kg ?? '';
+      return `<div class="sl-eq-row">
+        <span class="sl-eq-label">${SL_EQ_LABELS[eq]}</span>
+        <input class="form-input" type="number" step="0.5" inputmode="decimal" id="sl-w-${eq}" placeholder="kg" value="${val}" data-eq="${eq}">
+        <span class="sl-pr-badge" id="sl-pr-${eq}">PR</span>
+      </div>`;
+    }).join('');
+
+    const anyLast = Object.values(lastByEq)[0];
+    document.getElementById('sl-reps').value = anyLast?.reps ?? '';
+    document.querySelectorAll('.sl-rir-btn').forEach(b => b.classList.remove('on'));
+
+    SL_EQ_ORDER.forEach(eq => {
+      const inp = document.getElementById(`sl-w-${eq}`);
+      inp?.addEventListener('input', () => slCheckPR(eq));
+      slCheckPR(eq);
+    });
+
+    document.getElementById('setlog-overlay').classList.add('open');
+  }
+
+  async function saveSetLogAndContinue() {
+    const ex      = tExercises[exIdx];
+    const reps    = parseInt(document.getElementById('sl-reps').value) || null;
+    const today   = new Date().toISOString().split('T')[0];
+    const total   = computeTotalSets();
+    const setNum  = setIdx + 1;
+    const rows    = [];
+
+    SL_EQ_ORDER.forEach(eq => {
+      const val = parseFloat(document.getElementById(`sl-w-${eq}`)?.value);
+      if (!isNaN(val) && val > 0) {
+        rows.push({
+          exercise_id:           ex.id,
+          session_id:            tSession?.id ?? null,
+          session_date:          today,
+          set_number:            setNum,
+          total_sets_in_session: total,
+          weight_kg:             val,
+          reps,
+          rir:                   slRIR,
+          equipment:             eq,
+        });
+      }
+    });
+
+    if (rows.length) {
+      const { error } = await db.from('set_log').insert(rows);
+      if (error) toast('Fehler beim Speichern');
+    }
+
+    document.getElementById('setlog-overlay').classList.remove('open');
+    const cb = slCallback; slCallback = null;
+    if (cb) cb();
+  }
+
+  document.getElementById('sl-close').addEventListener('click', () => {
+    document.getElementById('setlog-overlay').classList.remove('open');
+    const cb = slCallback; slCallback = null;
+    if (cb) cb();
+  });
+  document.getElementById('sl-confirm').addEventListener('click', saveSetLogAndContinue);
+  document.querySelectorAll('.sl-rir-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const val = parseInt(btn.dataset.rir);
+      if (slRIR === val) {
+        slRIR = null; btn.classList.remove('on');
+      } else {
+        slRIR = val;
+        document.querySelectorAll('.sl-rir-btn').forEach(b => b.classList.remove('on'));
+        btn.classList.add('on');
+      }
+    });
+  });
+
   let _audioCtx = null;
   function getAudioCtx() {
     if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1454,7 +1622,7 @@
     document.getElementById('sel-exercises-container').style.display = 'none';
   });
 
-  document.getElementById('btn-start').addEventListener('click', () => {
+  document.getElementById('btn-start').addEventListener('click', async () => {
     getAudioCtx().resume();
     const pool = (tSession.exercise_ids||[]).map(cfg => {
       const id   = typeof cfg === 'string' ? cfg : cfg.exercise_id;
@@ -1464,6 +1632,11 @@
     }).filter(Boolean);
     tExercises = pool.filter(e=>selIds.has(e.id));
     if (!tExercises.length) { toast('Keine Übungen ausgewählt'); return; }
+    const { data: gifRows } = await db.from('exercises').select('id,gif_base64').in('id', tExercises.map(e=>e.id));
+    if (gifRows) {
+      const gifMap = Object.fromEntries(gifRows.map(r => [r.id, r.gif_base64]));
+      tExercises = tExercises.map(e => ({ ...e, gif_base64: gifMap[e.id] ?? null }));
+    }
     exIdx = 0; setIdx = 0;
     sessionStart = Date.now();
     taModeLbl.textContent = tSession.title || `${cap(tMode)} · ${tWeek}`;
@@ -1604,7 +1777,7 @@
 
   function onPhaseEnd() {
     if (rafId) { cancelAnimationFrame(rafId); rafId=null; }
-    if (phase==='work') startPhase('rest', tSession?.rest_seconds ?? DUP_CFG[tMode].restTime);
+    if (phase==='work') openSetLogModal(() => startPhase('rest', tSession?.rest_seconds ?? DUP_CFG[tMode].restTime));
     else nextSet();
   }
 
@@ -1639,7 +1812,7 @@
 
   taMain.addEventListener('click', () => {
     if (phase!=='reps') return;
-    startPhase('rest', tSession?.rest_seconds ?? DUP_CFG.kraft.restTime);
+    openSetLogModal(() => startPhase('rest', tSession?.rest_seconds ?? DUP_CFG.kraft.restTime));
   });
 
   document.getElementById('ta-exit').addEventListener('click', () => {
