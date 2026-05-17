@@ -96,20 +96,19 @@
     /* ── Übungs-Karte ── */
     .exercise-card {
       background: var(--surface); border: 1px solid var(--border);
-      border-radius: 12px; display: flex; gap: 8px; padding: 10px;
+      border-radius: 12px; display: flex; gap: 12px; padding: 10px;
       cursor: pointer; transition: border-color .15s; -webkit-tap-highlight-color: transparent;
     }
     .exercise-card:active { border-color: var(--muted); }
     .card-thumb {
-      width: 52px; height: 52px; border-radius: 8px; background: var(--border);
+      width: 80px; height: 72px; border-radius: 8px; background: var(--border);
       flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center;
     }
     .card-thumb img { width: 100%; height: 100%; object-fit: cover; }
-    .thumb-placeholder { color: var(--muted); font-size: 22px; }
-    .card-content { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; justify-content: center; }
-    .card-top { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
-    .card-name { font-weight: 600; font-size: 12px; line-height: 1.2; }
-    .week-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; letter-spacing: .6px; text-transform: uppercase; }
+    .card-content { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; justify-content: center; }
+    .card-top { display: flex; align-items: flex-start; gap: 6px; }
+    .card-name { font-weight: 600; font-size: 14px; line-height: 1.3; flex: 1; min-width: 0; }
+    .week-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; letter-spacing: .6px; text-transform: uppercase; flex-shrink: 0; }
     .badge-a  { background: rgba(200,169,110,.15); color: var(--kraft); }
     .badge-b  { background: rgba(93,170,176,.15);  color: var(--hyper); }
     .badge-ab { background: rgba(155,138,180,.15); color: var(--vol); }
@@ -341,6 +340,28 @@
     .ses-remove-btn { background: none; border: none; color: var(--muted); font-size: 16px; cursor: pointer; padding: 0 2px; -webkit-tap-highlight-color: transparent; }
     #ses-exercise-pool { display: flex; flex-direction: column; margin-top: 8px; max-height: 360px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; }
     #ses-selected-list { margin-top: 8px; }
+
+    /* ── Supersatz Builder ── */
+    .ses-sup-block { border: 1px solid var(--border); border-radius: 10px; margin-bottom: 6px; overflow: hidden; }
+    .ses-sup-header { display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; gap: 8px; }
+    .ses-sup-header-lbl { font-size: 11px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; }
+    .ses-ungroup-btn { background: none; border: 1px solid var(--border); border-radius: 6px; color: var(--muted); font-size: 11px; padding: 2px 8px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    .ses-sel-item.grouped { border-left: 3px solid transparent; border-bottom: 1px solid var(--border); padding-left: 6px; }
+    .ses-sel-item.grouped:last-child { border-bottom: none; }
+    .ses-sup-ex-lbl { font-size: 10px; font-weight: 700; min-width: 18px; text-align: center; flex-shrink: 0; }
+    .ses-sel-item.sel-active { background: rgba(93,170,176,.06); }
+    .ses-sel-check { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--border); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; transition: all .15s; cursor: pointer; }
+    .ses-sel-item.sel-active .ses-sel-check { background: var(--hyper); border-color: var(--hyper); color: var(--bg); }
+    .ses-group-bar { display: none; gap: 6px; padding: 8px 0 4px; }
+    .ses-group-bar.visible { display: flex; }
+    .btn-sup-group { padding: 7px 14px; border-radius: 8px; background: rgba(93,170,176,.15); border: 1px solid var(--hyper); color: var(--hyper); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    .btn-sup-group:disabled { opacity: .4; cursor: default; }
+    .btn-sup-unsel { padding: 7px 14px; border-radius: 8px; background: transparent; border: 1px solid var(--border); color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    .ses-sup-suggest { background: rgba(155,138,180,.08); border: 1px solid rgba(155,138,180,.3); border-radius: 8px; padding: 8px 12px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .ses-sup-suggest-lbl { font-size: 12px; color: var(--vol); flex: 1; }
+    .btn-sup-suggest { background: rgba(155,138,180,.15); border: 1px solid rgba(155,138,180,.4); border-radius: 6px; color: var(--vol); font-size: 12px; font-weight: 600; padding: 4px 10px; cursor: pointer; white-space: nowrap; -webkit-tap-highlight-color: transparent; flex-shrink: 0; }
+    /* ── Timer Supersatz ── */
+    .ss-pos-indicator { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: .5px; color: var(--hyper); }
 
     /* ── Timer: Select ── */
     .sel-week-label {
@@ -876,7 +897,7 @@
       <div class="form-group">
         <label class="form-label">Modus</label>
         <div class="tag-group">
-          <button type="button" class="t-toggle" data-sesmode="kraft">Kraft</button>
+          <button type="button" class="t-toggle" data-sesmode="kraft">Strength</button>
           <button type="button" class="t-toggle" data-sesmode="hyper">Hyper</button>
           <button type="button" class="t-toggle" data-sesmode="vol">Vol</button>
           <button type="button" class="t-toggle" data-sesmode="flexibility">Flexibility</button>
@@ -956,6 +977,7 @@
   let appState       = { id: null, current_week: 'A', week_b_enabled: false };
   let editingSessionId = null;
   let sesSelectedIds   = [];
+  let sesSelectIdxs    = new Set();
   let sesRegion        = 'alle';
 
   let detExercise  = null;
@@ -1014,7 +1036,23 @@
   // ═══════════════════════════════════════════════════════
   // MODUL 1 – Übungsbibliothek
   // ═══════════════════════════════════════════════════════
-  const EX_META = 'id,name,dup_modes,body_regions,movement_patterns,muscle_groups_anatomical,strength_weights,week_assignment,created_at';
+  const EX_META = 'id,name,thumbnail_base64,dup_modes,body_regions,movement_patterns,muscle_groups_anatomical,strength_weights,week_assignment,created_at';
+
+  function generateThumbnail(dataUrl, maxWidth = 300) {
+    return new Promise(resolve => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const scale = Math.min(1, maxWidth / img.naturalWidth);
+        canvas.width  = Math.round(img.naturalWidth  * scale);
+        canvas.height = Math.round(img.naturalHeight * scale);
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/webp', 0.7));
+      };
+      img.onerror = () => resolve(null);
+      img.src = dataUrl;
+    });
+  }
 
   async function load() {
     loadingEl.classList.add('active');
@@ -1029,7 +1067,7 @@
   const DET_EQ_TYPES  = ['barbell','dumbbell_1x','dumbbell_2x','kettlebell_1x','kettlebell_2x'];
   const DET_EQ_LABELS = { barbell:'Barbell', dumbbell_1x:'Dumbbell 1x', dumbbell_2x:'Dumbbell 2x', kettlebell_1x:'KB 1x', kettlebell_2x:'KB 2x' };
   const DET_WL_LABELS = { barbell:'BB', dumbbell_1x:'DB 1x', dumbbell_2x:'DB 2x', kettlebell_1x:'KB 1x', kettlebell_2x:'KB 2x' };
-  const DET_MODE_LBL  = { kraft:'Kraft', hyper:'Hyper', vol:'Vol', flexibility:'Flex' };
+  const DET_MODE_LBL  = { kraft:'Strength', hyper:'Hyper', vol:'Vol', flexibility:'Flex' };
 
   async function openDetailModal(ex) {
     detExercise  = ex;
@@ -1043,6 +1081,16 @@
     document.getElementById('det-load-more').style.display = 'none';
     document.getElementById('det-filter-select').innerHTML = '<option value="alle">Alle Sätze</option>';
     document.getElementById('detail-overlay').classList.add('open');
+    if (!ex.thumbnail_base64) {
+      db.from('exercises').select('gif_base64').eq('id', ex.id).single().then(async ({ data: gd }) => {
+        if (!gd?.gif_base64) return;
+        const thumb = await generateThumbnail(gd.gif_base64);
+        if (!thumb) return;
+        await db.from('exercises').update({ thumbnail_base64: thumb }).eq('id', ex.id);
+        const local = exercises.find(e => e.id === ex.id);
+        if (local) { local.thumbnail_base64 = thumb; render(); }
+      });
+    }
     const { data } = await db.from('set_log')
       .select('set_number,total_sets_in_session,weight_kg,reps,rir,equipment,session_date,session_id,sessions(dup_mode,weekday)')
       .eq('exercise_id', ex.id)
@@ -1174,6 +1222,10 @@
   async function savExercise() {
     btnSave.disabled = true;
     const payload = buildPayload();
+    if (gifBase64) {
+      const thumb = await generateThumbnail(gifBase64);
+      if (thumb) payload.thumbnail_base64 = thumb;
+    }
     let error;
     if (editingId) {
       ({ error } = await db.from('exercises').update(payload).eq('id', editingId));
@@ -1227,7 +1279,7 @@
 
   function renderExCard(e) {
     const dp = (e.dup_modes||[]).map(m=>`<span class="pill pill-${m}">${cap(m)}</span>`).join('');
-    const th = e.gif_base64 ? `<img src="${e.gif_base64}" loading="lazy">` : `<span class="thumb-placeholder">💪</span>`;
+    const th = e.thumbnail_base64 ? `<img src="${e.thumbnail_base64}" loading="lazy">` : '';
     return `<div class="exercise-card" data-id="${e.id}"><div class="card-thumb">${th}</div><div class="card-content"><div class="card-top"><span class="card-name">${e.name}</span>${weekBadgeHTML(e)}</div><div class="card-tags">${dp}</div></div></div>`;
   }
 
@@ -1273,9 +1325,13 @@
     overlay.classList.add('open');
     setTimeout(() => inpName.focus(), 120);
     if (ex?.id) {
+      btnSave.disabled = true;
       const { data } = await db.from('exercises').select('gif_base64').eq('id', ex.id).single();
-      gifBase64 = data?.gif_base64 ?? null;
-      if (gifBase64) { gifPreview.src = gifBase64; gifPreview.style.display = 'block'; uploadHint.style.display = 'none'; }
+      btnSave.disabled = false;
+      if (data?.gif_base64) {
+        gifBase64 = data.gif_base64;
+        gifPreview.src = gifBase64; gifPreview.style.display = 'block'; uploadHint.style.display = 'none';
+      }
     }
   }
 
@@ -1355,16 +1411,22 @@
       </div>`;
       if (daySessions.length) {
         html += daySessions.map(s => {
-          const exCount = (s.exercise_ids||[]).length;
-          const timeStr = s.dup_mode === 'flexibility' ? ''
-            : (s.dup_mode === 'kraft' || s.dup_mode === 'hyper') ? ` · Pause: ${s.rest_seconds||'?'}s`
-            : ` · ${s.work_seconds||'?'}s AMRAP / ${s.rest_seconds||'?'}s`;
+          const ids    = s.exercise_ids || [];
+          const pairs  = Math.ceil(ids.length / 2);
+          const total  = ids.reduce((n, c) => n + (typeof c === 'object' ? (c.sets||3) : 3), 0);
+          const rest   = s.rest_seconds  || DUP_CFG[s.dup_mode]?.restTime || '?';
+          const work   = s.work_seconds  || DUP_CFG.vol.workTime;
+          const meta   = s.dup_mode === 'flexibility' ? ''
+            : s.dup_mode === 'hyper' ? `${pairs} Supersets · 8-12 Reps · ${rest}s Pause`
+            : s.dup_mode === 'vol'   ? `${pairs} Supersets · ${work}s AMRAP · ${rest}s Pause`
+            :                          `${total} Sets · 3-5 Reps · ${rest}s Pause`;
+          const modeLabel = s.dup_mode === 'kraft' ? 'Strength' : cap(s.dup_mode);
           return `<div class="session-card" data-id="${s.id}">
             <div class="session-info">
-              <div class="session-title">${s.title || cap(s.dup_mode)}</div>
-              <div class="session-meta">${exCount} Übungen${timeStr}</div>
+              <div class="session-title">${s.title || modeLabel}</div>
+              <div class="session-meta">${meta}</div>
             </div>
-            <span class="session-mode-badge mode-${s.dup_mode}">${cap(s.dup_mode)}</span>
+            <span class="session-mode-badge mode-${s.dup_mode}">${modeLabel}</span>
             <button type="button" class="session-start-btn" data-id="${s.id}">▶</button>
           </div>`;
         }).join('');
@@ -1442,11 +1504,18 @@
       const sets = typeof cfg === 'object' ? (cfg.sets||3) : 3;
       detailExSets[id] = sets;
     });
-    document.getElementById('plan-detail-title').textContent = ses.title || cap(ses.dup_mode);
-    const isFlex = ses.dup_mode === 'flexibility';
-    const meta   = isFlex ? 'Flexibility'
-      : (ses.dup_mode === 'kraft' || ses.dup_mode === 'hyper') ? `Pause: ${ses.rest_seconds}s`
-      : `${ses.work_seconds||'?'}s AMRAP · ${ses.rest_seconds}s Pause`;
+    const isFlex    = ses.dup_mode === 'flexibility';
+    const detLabel  = ses.dup_mode === 'kraft' ? 'Strength' : cap(ses.dup_mode);
+    document.getElementById('plan-detail-title').textContent = ses.title || detLabel;
+    const detIds    = ses.exercise_ids || [];
+    const detPairs  = Math.ceil(detIds.length / 2);
+    const detTotal  = detIds.reduce((n, c) => n + (typeof c === 'object' ? (c.sets||3) : 3), 0);
+    const detWork = ses.work_seconds || DUP_CFG.vol.workTime;
+    const detRest = ses.rest_seconds || DUP_CFG[ses.dup_mode]?.restTime || '?';
+    const meta      = isFlex ? 'Flexibility'
+      : ses.dup_mode === 'hyper' ? `${detPairs} Supersets · 8-12 Reps · ${detRest}s Pause`
+      : ses.dup_mode === 'vol'   ? `${detPairs} Supersets · ${detWork}s AMRAP · ${detRest}s Pause`
+      :                            `${detTotal} Sets · 3-5 Reps · ${detRest}s Pause`;
     document.getElementById('plan-detail-meta').textContent = meta;
     document.getElementById('plan-detail-body').innerHTML   = '<div style="color:var(--muted);font-size:13px;padding:8px 0">Lädt…</div>';
     showPlanSub('detail');
@@ -1531,7 +1600,7 @@
     preWorkoutFrom = from;
     const ses = planDetailSes;
     if (!ses) return;
-    document.getElementById('plan-start-title').textContent = ses.title || cap(ses.dup_mode);
+    document.getElementById('plan-start-title').textContent = ses.title || (ses.dup_mode === 'kraft' ? 'Strength' : cap(ses.dup_mode));
     document.getElementById('plan-start-body').innerHTML = '<div style="color:var(--muted);font-size:13px;padding:8px 0">Lädt…</div>';
     showPlanSub('start');
     if (!Object.keys(planDetailLogs).length) {
@@ -1598,13 +1667,14 @@
     if (day) document.querySelector(`.t-toggle[data-weekday="${day}"]`)?.classList.add('on');
     const mode = ses?.dup_mode || 'hyper';
     document.querySelector(`.t-toggle[data-sesmode="${mode}"]`)?.classList.add('on');
-    document.getElementById('ses-work').value       = (ses?.dup_mode === 'vol'   ? ses?.work_seconds : '') ?? '';
+    document.getElementById('ses-work').value       = ses?.dup_mode === 'vol' ? (ses?.work_seconds || '') : '';
     document.getElementById('ses-rep-target').value = '';
-    document.getElementById('ses-rest').value       = ses?.rest_seconds ?? '';
+    document.getElementById('ses-rest').value       = ses?.rest_seconds || '';
     document.getElementById('ses-title').value = ses?.title ?? '';
     sesSelectedIds = (ses?.exercise_ids || []).map(cfg =>
-      typeof cfg === 'string' ? { exercise_id: cfg, sets: 3 } : { exercise_id: cfg.exercise_id, sets: cfg.sets || 3 }
+      typeof cfg === 'string' ? { exercise_id: cfg, sets: 3 } : { exercise_id: cfg.exercise_id, sets: cfg.sets || 3, ...(cfg.superset_group ? { superset_group: cfg.superset_group } : {}) }
     );
+    sesSelectIdxs.clear();
     document.getElementById('ses-search').value = '';
     sesRegion = 'alle';
     document.querySelectorAll('#ses-region-tabs .filter-tab').forEach(b => b.classList.toggle('active', b.dataset.region === 'alle'));
@@ -1642,8 +1712,8 @@
       poolEl.innerHTML = `<div style="color:var(--muted);font-size:13px;padding:8px 0;grid-column:1/-1">Keine Treffer.</div>`;
     } else {
       poolEl.innerHTML = filtered.map(e => {
-        const th = e.gif_base64
-          ? `<img src="${e.gif_base64}" loading="lazy">`
+        const th = e.thumbnail_base64
+          ? `<img src="${e.thumbnail_base64}" loading="lazy">`
           : `<span class="ses-pool-thumb-ph">💪</span>`;
         return `<div class="ses-pool-item" data-id="${e.id}">
           <div class="ses-pool-thumb">${th}</div>
@@ -1664,102 +1734,213 @@
     });
   }
 
+  const SUP_COLORS = ['var(--hyper)', 'var(--vol)', 'var(--kraft)', 'var(--flex)'];
+  function supGrpColor(g) { return SUP_COLORS[(g.charCodeAt(0) - 65) % SUP_COLORS.length]; }
+  function nextGrpLetter() {
+    const used = new Set(sesSelectedIds.map(e => e.superset_group).filter(Boolean));
+    for (let i = 0; i < 26; i++) { const l = String.fromCharCode(65+i); if (!used.has(l)) return l; }
+    return 'A';
+  }
+  function sesCanGroup() {
+    if (sesSelectIdxs.size < 2) return false;
+    const arr = [...sesSelectIdxs].sort((a,b)=>a-b);
+    for (let i = 1; i < arr.length; i++) if (arr[i] !== arr[i-1]+1) return false;
+    return arr.every(i => !sesSelectedIds[i]?.superset_group);
+  }
+  function sesDetectPairs() {
+    const result = [];
+    let i = 0;
+    while (i < sesSelectedIds.length - 1) {
+      if (sesSelectedIds[i].superset_group) { i++; continue; }
+      let bestL = -1, bestRounds = 1;
+      const maxL = Math.floor((sesSelectedIds.length - i) / 2);
+      for (let L = 2; L <= maxL; L++) {
+        let valid = true;
+        for (let k = 0; k < L; k++) { if (sesSelectedIds[i+k]?.superset_group) { valid = false; break; } }
+        if (!valid) continue;
+        let rounds = 1, j = i + L;
+        while (j + L <= sesSelectedIds.length) {
+          let match = true;
+          for (let k = 0; k < L; k++) {
+            if (sesSelectedIds[j+k]?.exercise_id !== sesSelectedIds[i+k].exercise_id || sesSelectedIds[j+k]?.superset_group) { match = false; break; }
+          }
+          if (match) { rounds++; j += L; } else break;
+        }
+        if (rounds >= 2) { bestL = L; bestRounds = rounds; break; }
+      }
+      if (bestL >= 2) { result.push({ start: i, length: bestL, rounds: bestRounds }); i += bestL * bestRounds; }
+      else i++;
+    }
+    return result;
+  }
+
   function renderSesSelected() {
     const el = document.getElementById('ses-selected-list');
     if (!sesSelectedIds.length) { el.innerHTML = `<div style="color:var(--muted);font-size:13px;padding:6px 0">Noch leer.</div>`; return; }
-    el.innerHTML = sesSelectedIds.map((item, idx) => {
-      const ex = exercises.find(e => e.id === item.exercise_id);
-      if (!ex) return '';
-      return `<div class="ses-sel-item" data-idx="${idx}" draggable="true">
-        <span class="ses-drag-handle">⠿</span>
-        <span class="ses-sel-name">${ex.name}</span>
-        <input type="number" class="ses-sets-input" data-idx="${idx}" min="1" max="10" value="${item.sets||1}" title="Sätze">
-        <div class="ses-sel-btns">
-          <button type="button" class="ses-remove-btn" data-id="${item.exercise_id}">×</button>
-        </div>
-      </div>`;
-    }).join('');
+
+    let html = '';
+
+    // Auto-suggest banner
+    const detPairs = sesDetectPairs();
+    if (detPairs.length && !sesSelectIdxs.size) {
+      const lbl = detPairs.length === 1
+        ? (() => { const {start,length,rounds} = detPairs[0]; const names = Array.from({length:length},(_,k)=>exercises.find(e=>e.id===sesSelectedIds[start+k]?.exercise_id)?.name||'').filter(Boolean); return `${names.join(' + ')}${rounds>1?' · '+rounds+'×':''}`;})()
+        : `${detPairs.length} Supersatz-Paare erkannt`;
+      const btnLbl = detPairs.length === 1 ? 'Als Supersatz markieren' : 'Alle markieren';
+      html += `<div class="ses-sup-suggest"><span class="ses-sup-suggest-lbl">${lbl}</span><button type="button" class="btn-sup-suggest" id="ses-suggest-btn">${btnLbl}</button></div>`;
+    }
+
+    // Items: grouped blocks + ungrouped singles
+    let i = 0;
+    while (i < sesSelectedIds.length) {
+      const grp = sesSelectedIds[i].superset_group;
+      if (grp) {
+        let j = i;
+        while (j < sesSelectedIds.length && sesSelectedIds[j].superset_group === grp) j++;
+        const rounds = sesSelectedIds[i].sets || 3;
+        const color  = supGrpColor(grp);
+        html += `<div class="ses-sup-block" style="border-color:${color}33"><div class="ses-sup-header" style="background:${color}11"><span class="ses-sup-header-lbl" style="color:${color}">Supersatz ${grp} · ${rounds} Runden</span><button type="button" class="ses-ungroup-btn" data-grp="${grp}">Aufheben</button></div>`;
+        for (let k = i; k < j; k++) {
+          const ex = exercises.find(e => e.id === sesSelectedIds[k].exercise_id);
+          if (!ex) continue;
+          html += `<div class="ses-sel-item grouped" data-idx="${k}" style="border-left-color:${color}"><span class="ses-drag-handle" style="visibility:hidden">⠿</span><span class="ses-sup-ex-lbl" style="color:${color}">${grp}${k-i+1}</span><span class="ses-sel-name">${ex.name}</span><input type="number" class="ses-sets-input" data-idx="${k}" min="1" max="10" value="${sesSelectedIds[k].sets||3}" title="Runden"><div class="ses-sel-btns"><button type="button" class="ses-remove-btn" data-id="${sesSelectedIds[k].exercise_id}">×</button></div></div>`;
+        }
+        html += `</div>`;
+        i = j;
+      } else {
+        const ex = exercises.find(e => e.id === sesSelectedIds[i].exercise_id);
+        if (!ex) { i++; continue; }
+        const isSel = sesSelectIdxs.has(i);
+        html += `<div class="ses-sel-item${isSel?' sel-active':''}" data-idx="${i}" draggable="${sesSelectIdxs.size?'false':'true'}"><div class="ses-sel-check">${isSel?'✓':''}</div><span class="ses-drag-handle">⠿</span><span class="ses-sel-name">${ex.name}</span><input type="number" class="ses-sets-input" data-idx="${i}" min="1" max="10" value="${sesSelectedIds[i].sets||3}" title="Sätze"><div class="ses-sel-btns"><button type="button" class="ses-remove-btn" data-id="${sesSelectedIds[i].exercise_id}">×</button></div></div>`;
+        i++;
+      }
+    }
+
+    // Group action bar
+    if (sesSelectIdxs.size || sesSelectedIds.some(s => !s.superset_group)) {
+      const canGrp = sesCanGroup();
+      html += `<div class="ses-group-bar${sesSelectIdxs.size?' visible':''}"><button type="button" class="btn-sup-group" id="ses-btn-group"${canGrp?'':' disabled'}>Zu Supersatz gruppieren</button><button type="button" class="btn-sup-unsel" id="ses-btn-unsel">Auswahl aufheben</button></div>`;
+    }
+
+    el.innerHTML = html;
+
+    // ── Events ────────────────────────────────────────────
+    el.querySelectorAll('.ses-sel-item:not(.grouped)').forEach(row => {
+      row.addEventListener('click', e => {
+        if (e.target.closest('.ses-remove-btn,.ses-sets-input,.ses-drag-handle')) return;
+        const idx = parseInt(row.dataset.idx);
+        sesSelectIdxs.has(idx) ? sesSelectIdxs.delete(idx) : sesSelectIdxs.add(idx);
+        renderSesSelected();
+      });
+    });
     el.querySelectorAll('.ses-sets-input').forEach(inp => {
       inp.addEventListener('change', () => {
-        const i = parseInt(inp.dataset.idx);
-        sesSelectedIds[i].sets = Math.min(10, Math.max(1, parseInt(inp.value) || 1));
-        inp.value = sesSelectedIds[i].sets;
+        const idx = parseInt(inp.dataset.idx);
+        const val = Math.min(10, Math.max(1, parseInt(inp.value) || 1));
+        sesSelectedIds[idx].sets = val; inp.value = val;
+        const g = sesSelectedIds[idx].superset_group;
+        if (g) { sesSelectedIds.forEach((s,k) => { if (s.superset_group===g) sesSelectedIds[k].sets=val; }); renderSesSelected(); }
       });
     });
     el.querySelectorAll('.ses-remove-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        sesSelectedIds = sesSelectedIds.filter(i => i.exercise_id !== btn.dataset.id);
+        sesSelectedIds = sesSelectedIds.filter(s => s.exercise_id !== btn.dataset.id);
+        sesSelectIdxs.clear();
         renderSesPool(document.getElementById('ses-search').value);
-        renderSesSelected();
-        autoFillSesTitle();
+        renderSesSelected(); autoFillSesTitle();
       });
     });
-    // ── Drag-and-drop (HTML5 + Touch) ──
-    let dragIdx = null;
-    el.querySelectorAll('.ses-sel-item').forEach(item => {
-      item.addEventListener('dragstart', () => {
-        dragIdx = parseInt(item.dataset.idx);
-        setTimeout(() => item.classList.add('dragging'), 0);
-      });
-      item.addEventListener('dragend', () => {
-        item.classList.remove('dragging');
-        el.querySelectorAll('.ses-sel-item').forEach(i => i.classList.remove('drag-over'));
-      });
-      item.addEventListener('dragover', e => {
-        e.preventDefault();
-        el.querySelectorAll('.ses-sel-item').forEach(i => i.classList.remove('drag-over'));
-        item.classList.add('drag-over');
-      });
-      item.addEventListener('drop', e => {
-        e.preventDefault();
-        const dropIdx = parseInt(item.dataset.idx);
-        item.classList.remove('drag-over');
-        if (dragIdx !== null && dragIdx !== dropIdx) {
-          const moved = sesSelectedIds.splice(dragIdx, 1)[0];
-          sesSelectedIds.splice(dropIdx, 0, moved);
-          renderSesSelected();
+    document.getElementById('ses-btn-group')?.addEventListener('click', () => {
+      if (!sesCanGroup()) return;
+      const letter = nextGrpLetter();
+      const arr = [...sesSelectIdxs].sort((a,b)=>a-b);
+      const selItems = arr.map(i => sesSelectedIds[i]);
+      // Detect repeating sub-pattern within selection and collapse duplicates
+      let collapsed = false;
+      const maxL = Math.floor(selItems.length / 2);
+      for (let L = 2; L <= maxL; L++) {
+        let valid = true, rounds = 1;
+        for (let r = 1; r * L < selItems.length; r++) {
+          for (let k = 0; k < L; k++) {
+            if (selItems[r*L+k]?.exercise_id !== selItems[k].exercise_id) { valid = false; break; }
+          }
+          if (!valid) break;
+          rounds++;
         }
+        if (valid && rounds >= 2 && L * rounds === selItems.length) {
+          for (let k = 0; k < L; k++) { sesSelectedIds[arr[k]].superset_group = letter; sesSelectedIds[arr[k]].sets = rounds; }
+          const toRemove = new Set(arr.slice(L));
+          sesSelectedIds = sesSelectedIds.filter((_,i) => !toRemove.has(i));
+          collapsed = true; break;
+        }
+      }
+      if (!collapsed) {
+        const refSets = sesSelectedIds[arr[0]].sets || 3;
+        arr.forEach(i => { sesSelectedIds[i].superset_group = letter; sesSelectedIds[i].sets = refSets; });
+      }
+      sesSelectIdxs.clear(); renderSesSelected(); autoFillSesTitle();
+    });
+    document.getElementById('ses-btn-unsel')?.addEventListener('click', () => { sesSelectIdxs.clear(); renderSesSelected(); });
+    el.querySelectorAll('.ses-ungroup-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const g = btn.dataset.grp;
+        const grpItems = sesSelectedIds.filter(s => s.superset_group === g);
+        if (!grpItems.length) return;
+        const rounds = grpItems[0].sets || 3;
+        const template = grpItems.map(s => ({ exercise_id: s.exercise_id, sets: 1 }));
+        const expanded = [];
+        for (let r = 0; r < rounds; r++) { template.forEach(t => expanded.push({...t})); }
+        const startIdx = sesSelectedIds.findIndex(s => s.superset_group === g);
+        sesSelectedIds.splice(startIdx, grpItems.length, ...expanded);
+        renderSesSelected(); autoFillSesTitle();
       });
     });
-    // Touch drag
+    document.getElementById('ses-suggest-btn')?.addEventListener('click', () => {
+      const toRemove = new Set();
+      sesDetectPairs().forEach(({start, length, rounds}) => {
+        const letter = nextGrpLetter();
+        for (let k = 0; k < length; k++) { sesSelectedIds[start+k].superset_group = letter; sesSelectedIds[start+k].sets = rounds; }
+        for (let r = 1; r < rounds; r++) { for (let k = 0; k < length; k++) { toRemove.add(start + r*length + k); } }
+      });
+      sesSelectedIds = sesSelectedIds.filter((_,i) => !toRemove.has(i));
+      renderSesSelected(); autoFillSesTitle();
+    });
+
+    // ── Drag & drop (ungrouped only) ──────────────────────
+    let dragIdx = null;
+    el.querySelectorAll('.ses-sel-item[draggable="true"]').forEach(item => {
+      item.addEventListener('dragstart', () => { dragIdx = parseInt(item.dataset.idx); setTimeout(() => item.classList.add('dragging'), 0); });
+      item.addEventListener('dragend',   () => { item.classList.remove('dragging'); el.querySelectorAll('.ses-sel-item').forEach(i => i.classList.remove('drag-over')); });
+      item.addEventListener('dragover',  e => { e.preventDefault(); el.querySelectorAll('.ses-sel-item').forEach(i => i.classList.remove('drag-over')); item.classList.add('drag-over'); });
+      item.addEventListener('drop', e => {
+        e.preventDefault(); const dropIdx = parseInt(item.dataset.idx); item.classList.remove('drag-over');
+        if (dragIdx !== null && dragIdx !== dropIdx) { const moved = sesSelectedIds.splice(dragIdx,1)[0]; sesSelectedIds.splice(dropIdx,0,moved); renderSesSelected(); }
+      });
+    });
     let touchIdx = null, touchClone = null;
-    el.querySelectorAll('.ses-drag-handle').forEach(handle => {
+    el.querySelectorAll('.ses-sel-item:not(.grouped) .ses-drag-handle').forEach(handle => {
       const row = handle.closest('.ses-sel-item');
       handle.addEventListener('touchstart', e => {
+        if (sesSelectIdxs.size) return;
         touchIdx = parseInt(row.dataset.idx);
-        const t = e.touches[0], rect = row.getBoundingClientRect();
+        const rect = row.getBoundingClientRect();
         touchClone = row.cloneNode(true);
-        Object.assign(touchClone.style, {
-          position:'fixed', top:rect.top+'px', left:rect.left+'px',
-          width:rect.width+'px', zIndex:'200', opacity:'.85',
-          background:'var(--surface)', borderRadius:'8px', pointerEvents:'none',
-          boxShadow:'0 4px 16px rgba(0,0,0,.5)', padding:'8px 0'
-        });
-        document.body.appendChild(touchClone);
-        row.classList.add('dragging');
-      }, { passive: true });
+        Object.assign(touchClone.style, { position:'fixed', top:rect.top+'px', left:rect.left+'px', width:rect.width+'px', zIndex:'200', opacity:'.85', background:'var(--surface)', borderRadius:'8px', pointerEvents:'none', boxShadow:'0 4px 16px rgba(0,0,0,.5)', padding:'8px 0' });
+        document.body.appendChild(touchClone); row.classList.add('dragging');
+      }, { passive:true });
       handle.addEventListener('touchmove', e => {
         if (!touchClone) return;
-        const t = e.touches[0];
-        touchClone.style.top = (t.clientY - 24) + 'px';
+        const t = e.touches[0]; touchClone.style.top = (t.clientY-24)+'px';
         el.querySelectorAll('.ses-sel-item').forEach(i => i.classList.remove('drag-over'));
-        const over = document.elementFromPoint(t.clientX, t.clientY)?.closest('.ses-sel-item');
-        if (over && over !== row) over.classList.add('drag-over');
-      }, { passive: true });
+        const over = document.elementFromPoint(t.clientX,t.clientY)?.closest('.ses-sel-item');
+        if (over && over!==row) over.classList.add('drag-over');
+      }, { passive:true });
       handle.addEventListener('touchend', () => {
-        if (touchClone) { document.body.removeChild(touchClone); touchClone = null; }
+        if (touchClone) { document.body.removeChild(touchClone); touchClone=null; }
         row.classList.remove('dragging');
         const over = el.querySelector('.ses-sel-item.drag-over');
-        if (over) {
-          const dropIdx = parseInt(over.dataset.idx);
-          over.classList.remove('drag-over');
-          if (touchIdx !== null && touchIdx !== dropIdx) {
-            const moved = sesSelectedIds.splice(touchIdx, 1)[0];
-            sesSelectedIds.splice(dropIdx, 0, moved);
-          }
-        }
-        touchIdx = null;
-        renderSesSelected();
+        if (over) { const dropIdx=parseInt(over.dataset.idx); over.classList.remove('drag-over'); if (touchIdx!==null&&touchIdx!==dropIdx) { const moved=sesSelectedIds.splice(touchIdx,1)[0]; sesSelectedIds.splice(dropIdx,0,moved); } }
+        touchIdx=null; renderSesSelected();
       });
     });
   }
@@ -1807,7 +1988,7 @@
       week:         planWeek,
       weekday,
       dup_mode:     mode,
-      exercise_ids: sesSelectedIds.map(s => ({ exercise_id: s.exercise_id, sets: s.sets || 3 })),
+      exercise_ids: sesSelectedIds.map(s => ({ exercise_id: s.exercise_id, sets: s.sets || 3, ...(s.superset_group ? { superset_group: s.superset_group } : {}) })),
       work_seconds: (isFlex || mode === 'kraft' || mode === 'hyper') ? null
         : (parseInt(document.getElementById('ses-work').value) || null),
       rest_seconds: isFlex ? null : (parseInt(document.getElementById('ses-rest').value) || null),
@@ -1860,6 +2041,7 @@
     document.getElementById('session-overlay').classList.remove('open');
     editingSessionId = null;
     sesSelectedIds   = [];
+    sesSelectIdxs.clear();
   }
 
   // ═══════════════════════════════════════════════════════
@@ -2074,8 +2256,9 @@
     const pool = (ses.exercise_ids||[]).map(cfg => {
       const id   = typeof cfg === 'string' ? cfg : cfg.exercise_id;
       const sets = detailExSets[id] ?? (typeof cfg === 'object' ? (cfg.sets||3) : 3);
+      const sgrp = typeof cfg === 'object' ? (cfg.superset_group || null) : null;
       const ex   = exercises.find(e => e.id === id);
-      return ex ? { ...ex, _sets: sets } : null;
+      return ex ? { ...ex, _sets: sets, _superset_group: sgrp } : null;
     }).filter(Boolean);
     tExercises   = pool.filter(e => !detailExSkip.has(e.id));
     skippedExIds = pool.filter(e =>  detailExSkip.has(e.id)).map(e => e.id);
@@ -2129,7 +2312,12 @@
     taImg.innerHTML   = ex.gif_base64 ? `<img src="${ex.gif_base64}" loading="lazy">` : `<span class="ta-img-ph">💪</span>`;
     taName.textContent = ex.name;
     taCounter.textContent = `${exIdx+1} / ${tExercises.length}`;
-    if (tMode === 'kraft' || tMode === 'hyper') {
+    const sg = grpOf(exIdx);
+    if (sg) {
+      const gs = grpStart(exIdx), ge = grpEnd(exIdx);
+      const rounds = tExercises[gs]._sets || 3;
+      taDots.innerHTML = `<span class="ss-pos-indicator">Supersatz ${sg} · Runde ${setIdx+1}/${rounds} · Übung ${exIdx-gs+1}/${ge-gs+1}</span>`;
+    } else if (tMode === 'kraft' || tMode === 'hyper') {
       taDots.innerHTML = `<span class="satz-progress">Satz ${setIdx+1} / ${ex._sets||3}</span>`;
     } else if (tMode === 'vol') {
       const ps = exIdx % 2 === 0 ? exIdx : exIdx - 1;
@@ -2286,6 +2474,15 @@
   }
 
   function getNextExercise() {
+    const sg = grpOf(exIdx);
+    if (sg) {
+      const gs = grpStart(exIdx), ge = grpEnd(exIdx);
+      const rounds = tExercises[gs]._sets || 3;
+      if (exIdx < ge)              return tExercises[exIdx + 1];
+      if (setIdx + 1 < rounds)     return tExercises[gs];
+      if (ge + 1 < tExercises.length) return tExercises[ge + 1];
+      return null;
+    }
     if (tMode === 'vol') {
       const pairStart = exIdx % 2 === 0 ? exIdx : exIdx - 1;
       const pairTotal = tExercises[pairStart]?._sets || DUP_CFG.vol.sets;
@@ -2317,11 +2514,27 @@
 
   function onPhaseEnd() {
     if (rafId) { cancelAnimationFrame(rafId); rafId=null; }
-    if (phase==='work') openSetLogModal(() => startPhase('rest', tSession?.rest_seconds || DUP_CFG[tMode].restTime));
-    else nextSet();
+    if (phase==='work') {
+      const lastInGrp = !grpOf(exIdx) || exIdx === grpEnd(exIdx);
+      if (lastInGrp) openSetLogModal(() => startPhase('rest', tSession?.rest_seconds || DUP_CFG[tMode].restTime));
+      else           openSetLogModal(() => nextSet());
+    } else { nextSet(); }
   }
 
+  function grpOf(i)    { return tExercises[i]?._superset_group || null; }
+  function grpStart(i) { const g=grpOf(i); if (!g) return i; while (i>0 && grpOf(i-1)===g) i--; return i; }
+  function grpEnd(i)   { const g=grpOf(i); if (!g) return i; while (i+1<tExercises.length && grpOf(i+1)===g) i++; return i; }
+
   function nextSet() {
+    const sg = grpOf(exIdx);
+    if (sg) {
+      const gs = grpStart(exIdx), ge = grpEnd(exIdx);
+      const rounds = tExercises[gs]._sets || 3;
+      if (exIdx < ge) { exIdx++; }
+      else { setIdx++; if (setIdx >= rounds) { exIdx = ge+1; setIdx = 0; } else { exIdx = gs; } }
+      if (exIdx >= tExercises.length) { showDone(); return; }
+      startExercise(); return;
+    }
     if (tMode === 'vol') {
       const pairStart = exIdx % 2 === 0 ? exIdx : exIdx - 1;
       const pairTotal = tExercises[pairStart]?._sets || DUP_CFG.vol.sets;
@@ -2390,7 +2603,9 @@
   taMain.addEventListener('click', () => {
     if (phase!=='reps') return;
     if (Date.now() - timerLaunchedAt < 500) return;
-    openSetLogModal(() => startPhase('rest', tSession?.rest_seconds || DUP_CFG[tMode].restTime));
+    const lastInGrp = !grpOf(exIdx) || exIdx === grpEnd(exIdx);
+    if (lastInGrp) openSetLogModal(() => startPhase('rest', tSession?.rest_seconds || DUP_CFG[tMode].restTime));
+    else           openSetLogModal(() => nextSet());
   });
 
   document.getElementById('ta-exit').addEventListener('click', () => {
