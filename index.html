@@ -8,18 +8,18 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; border-radius: 0 !important; }
 
     :root {
-      --bg:      #0d0d0d;
-      --surface: #161616;
-      --border:  #242424;
-      --text:    #f0ece4;
-      --muted:   #666666;
-      --kraft:   #c8a96e;
-      --hyper:   #5daab0;
-      --vol:     #9b8ab4;
-      --flex:    #7ba8c4;
+      --bg:      #000000;
+      --surface: #0d0d0d;
+      --border:  #282828;
+      --text:    #ffffff;
+      --muted:   #555555;
+      --kraft:   #ffffff;
+      --hyper:   #ffffff;
+      --vol:     #ffffff;
+      --flex:    #ffffff;
       --nav-h:   62px;
     }
 
@@ -104,20 +104,20 @@
       width: 80px; height: 72px; border-radius: 8px; background: var(--border);
       flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center;
     }
-    .card-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .card-thumb img { width: 100%; height: 100%; object-fit: contain; }
     .card-content { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; justify-content: center; }
     .card-top { display: flex; align-items: flex-start; gap: 6px; }
     .card-name { font-weight: 600; font-size: 14px; line-height: 1.3; flex: 1; min-width: 0; }
     .week-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; letter-spacing: .6px; text-transform: uppercase; flex-shrink: 0; }
-    .badge-a  { background: rgba(200,169,110,.15); color: var(--kraft); }
-    .badge-b  { background: rgba(93,170,176,.15);  color: var(--hyper); }
-    .badge-ab { background: rgba(155,138,180,.15); color: var(--vol); }
+    .badge-a  { background: rgba(255,255,255,.07); color: var(--kraft); }
+    .badge-b  { background: rgba(255,255,255,.07);  color: var(--hyper); }
+    .badge-ab { background: rgba(255,255,255,.07); color: var(--vol); }
     .card-tags { display: flex; flex-wrap: wrap; gap: 4px; }
     .pill { font-size: 11px; padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border); color: var(--muted); }
-    .pill-kraft { border-color: rgba(200,169,110,.4); color: var(--kraft); }
-    .pill-hyper { border-color: rgba(93,170,176,.4);  color: var(--hyper); }
-    .pill-vol   { border-color: rgba(155,138,180,.4); color: var(--vol); }
-    .pill-flexibility { border-color: rgba(123,168,196,.4); color: var(--flex); }
+    .pill-kraft { border-color: rgba(255,255,255,.2); color: var(--kraft); }
+    .pill-hyper { border-color: rgba(255,255,255,.2);  color: var(--hyper); }
+    .pill-vol   { border-color: rgba(255,255,255,.2); color: var(--vol); }
+    .pill-flexibility { border-color: rgba(255,255,255,.2); color: var(--flex); }
     .cat-header { padding: 14px 4px 4px; font-family: 'Bebas Neue', sans-serif; font-size: 13px; letter-spacing: 2px; color: var(--muted); grid-column: 1 / -1; }
 
     /* ── FAB ── */
@@ -171,10 +171,10 @@
       cursor: pointer; transition: all .15s; -webkit-tap-highlight-color: transparent;
     }
     .t-toggle.on { background: var(--border); color: var(--text); border-color: var(--muted); }
-    .t-toggle[data-dup="kraft"].on       { background: rgba(200,169,110,.15); border-color: var(--kraft); color: var(--kraft); }
-    .t-toggle[data-dup="hyper"].on       { background: rgba(93,170,176,.15);  border-color: var(--hyper); color: var(--hyper); }
-    .t-toggle[data-dup="vol"].on         { background: rgba(155,138,180,.15); border-color: var(--vol);   color: var(--vol);   }
-    .t-toggle[data-dup="flexibility"].on { background: rgba(123,168,196,.15); border-color: var(--flex);  color: var(--flex);  }
+    .t-toggle[data-dup="kraft"].on       { background: rgba(255,255,255,.07); border-color: var(--kraft); color: var(--kraft); }
+    .t-toggle[data-dup="hyper"].on       { background: rgba(255,255,255,.07);  border-color: var(--hyper); color: var(--hyper); }
+    .t-toggle[data-dup="vol"].on         { background: rgba(255,255,255,.07); border-color: var(--vol);   color: var(--vol);   }
+    .t-toggle[data-dup="flexibility"].on { background: rgba(255,255,255,.07); border-color: var(--flex);  color: var(--flex);  }
     .btn-primary {
       width: 100%; padding: 16px; background: var(--text); color: var(--bg); border: none;
       border-radius: 12px; font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 1px;
@@ -202,8 +202,8 @@
       font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 1px;
       cursor: pointer; text-align: center; transition: all .15s; -webkit-tap-highlight-color: transparent;
     }
-    .plan-week-btn[data-week="A"].active { background: rgba(200,169,110,.15); border-color: var(--kraft); color: var(--kraft); }
-    .plan-week-btn[data-week="B"].active { background: rgba(93,170,176,.15);  border-color: var(--hyper); color: var(--hyper); }
+    .plan-week-btn[data-week="A"].active { background: rgba(255,255,255,.07); border-color: var(--kraft); color: var(--kraft); }
+    .plan-week-btn[data-week="B"].active { background: rgba(255,255,255,.07);  border-color: var(--hyper); color: var(--hyper); }
     .plan-week-btn[data-week="B"].hidden { display: none; }
     .plan-toggle-row {
       display: flex; align-items: center; justify-content: space-between;
@@ -221,7 +221,7 @@
       width: 18px; height: 18px; background: var(--muted); border-radius: 50%;
       transition: transform .2s, background .2s;
     }
-    .toggle-switch input:checked + .toggle-slider { background: rgba(93,170,176,.25); border: 1px solid var(--hyper); }
+    .toggle-switch input:checked + .toggle-slider { background: rgba(255,255,255,.1); border: 1px solid var(--hyper); }
     .toggle-switch input:checked + .toggle-slider::before { transform: translateX(20px); background: var(--hyper); }
     .plan-body { padding: 16px 16px 120px; }
 
@@ -253,10 +253,10 @@
       font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 4px;
       letter-spacing: .5px; text-transform: uppercase; flex-shrink: 0;
     }
-    .mode-kraft       { background: rgba(200,169,110,.15); color: var(--kraft); }
-    .mode-hyper       { background: rgba(93,170,176,.15);  color: var(--hyper); }
-    .mode-vol         { background: rgba(155,138,180,.15); color: var(--vol);   }
-    .mode-flexibility { background: rgba(123,168,196,.15); color: var(--flex);  }
+    .mode-kraft       { background: rgba(255,255,255,.07); color: var(--kraft); }
+    .mode-hyper       { background: rgba(255,255,255,.07);  color: var(--hyper); }
+    .mode-vol         { background: rgba(255,255,255,.07); color: var(--vol);   }
+    .mode-flexibility { background: rgba(255,255,255,.07); color: var(--flex);  }
     .session-start-btn {
       background: none; border: 1px solid var(--border); border-radius: 8px;
       color: var(--text); padding: 5px 10px; font-size: 11px; font-weight: 700;
@@ -311,8 +311,8 @@
     .bias-balance { display: flex; gap: 8px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
     .balance-chip { flex: 1; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); font-size: 11px; font-weight: 600; text-align: center; line-height: 1.4; }
     .balance-chip .balance-label { color: var(--muted); display: block; margin-bottom: 2px; }
-    .balance-chip.balanced { border-color: rgba(93,170,176,.4); color: var(--hyper); }
-    .balance-chip.warn     { border-color: rgba(200,169,110,.4); color: var(--kraft); }
+    .balance-chip.balanced { border-color: rgba(255,255,255,.2); color: var(--hyper); }
+    .balance-chip.warn     { border-color: rgba(255,255,255,.2); color: var(--kraft); }
 
     /* ── Session-Overlay Felder ── */
     .ses-pool-item {
@@ -349,17 +349,17 @@
     .ses-sel-item.grouped { border-left: 3px solid transparent; border-bottom: 1px solid var(--border); padding-left: 6px; }
     .ses-sel-item.grouped:last-child { border-bottom: none; }
     .ses-sup-ex-lbl { font-size: 10px; font-weight: 700; min-width: 18px; text-align: center; flex-shrink: 0; }
-    .ses-sel-item.sel-active { background: rgba(93,170,176,.06); }
+    .ses-sel-item.sel-active { background: rgba(255,255,255,.04); }
     .ses-sel-check { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--border); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; transition: all .15s; cursor: pointer; }
     .ses-sel-item.sel-active .ses-sel-check { background: var(--hyper); border-color: var(--hyper); color: var(--bg); }
     .ses-group-bar { display: none; gap: 6px; padding: 8px 0 4px; }
     .ses-group-bar.visible { display: flex; }
-    .btn-sup-group { padding: 7px 14px; border-radius: 8px; background: rgba(93,170,176,.15); border: 1px solid var(--hyper); color: var(--hyper); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    .btn-sup-group { padding: 7px 14px; border-radius: 8px; background: rgba(255,255,255,.07); border: 1px solid var(--hyper); color: var(--hyper); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; -webkit-tap-highlight-color: transparent; }
     .btn-sup-group:disabled { opacity: .4; cursor: default; }
     .btn-sup-unsel { padding: 7px 14px; border-radius: 8px; background: transparent; border: 1px solid var(--border); color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-    .ses-sup-suggest { background: rgba(155,138,180,.08); border: 1px solid rgba(155,138,180,.3); border-radius: 8px; padding: 8px 12px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .ses-sup-suggest { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.15); border-radius: 8px; padding: 8px 12px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
     .ses-sup-suggest-lbl { font-size: 12px; color: var(--vol); flex: 1; }
-    .btn-sup-suggest { background: rgba(155,138,180,.15); border: 1px solid rgba(155,138,180,.4); border-radius: 6px; color: var(--vol); font-size: 12px; font-weight: 600; padding: 4px 10px; cursor: pointer; white-space: nowrap; -webkit-tap-highlight-color: transparent; flex-shrink: 0; }
+    .btn-sup-suggest { background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.2); border-radius: 6px; color: var(--vol); font-size: 12px; font-weight: 600; padding: 4px 10px; cursor: pointer; white-space: nowrap; -webkit-tap-highlight-color: transparent; flex-shrink: 0; }
     /* ── Timer Supersatz ── */
     .ss-pos-indicator { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: .5px; color: var(--hyper); }
 
@@ -424,7 +424,7 @@
     .ta-counter    { font-size: 13px; font-weight: 600; color: var(--muted); }
     #timer-active { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
     .ta-img { flex: 1 1 0; min-height: 0; width: 100%; background: var(--surface); overflow: hidden; display: flex; align-items: center; justify-content: center; }
-    .ta-img img { width: 100%; height: 100%; object-fit: cover; }
+    .ta-img img { width: 100%; height: 100%; object-fit: contain; }
     .ta-img-ph  { font-size: 64px; color: var(--border); }
     .ta-bottom  { flex: 0 0 auto; }
     .ta-name {
@@ -441,7 +441,7 @@
     .ta-ring-svg  { width: 100%; height: 100%; }
     .ring-bg   { fill: none; stroke: var(--border); stroke-width: 7; }
     .ring-fill {
-      fill: none; stroke: var(--text); stroke-width: 7; stroke-linecap: round;
+      fill: none; stroke: var(--text); stroke-width: 7; stroke-linecap: butt;
       stroke-dasharray: 339.29; stroke-dashoffset: 0;
       transform: rotate(-90deg); transform-origin: center;
       transition: stroke-dashoffset .08s linear, stroke .3s;
@@ -477,10 +477,10 @@
     #ta-pause-layout { flex: 1; flex-direction: column; overflow: hidden; }
     .tap-prev-row  { display: flex; align-items: center; gap: 10px; padding: 8px 16px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
     .tap-prev-thumb { width: 40px; height: 40px; border-radius: 6px; overflow: hidden; flex-shrink: 0; background: var(--border); display: flex; align-items: center; justify-content: center; }
-    .tap-prev-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .tap-prev-thumb img { width: 100%; height: 100%; object-fit: contain; }
     .tap-prev-lbl { font-size: 11px; color: var(--muted); font-weight: 600; letter-spacing: .5px; }
     .tap-next-img  { flex: 1; min-height: 0; width: 100%; background: var(--surface); overflow: hidden; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .tap-next-img img { width: 100%; height: 100%; object-fit: cover; }
+    .tap-next-img img { width: 100%; height: 100%; object-fit: contain; }
     .tap-next-name { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 1px; text-align: center; padding: 8px 16px 2px; flex-shrink: 0; }
     .tap-time-row  { text-align: center; padding: 6px 16px; flex-shrink: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
     .tap-time      { font-family: 'Bebas Neue', sans-serif; font-size: 48px; letter-spacing: 2px; line-height: 1; }
@@ -547,7 +547,7 @@
     /* ── Set-Log Modal ── */
     .sl-eq-row { display: grid; grid-template-columns: 88px 1fr 36px; align-items: center; gap: 8px; margin-bottom: 8px; }
     .sl-eq-label { font-size: 12px; font-weight: 600; color: var(--muted); }
-    .sl-pr-badge { font-size: 10px; font-weight: 700; padding: 2px 5px; border-radius: 4px; background: rgba(200,169,110,.2); color: var(--kraft); display: none; text-align: center; }
+    .sl-pr-badge { font-size: 10px; font-weight: 700; padding: 2px 5px; border-radius: 4px; background: rgba(255,255,255,.08); color: var(--kraft); display: none; text-align: center; }
     .sl-set-info { color: var(--muted); font-size: 13px; margin-bottom: 14px; }
     .sl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
     .sl-rir-btns { display: flex; gap: 6px; }
@@ -574,21 +574,21 @@
 <!-- ══ View 1: Übungsbibliothek ══ -->
 <div id="library-view" class="view">
   <div class="view-header">
-    <h1>Übungen</h1>
+    <h1>Exercises</h1>
     <div class="filter-tabs">
-      <button class="filter-tab active" data-filter="alle">Alle</button>
-      <button class="filter-tab" data-filter="chest">Brust</button>
-      <button class="filter-tab" data-filter="back">Rücken</button>
-      <button class="filter-tab" data-filter="shoulders">Schultern</button>
-      <button class="filter-tab" data-filter="arms">Arme</button>
-      <button class="filter-tab" data-filter="legs">Beine</button>
+      <button class="filter-tab active" data-filter="alle">All</button>
+      <button class="filter-tab" data-filter="chest">Chest</button>
+      <button class="filter-tab" data-filter="back">Back</button>
+      <button class="filter-tab" data-filter="shoulders">Shoulders</button>
+      <button class="filter-tab" data-filter="arms">Arms</button>
+      <button class="filter-tab" data-filter="legs">Legs</button>
       <button class="filter-tab" data-filter="core">Core</button>
-      <button class="filter-tab" data-filter="mobility">Mobilität</button>
+      <button class="filter-tab" data-filter="mobility">Mobility</button>
     </div>
   </div>
-  <div class="loading active" id="loading">Lädt…</div>
+  <div class="loading active" id="loading">Loading…</div>
   <div class="list" id="exercise-list"></div>
-  <button class="fab" id="fab" aria-label="Übung hinzufügen">+</button>
+  <button class="fab" id="fab" aria-label="Add exercise">+</button>
 </div>
 
 <!-- ══ View 2: Wochenplan + Timer ══ -->
@@ -735,12 +735,12 @@
     <div id="det-pr-section"></div>
     <hr class="det-history-sep">
     <div class="form-group">
-      <label class="form-label">Trainingshistorie</label>
+      <label class="form-label">Training History</label>
       <select class="form-input" id="det-filter-select" style="margin-bottom:12px">
-        <option value="alle">Alle Sätze</option>
+        <option value="alle">All sets</option>
       </select>
       <div id="det-history-body"></div>
-      <button type="button" class="det-more-btn" id="det-load-more" style="display:none">Mehr laden</button>
+      <button type="button" class="det-more-btn" id="det-load-more" style="display:none">Load more</button>
     </div>
   </div>
 </div>
@@ -749,7 +749,7 @@
 <div class="overlay" id="setlog-overlay">
   <div class="modal">
     <div class="modal-head">
-      <span class="modal-title" id="sl-title">Satz protokollieren</span>
+      <span class="modal-title" id="sl-title">Log Set</span>
       <button type="button" class="btn-close" id="sl-close">✕</button>
     </div>
     <div class="sl-set-info" id="sl-set-info"></div>
@@ -757,7 +757,7 @@
     <div class="sl-grid">
       <div>
         <label class="form-label">Reps</label>
-        <input class="form-input" type="number" id="sl-reps" min="1" max="99" placeholder="z.B. 8" inputmode="numeric">
+        <input class="form-input" type="number" id="sl-reps" min="1" max="99" placeholder="e.g. 8" inputmode="numeric">
       </div>
       <div>
         <label class="form-label">RIR (optional)</label>
@@ -769,7 +769,7 @@
         </div>
       </div>
     </div>
-    <button type="button" class="btn-primary" id="sl-confirm" style="margin-top:20px">Satz Fertig</button>
+    <button type="button" class="btn-primary" id="sl-confirm" style="margin-top:20px">Set Done</button>
   </div>
 </div>
 
@@ -777,7 +777,7 @@
 <div class="overlay" id="overlay">
   <div class="modal">
     <div class="modal-head">
-      <span class="modal-title" id="modal-title">Neue Übung</span>
+      <span class="modal-title" id="modal-title">New Exercise</span>
       <button class="btn-close" id="btn-close">✕</button>
     </div>
     <form id="form" novalidate>
@@ -786,28 +786,28 @@
         <input class="form-input" type="text" id="inp-name" placeholder="z.B. Romanian Deadlift" autocomplete="off" required>
       </div>
       <div class="form-group">
-        <label class="form-label">DUP-Modi</label>
+        <label class="form-label">DUP Modes</label>
         <div class="tag-group">
-          <button type="button" class="t-toggle" data-dup="kraft">Kraft</button>
+          <button type="button" class="t-toggle" data-dup="kraft">Strength</button>
           <button type="button" class="t-toggle" data-dup="hyper">Hyper</button>
           <button type="button" class="t-toggle" data-dup="vol">Vol</button>
           <button type="button" class="t-toggle" data-dup="flexibility">Flexibility</button>
         </div>
       </div>
       <div class="form-group">
-        <label class="form-label">Körperregion</label>
+        <label class="form-label">Body Region</label>
         <div class="tag-group">
-          <button type="button" class="t-toggle" data-region="chest">Brust</button>
-          <button type="button" class="t-toggle" data-region="back">Rücken</button>
-          <button type="button" class="t-toggle" data-region="shoulders">Schultern</button>
-          <button type="button" class="t-toggle" data-region="arms">Arme</button>
-          <button type="button" class="t-toggle" data-region="legs">Beine</button>
+          <button type="button" class="t-toggle" data-region="chest">Chest</button>
+          <button type="button" class="t-toggle" data-region="back">Back</button>
+          <button type="button" class="t-toggle" data-region="shoulders">Shoulders</button>
+          <button type="button" class="t-toggle" data-region="arms">Arms</button>
+          <button type="button" class="t-toggle" data-region="legs">Legs</button>
           <button type="button" class="t-toggle" data-region="core">Core</button>
-          <button type="button" class="t-toggle" data-region="mobility">Mobilität</button>
+          <button type="button" class="t-toggle" data-region="mobility">Mobility</button>
         </div>
       </div>
       <div class="form-group">
-        <label class="form-label">Bewegungsmuster</label>
+        <label class="form-label">Movement Pattern</label>
         <div class="tag-group">
           <button type="button" class="t-toggle" data-movement="horizontal_push">Horiz. Push</button>
           <button type="button" class="t-toggle" data-movement="vertical_push">Vert. Push</button>
@@ -820,37 +820,37 @@
           <button type="button" class="t-toggle" data-movement="rotation">Rotation</button>
           <button type="button" class="t-toggle" data-movement="anti_rotation">Anti-Rot.</button>
           <button type="button" class="t-toggle" data-movement="core_flexion">Core Flex.</button>
-          <button type="button" class="t-toggle" data-movement="isometrie">Isometrie</button>
+          <button type="button" class="t-toggle" data-movement="isometrie">Isometric</button>
           <button type="button" class="t-toggle" data-movement="mobility">Mobility</button>
         </div>
       </div>
       <div class="form-group">
-        <label class="form-label">Muskeln (anatomisch)</label>
+        <label class="form-label">Muscles (anatomical)</label>
         <div class="tag-group">
           <button type="button" class="t-toggle" data-anatomical="pectoralis_major">Pec. Major</button>
           <button type="button" class="t-toggle" data-anatomical="pectoralis_minor">Pec. Minor</button>
           <button type="button" class="t-toggle" data-anatomical="serratus_anterior">Serratus</button>
           <button type="button" class="t-toggle" data-anatomical="latissimus_dorsi">Latissimus</button>
-          <button type="button" class="t-toggle" data-anatomical="trapezius_upper">Trap. Oben</button>
-          <button type="button" class="t-toggle" data-anatomical="trapezius_middle">Trap. Mitte</button>
-          <button type="button" class="t-toggle" data-anatomical="trapezius_lower">Trap. Unten</button>
-          <button type="button" class="t-toggle" data-anatomical="rhomboids">Rhomboiden</button>
-          <button type="button" class="t-toggle" data-anatomical="erector_spinae">Rückenstr.</button>
+          <button type="button" class="t-toggle" data-anatomical="trapezius_upper">Trap. Upper</button>
+          <button type="button" class="t-toggle" data-anatomical="trapezius_middle">Trap. Mid</button>
+          <button type="button" class="t-toggle" data-anatomical="trapezius_lower">Trap. Lower</button>
+          <button type="button" class="t-toggle" data-anatomical="rhomboids">Rhomboids</button>
+          <button type="button" class="t-toggle" data-anatomical="erector_spinae">Erector Sp.</button>
           <button type="button" class="t-toggle" data-anatomical="teres_major">Teres Major</button>
-          <button type="button" class="t-toggle" data-anatomical="deltoid_anterior">Delt. Vorne</button>
-          <button type="button" class="t-toggle" data-anatomical="deltoid_lateral">Delt. Seite</button>
-          <button type="button" class="t-toggle" data-anatomical="deltoid_posterior">Delt. Hint.</button>
-          <button type="button" class="t-toggle" data-anatomical="rotator_cuff">Rotatorenm.</button>
-          <button type="button" class="t-toggle" data-anatomical="biceps">Bizeps</button>
-          <button type="button" class="t-toggle" data-anatomical="triceps">Trizeps</button>
-          <button type="button" class="t-toggle" data-anatomical="forearms">Unterarme</button>
-          <button type="button" class="t-toggle" data-anatomical="quadriceps">Quadrizeps</button>
+          <button type="button" class="t-toggle" data-anatomical="deltoid_anterior">Delt. Ant.</button>
+          <button type="button" class="t-toggle" data-anatomical="deltoid_lateral">Delt. Lat.</button>
+          <button type="button" class="t-toggle" data-anatomical="deltoid_posterior">Delt. Post.</button>
+          <button type="button" class="t-toggle" data-anatomical="rotator_cuff">Rotator C.</button>
+          <button type="button" class="t-toggle" data-anatomical="biceps">Biceps</button>
+          <button type="button" class="t-toggle" data-anatomical="triceps">Triceps</button>
+          <button type="button" class="t-toggle" data-anatomical="forearms">Forearms</button>
+          <button type="button" class="t-toggle" data-anatomical="quadriceps">Quads</button>
           <button type="button" class="t-toggle" data-anatomical="hamstrings">Hamstrings</button>
           <button type="button" class="t-toggle" data-anatomical="gluteus_maximus">Glut. Max.</button>
           <button type="button" class="t-toggle" data-anatomical="gluteus_medius">Glut. Med.</button>
-          <button type="button" class="t-toggle" data-anatomical="calves">Waden</button>
-          <button type="button" class="t-toggle" data-anatomical="hip_flexors">Hüftbeuger</button>
-          <button type="button" class="t-toggle" data-anatomical="adductors">Adduktoren</button>
+          <button type="button" class="t-toggle" data-anatomical="calves">Calves</button>
+          <button type="button" class="t-toggle" data-anatomical="hip_flexors">Hip Flex.</button>
+          <button type="button" class="t-toggle" data-anatomical="adductors">Adductors</button>
           <button type="button" class="t-toggle" data-anatomical="rectus_abdominis">Rectus Abd.</button>
           <button type="button" class="t-toggle" data-anatomical="obliques">Obliques</button>
           <button type="button" class="t-toggle" data-anatomical="transversus_abdominis">Transversus</button>
@@ -858,18 +858,18 @@
         </div>
       </div>
       <div class="form-group">
-        <label class="form-label">GIF / Bild (optional)</label>
+        <label class="form-label">GIF / Image (optional)</label>
         <div class="upload-area">
           <input type="file" id="gif-input" accept="image/*">
-          <img id="gif-preview" alt="Vorschau">
+          <img id="gif-preview" alt="Preview">
           <div class="upload-hint" id="upload-hint">
             <div class="upload-icon">🎬</div>
-            Bild vom Gerät hochladen
+            Upload image from device
           </div>
         </div>
       </div>
-      <button type="submit" class="btn-primary" id="btn-save">Speichern</button>
-      <button type="button" class="btn-danger" id="btn-delete" style="display:none">Übung löschen</button>
+      <button type="submit" class="btn-primary" id="btn-save">Save</button>
+      <button type="button" class="btn-danger" id="btn-delete" style="display:none">Delete Exercise</button>
     </form>
   </div>
 </div>
@@ -883,19 +883,19 @@
     </div>
     <form id="session-form" novalidate>
       <div class="form-group">
-        <label class="form-label">Wochentag</label>
+        <label class="form-label">Day</label>
         <div class="tag-group">
-          <button type="button" class="t-toggle" data-weekday="mo">Mo</button>
-          <button type="button" class="t-toggle" data-weekday="di">Di</button>
-          <button type="button" class="t-toggle" data-weekday="mi">Mi</button>
-          <button type="button" class="t-toggle" data-weekday="do">Do</button>
-          <button type="button" class="t-toggle" data-weekday="fr">Fr</button>
-          <button type="button" class="t-toggle" data-weekday="sa">Sa</button>
-          <button type="button" class="t-toggle" data-weekday="so">So</button>
+          <button type="button" class="t-toggle" data-weekday="mo">Mon</button>
+          <button type="button" class="t-toggle" data-weekday="di">Tue</button>
+          <button type="button" class="t-toggle" data-weekday="mi">Wed</button>
+          <button type="button" class="t-toggle" data-weekday="do">Thu</button>
+          <button type="button" class="t-toggle" data-weekday="fr">Fri</button>
+          <button type="button" class="t-toggle" data-weekday="sa">Sat</button>
+          <button type="button" class="t-toggle" data-weekday="so">Sun</button>
         </div>
       </div>
       <div class="form-group">
-        <label class="form-label">Modus</label>
+        <label class="form-label">Mode</label>
         <div class="tag-group">
           <button type="button" class="t-toggle" data-sesmode="kraft">Strength</button>
           <button type="button" class="t-toggle" data-sesmode="hyper">Hyper</button>
@@ -905,41 +905,41 @@
       </div>
       <div class="form-group" id="ses-timer-section">
         <div id="ses-work-section" style="display:none">
-          <label class="form-label">AMRAP Dauer (Sekunden)</label>
-          <input class="form-input" type="number" id="ses-work" placeholder="z.B. 40" min="5" max="300">
+          <label class="form-label">AMRAP Duration (seconds)</label>
+          <input class="form-input" type="number" id="ses-work" placeholder="e.g. 40" min="5" max="300">
         </div>
         <div id="ses-rep-section" style="display:none">
-          <label class="form-label">Ziel-Reps</label>
-          <input class="form-input" type="number" id="ses-rep-target" placeholder="z.B. 10" min="1" max="50">
+          <label class="form-label">Target Reps</label>
+          <input class="form-input" type="number" id="ses-rep-target" placeholder="e.g. 10" min="1" max="50">
         </div>
-        <label class="form-label" style="margin-top:10px">Pausenzeit (Sekunden)</label>
-        <input class="form-input" type="number" id="ses-rest" placeholder="z.B. 90" min="10" max="600">
+        <label class="form-label" style="margin-top:10px">Rest Time (seconds)</label>
+        <input class="form-input" type="number" id="ses-rest" placeholder="e.g. 90" min="10" max="600">
       </div>
       <div class="form-group">
-        <label class="form-label">Übungen auswählen</label>
+        <label class="form-label">Select Exercises</label>
         <div class="filter-tabs ses-region-tabs" id="ses-region-tabs" style="padding-bottom:8px">
-          <button type="button" class="filter-tab active" data-region="alle">Alle</button>
-          <button type="button" class="filter-tab" data-region="chest">Brust</button>
-          <button type="button" class="filter-tab" data-region="back">Rücken</button>
-          <button type="button" class="filter-tab" data-region="shoulders">Schultern</button>
-          <button type="button" class="filter-tab" data-region="arms">Arme</button>
-          <button type="button" class="filter-tab" data-region="legs">Beine</button>
+          <button type="button" class="filter-tab active" data-region="alle">All</button>
+          <button type="button" class="filter-tab" data-region="chest">Chest</button>
+          <button type="button" class="filter-tab" data-region="back">Back</button>
+          <button type="button" class="filter-tab" data-region="shoulders">Shoulders</button>
+          <button type="button" class="filter-tab" data-region="arms">Arms</button>
+          <button type="button" class="filter-tab" data-region="legs">Legs</button>
           <button type="button" class="filter-tab" data-region="core">Core</button>
-          <button type="button" class="filter-tab" data-region="mobility">Mobilität</button>
+          <button type="button" class="filter-tab" data-region="mobility">Mobility</button>
         </div>
-        <input class="form-input" type="search" id="ses-search" placeholder="Übung suchen…" autocomplete="off">
+        <input class="form-input" type="search" id="ses-search" placeholder="Search exercises…" autocomplete="off">
         <div id="ses-exercise-pool"></div>
       </div>
       <div class="form-group">
-        <label class="form-label">Reihenfolge</label>
+        <label class="form-label">Order <span style="font-weight:400;color:var(--muted);font-size:11px">· tap an exercise to select, then group as superset</span></label>
         <div id="ses-selected-list"></div>
       </div>
       <div class="form-group">
-        <label class="form-label">Titel</label>
-        <input class="form-input" type="text" id="ses-title" placeholder="Auto-generiert">
+        <label class="form-label">Title</label>
+        <input class="form-input" type="text" id="ses-title" placeholder="Auto-generated">
       </div>
-      <button type="submit" class="btn-primary" id="ses-btn-save">Session speichern</button>
-      <button type="button" class="btn-danger" id="ses-btn-delete" style="display:none">Session löschen</button>
+      <button type="submit" class="btn-primary" id="ses-btn-save">Save Session</button>
+      <button type="button" class="btn-danger" id="ses-btn-delete" style="display:none">Delete Session</button>
     </form>
   </div>
 </div>
@@ -947,10 +947,10 @@
 <!-- ══ Bottom Navigation ══ -->
 <nav class="bottom-nav">
   <button class="nav-btn active" data-view="library-view">
-    <span class="nav-icon">📚</span><span class="nav-label">Übungen</span>
+    <span class="nav-icon">📚</span><span class="nav-label">Exercises</span>
   </button>
   <button class="nav-btn" data-view="plan-view">
-    <span class="nav-icon">📅</span><span class="nav-label">Wochenplan</span>
+    <span class="nav-icon">📅</span><span class="nav-label">Week Plan</span>
   </button>
   <button class="nav-btn" data-view="stats-view">
     <span class="nav-icon">📊</span><span class="nav-label">Stats</span>
@@ -1147,14 +1147,14 @@
     detExercise.strength_weights = weights;
     detPREditing = null;
     renderDetPR();
-    toast('PR gespeichert');
+    toast('PR saved');
   }
 
   function renderDetFilter() {
     const totals = [...new Set(detAllLogs.map(r => r.total_sets_in_session).filter(Boolean))].sort((a,b) => a-b);
     const sel = document.getElementById('det-filter-select');
-    sel.innerHTML = '<option value="alle">Alle Sätze</option>' +
-      totals.map(n => `<option value="${n}">${n} ${n===1?'Satz':'Sätze'}</option>`).join('');
+    sel.innerHTML = '<option value="alle">All sets</option>' +
+      totals.map(n => `<option value="${n}">${n} ${n===1?'set':'sets'}</option>`).join('');
     sel.value = detFilterTot;
   }
 
@@ -1176,7 +1176,7 @@
     const visible = groups.slice(0, (detGroupPage + 1) * 10);
     const histEl  = document.getElementById('det-history-body');
     if (!groups.length) {
-      histEl.innerHTML = '<div style="color:var(--muted);font-size:13px">Keine Einträge.</div>';
+      histEl.innerHTML = '<div style="color:var(--muted);font-size:13px">No entries.</div>';
       document.getElementById('det-load-more').style.display = 'none';
       return;
     }
@@ -1194,7 +1194,7 @@
       return `<div class="det-group">
         <div class="det-group-header">${d}.${m}.${y}${modeStr}${dayStr}</div>
         <table class="det-table">
-          <thead><tr><th>Satz</th><th>Reps</th><th>Gewicht</th><th>Equip.</th><th>RIR</th></tr></thead>
+          <thead><tr><th>Set</th><th>Reps</th><th>Weight</th><th>Equip.</th><th>RIR</th></tr></thead>
           <tbody>${trs}</tbody>
         </table>
       </div>`;
@@ -1235,7 +1235,7 @@
     btnSave.disabled = false;
     if (error) { toast('Fehler: ' + (error.message || error.code || 'Unbekannt')); return; }
     closeModal();
-    toast(editingId ? 'Gespeichert' : 'Übung hinzugefügt');
+    toast(editingId ? 'Saved' : 'Exercise added');
     await load();
   }
 
@@ -1303,7 +1303,7 @@
       html = group.map(renderExCard).join('');
     }
     if (!html) {
-      html = `<div class="empty-state"><div class="icon">📭</div>${exercises.length===0 ? 'Noch keine Übungen.<br>Tippe auf + um zu beginnen.' : 'Keine Übungen in dieser Kategorie.'}</div>`;
+      html = `<div class="empty-state"><div class="icon">📭</div>${exercises.length===0 ? 'No exercises yet.<br>Tap + to get started.' : 'No exercises in this category.'}</div>`;
     }
     listEl.innerHTML = html;
     listEl.querySelectorAll('.exercise-card').forEach(c =>
@@ -1314,7 +1314,7 @@
     editingId = ex?.id ?? null;
     editingEx = ex ?? null;
     gifBase64 = null;
-    modalTitle.textContent = ex ? 'Übung bearbeiten' : 'Neue Übung';
+    modalTitle.textContent = ex ? 'Edit Exercise' : 'New Exercise';
     inpName.value = ex?.name ?? '';
     btnDelete.style.display = ex ? 'block' : 'none';
     gifPreview.style.display = 'none'; uploadHint.style.display = 'block'; gifInput.value = '';
@@ -1653,7 +1653,7 @@
   const SW_LABELS = { barbell:'BB', dumbbell_1x:'DB 1x', dumbbell_2x:'DB 2x', kettlebell_1x:'KB 1x', kettlebell_2x:'KB 2x' };
 
   function enterSesEditMode() {
-    document.getElementById('session-modal-title').textContent = editingSessionId ? 'Session bearbeiten' : 'Neue Session';
+    document.getElementById('session-modal-title').textContent = editingSessionId ? 'Edit Session' : 'New Session';
     document.getElementById('session-form').style.display      = 'block';
     document.getElementById('ses-btn-delete').style.display    = editingSessionId ? 'block' : 'none';
   }
@@ -1776,7 +1776,7 @@
 
   function renderSesSelected() {
     const el = document.getElementById('ses-selected-list');
-    if (!sesSelectedIds.length) { el.innerHTML = `<div style="color:var(--muted);font-size:13px;padding:6px 0">Noch leer.</div>`; return; }
+    if (!sesSelectedIds.length) { el.innerHTML = `<div style="color:var(--muted);font-size:13px;padding:6px 0">Nothing added yet.</div>`; return; }
 
     let html = '';
 
@@ -1785,8 +1785,8 @@
     if (detPairs.length && !sesSelectIdxs.size) {
       const lbl = detPairs.length === 1
         ? (() => { const {start,length,rounds} = detPairs[0]; const names = Array.from({length:length},(_,k)=>exercises.find(e=>e.id===sesSelectedIds[start+k]?.exercise_id)?.name||'').filter(Boolean); return `${names.join(' + ')}${rounds>1?' · '+rounds+'×':''}`;})()
-        : `${detPairs.length} Supersatz-Paare erkannt`;
-      const btnLbl = detPairs.length === 1 ? 'Als Supersatz markieren' : 'Alle markieren';
+        : `${detPairs.length} superset pairs detected`;
+      const btnLbl = detPairs.length === 1 ? 'Mark as superset' : 'Mark all';
       html += `<div class="ses-sup-suggest"><span class="ses-sup-suggest-lbl">${lbl}</span><button type="button" class="btn-sup-suggest" id="ses-suggest-btn">${btnLbl}</button></div>`;
     }
 
@@ -1799,7 +1799,7 @@
         while (j < sesSelectedIds.length && sesSelectedIds[j].superset_group === grp) j++;
         const rounds = sesSelectedIds[i].sets || 3;
         const color  = supGrpColor(grp);
-        html += `<div class="ses-sup-block" style="border-color:${color}33"><div class="ses-sup-header" style="background:${color}11"><span class="ses-sup-header-lbl" style="color:${color}">Supersatz ${grp} · ${rounds} Runden</span><button type="button" class="ses-ungroup-btn" data-grp="${grp}">Aufheben</button></div>`;
+        html += `<div class="ses-sup-block" style="border-color:${color}33"><div class="ses-sup-header" style="background:${color}11"><span class="ses-sup-header-lbl" style="color:${color}">Superset ${grp} · ${rounds} rounds</span><button type="button" class="ses-ungroup-btn" data-grp="${grp}">Ungroup</button></div>`;
         for (let k = i; k < j; k++) {
           const ex = exercises.find(e => e.id === sesSelectedIds[k].exercise_id);
           if (!ex) continue;
@@ -1819,7 +1819,7 @@
     // Group action bar
     if (sesSelectIdxs.size || sesSelectedIds.some(s => !s.superset_group)) {
       const canGrp = sesCanGroup();
-      html += `<div class="ses-group-bar${sesSelectIdxs.size?' visible':''}"><button type="button" class="btn-sup-group" id="ses-btn-group"${canGrp?'':' disabled'}>Zu Supersatz gruppieren</button><button type="button" class="btn-sup-unsel" id="ses-btn-unsel">Auswahl aufheben</button></div>`;
+      html += `<div class="ses-group-bar${sesSelectIdxs.size?' visible':''}"><button type="button" class="btn-sup-group" id="ses-btn-group"${canGrp?'':' disabled'}>Group as superset</button><button type="button" class="btn-sup-unsel" id="ses-btn-unsel">Deselect all</button></div>`;
     }
 
     el.innerHTML = html;
@@ -1982,7 +1982,7 @@
   async function saveSession() {
     const weekday = document.querySelector('.t-toggle[data-weekday].on')?.dataset.weekday;
     const mode    = document.querySelector('.t-toggle[data-sesmode].on')?.dataset.sesmode;
-    if (!weekday || !mode) { toast('Wochentag und Modus wählen'); return; }
+    if (!weekday || !mode) { toast('Select a day and mode'); return; }
     const isFlex = mode === 'flexibility';
     const payload = {
       week:         planWeek,
@@ -2279,7 +2279,7 @@
     resetTimerUI();
     showPlanSub('timer');
     showTimerState('active');
-    startExercise();
+    tMode === 'vol' ? startGetReady() : startExercise();
     timerLaunchedAt = Date.now();
   }
 
@@ -2293,6 +2293,22 @@
   }
 
   // ── Exercise / set logic ──────────────────────────────
+  function startGetReady() {
+    updateExDisplay();
+    phase = 'get-ready'; tDuration = 5; tStart = Date.now(); tPaused = false; tPausedRem = 5; lastBeepSecond = -1;
+    ringFill.classList.remove('pulsing');
+    taPhase.textContent = 'GET READY';
+    taPauseHint.textContent = '';
+    taMain.classList.add('ta-hidden');
+    taSkip.classList.remove('ta-hidden');
+    taSkip.textContent = 'Überspringen';
+    document.getElementById('ta-work-layout').style.display  = 'flex';
+    document.getElementById('ta-pause-layout').style.display = 'none';
+    setRing(1); setTimeDisplay(5);
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(timerTick);
+  }
+
   function startExercise() {
     updateExDisplay();
     if (tMode === 'flexibility') {
@@ -2505,7 +2521,7 @@
     setRing(remaining / tDuration);
     setTimeDisplay(remaining);
     const sec = Math.ceil(remaining);
-    if (phase === 'rest' && remaining > 0 && sec <= 5 && sec !== lastBeepSecond) {
+    if ((phase === 'rest' || phase === 'get-ready') && remaining > 0 && sec <= 5 && sec !== lastBeepSecond) {
       lastBeepSecond = sec;
       sec === 1 ? playBeep(880, 150) : playBeep(440, 100);
     }
@@ -2514,6 +2530,7 @@
 
   function onPhaseEnd() {
     if (rafId) { cancelAnimationFrame(rafId); rafId=null; }
+    if (phase==='get-ready') { startExercise(); return; }
     if (phase==='work') {
       const lastInGrp = !grpOf(exIdx) || exIdx === grpEnd(exIdx);
       if (lastInGrp) openSetLogModal(() => startPhase('rest', tSession?.rest_seconds || DUP_CFG[tMode].restTime));
@@ -2575,6 +2592,7 @@
 
   taSkip.addEventListener('click', () => {
     if (rafId) { cancelAnimationFrame(rafId); rafId=null; }
+    if (phase==='get-ready') { startExercise(); return; }
     if (phase==='work') startPhase('rest', tSession?.rest_seconds || DUP_CFG[tMode].restTime);
     else nextSet();
   });
