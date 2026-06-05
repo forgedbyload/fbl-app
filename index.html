@@ -457,20 +457,20 @@
     .ta-pause-hint { font-size: 9px; color: var(--border); margin-top: 2px; }
 
     /* Timer buttons */
-    .ta-btns { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; padding: 10px 16px 16px; }
+    .ta-btns { display: flex; gap: 10px; padding: 10px 16px 16px; }
     .ta-skip {
-      padding: 14px; background: transparent; border: 1px solid var(--border); border-radius: 12px;
+      flex: 1; padding: 14px; background: transparent; border: 1px solid var(--border);
       color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
       cursor: pointer; -webkit-tap-highlight-color: transparent; transition: border-color .15s;
     }
     .ta-skip:active { border-color: var(--muted); }
     .ta-main {
-      padding: 14px; background: var(--text); border: none; border-radius: 12px;
+      flex: 2; padding: 14px; background: var(--text); border: none;
       color: var(--bg); font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 1px;
       cursor: pointer; -webkit-tap-highlight-color: transparent; transition: opacity .15s;
     }
     .ta-main:active { opacity: .8; }
-    .ta-hidden { visibility: hidden; }
+    .ta-hidden { display: none; }
 
     /* Pause-Layout */
     #ta-work-layout  { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
