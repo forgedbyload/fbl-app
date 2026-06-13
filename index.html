@@ -551,8 +551,18 @@
     .chart-grid       { stroke: var(--border); stroke-width: 1; }
     .chart-axis-label { font-size: 8px; fill: var(--muted); font-family: 'DM Sans', sans-serif; }
     .chart-dot        { cursor: pointer; stroke: var(--bg); stroke-width: 1.5; }
+    .chart-point-label { font-size: 8px; fill: var(--text); font-family: 'DM Sans', sans-serif; font-weight: 600; }
+    .chart-point-note  { font-size: 7px; fill: var(--muted); font-family: 'DM Sans', sans-serif; font-style: italic; }
+    .chart-tooltip {
+      position: absolute; transform: translate(-50%, -100%) translateY(-6px);
+      background: var(--text); color: var(--bg); font-size: 11px; line-height: 1.4;
+      padding: 6px 8px; pointer-events: none; white-space: nowrap; z-index: 5;
+      opacity: 0; transition: opacity .1s;
+    }
+    .chart-tooltip.show { opacity: 1; }
     .stats-legend     { display: flex; flex-wrap: wrap; gap: 10px 16px; padding: 10px 0 4px; font-size: 11px; color: var(--muted); }
-    .legend-item      { display: flex; align-items: center; gap: 5px; }
+    .legend-item      { display: flex; align-items: center; gap: 5px; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: opacity .15s; }
+    .legend-item.hidden-series { opacity: .35; text-decoration: line-through; }
     .legend-dot       { width: 9px; height: 9px; flex-shrink: 0; }
 
     .stats-insights      { margin-top: 12px; }
@@ -3004,65 +3014,130 @@
     const rows = statsByExercise.get(ex.id) || [];
     const el = document.getElementById('stats-detail-body');
     if (!rows.length) { el.innerHTML = '<div class="empty-state">Not tracked yet</div>'; return; }
+    const pooledPoints = statsBuildPoints(rows);
+    if (pooledPoints.length < 2) { el.innerHTML = '<div class="empty-state">Building baseline – need more data</div>'; return; }
     const pointsByEq = {};
     Object.entries(statsGroupByEquipment(rows)).forEach(([eq, eqRows]) => { pointsByEq[eq] = statsBuildPoints(eqRows); });
     el.innerHTML = `<div class="stats-chart-wrap" id="stats-chart"></div><div class="stats-insights" id="stats-insights"></div>`;
-    renderStatsChart(pointsByEq);
+    renderStatsChart(pointsByEq, ex.id);
     renderStatsInsights(pointsByEq);
   }
 
-  function renderStatsChart(pointsByEq) {
+  // ── Legend visibility persistence ──────────────────────
+  function statsGetHiddenSeries() {
+    try { return JSON.parse(localStorage.getItem('statsHiddenSeries') || '{}'); } catch { return {}; }
+  }
+  function statsSetHiddenSeries(key, hidden) {
+    const map = statsGetHiddenSeries();
+    if (hidden) map[key] = true; else delete map[key];
+    localStorage.setItem('statsHiddenSeries', JSON.stringify(map));
+  }
+
+  function renderStatsChart(pointsByEq, exId) {
     const wrap = document.getElementById('stats-chart');
-    const allPoints = Object.values(pointsByEq).flat();
-    if (!allPoints.length) { wrap.innerHTML = '<div class="empty-state">Keine Daten.</div>'; return; }
+    const hiddenMap = statsGetHiddenSeries();
+    const visibleEntries = Object.entries(pointsByEq).filter(([eq]) => !hiddenMap[`${exId}:${eq}`]);
+    const allPoints = visibleEntries.flatMap(([,pts]) => pts);
+    const legendHtml = `<div class="stats-legend">${Object.keys(pointsByEq).map(eq => {
+      const isHidden = !!hiddenMap[`${exId}:${eq}`];
+      return `<span class="legend-item${isHidden?' hidden-series':''}" data-eq="${eq}">
+        <span class="legend-dot" style="background:${STATS_EQ_COLORS[eq]||'#000'}"></span>${STATS_EQ_LABELS[eq]||eq}
+      </span>`;
+    }).join('')}</div>`;
+
+    if (!allPoints.length) {
+      wrap.innerHTML = '<div class="empty-state">Keine Daten.</div>' + legendHtml;
+      attachStatsLegendHandlers(pointsByEq, exId);
+      return;
+    }
 
     const dates = [...new Set(allPoints.map(p => p.date))].sort();
-    const minDate = new Date(dates[0]+'T00:00:00').getTime();
-    const maxDate = new Date(dates[dates.length-1]+'T00:00:00').getTime();
-    let minE = Math.min(...allPoints.map(p => p.e1rm));
-    let maxE = Math.max(...allPoints.map(p => p.e1rm));
-    if (minE === maxE) { minE -= 5; maxE += 5; }
-    const pad = (maxE - minE) * 0.1;
-    minE -= pad; maxE += pad;
 
-    const W = 320, H = 220, ML = 38, MR = 10, MT = 10, MB = 24;
-    const xScale = d => maxDate === minDate ? ML + (W-ML-MR)/2 : ML + (new Date(d+'T00:00:00').getTime()-minDate)/(maxDate-minDate) * (W-ML-MR);
-    const yScale = v => MT + (1 - (v-minE)/(maxE-minE)) * (H-MT-MB);
+    // Y-axis: clean 5kg intervals, start at min(0, dataMin-5) rounded down to 5
+    const rawMin = Math.min(...allPoints.map(p => p.e1rm));
+    const rawMax = Math.max(...allPoints.map(p => p.e1rm));
+    let yStart = Math.floor(Math.max(0, rawMin - 5) / 5) * 5;
+    let yEnd   = Math.ceil(rawMax / 5) * 5;
+    if (yEnd <= yStart) yEnd = yStart + 5;
+
+    const W = 320, H = 220, ML = 38, MR = 10, MT = 10, MB = 46;
+    const plotW = W - ML - MR, plotH = H - MT - MB;
+    const xScale = date => dates.length > 1 ? ML + dates.indexOf(date)/(dates.length-1) * plotW : ML + plotW/2;
+    const yScale = v => MT + (1 - (v-yStart)/(yEnd-yStart)) * plotH;
 
     let svg = `<svg viewBox="0 0 ${W} ${H}" class="stats-chart-svg" preserveAspectRatio="none">`;
-    const ySteps = 4;
-    for (let i=0; i<=ySteps; i++) {
-      const v = minE + (maxE-minE) * i/ySteps;
+
+    // Y grid + labels, every 5kg
+    for (let v = yStart; v <= yEnd; v += 5) {
       const y = yScale(v);
       svg += `<line x1="${ML}" y1="${y.toFixed(1)}" x2="${W-MR}" y2="${y.toFixed(1)}" class="chart-grid"/>`;
-      svg += `<text x="${ML-4}" y="${(y+3).toFixed(1)}" class="chart-axis-label" text-anchor="end">${v.toFixed(0)}</text>`;
+      svg += `<text x="${ML-4}" y="${(y+3).toFixed(1)}" class="chart-axis-label" text-anchor="end">${v}</text>`;
     }
-    svg += `<text x="${ML}" y="${H-4}" class="chart-axis-label">${statsFmtDate(dates[0])}</text>`;
-    svg += `<text x="${W-MR}" y="${H-4}" class="chart-axis-label" text-anchor="end">${statsFmtDate(dates[dates.length-1])}</text>`;
 
-    Object.entries(pointsByEq).forEach(([eq, points]) => {
+    // X labels: every date, rotated 45° if they'd overlap (<60px spacing)
+    const labelSpacing = dates.length > 1 ? plotW/(dates.length-1) : plotW;
+    const rotate = dates.length > 1 && labelSpacing < 60;
+    dates.forEach(d => {
+      const x = xScale(d);
+      if (rotate) {
+        svg += `<text x="${x.toFixed(1)}" y="${(H-MB+12).toFixed(1)}" class="chart-axis-label" text-anchor="end" transform="rotate(-45 ${x.toFixed(1)} ${(H-MB+12).toFixed(1)})">${statsFmtDate(d)}</text>`;
+      } else {
+        svg += `<text x="${x.toFixed(1)}" y="${(H-MB+14).toFixed(1)}" class="chart-axis-label" text-anchor="middle">${statsFmtDate(d)}</text>`;
+      }
+    });
+
+    visibleEntries.forEach(([eq, points]) => {
       const color = STATS_EQ_COLORS[eq] || '#000';
       if (points.length > 1) {
         const path = points.map(p => `${xScale(p.date).toFixed(1)},${yScale(p.e1rm).toFixed(1)}`).join(' ');
         svg += `<polyline points="${path}" fill="none" stroke="${color}" stroke-width="2"/>`;
       }
       points.forEach(p => {
-        svg += `<circle cx="${xScale(p.date).toFixed(1)}" cy="${yScale(p.e1rm).toFixed(1)}" r="4" fill="${color}" class="chart-dot" data-eq="${eq}" data-date="${p.date}"><title>${statsFmtDate(p.date)} · ${p.weight}kg × ${p.reps} · RIR ${p.rir ?? '—'} · Set ${p.set_number ?? '—'} · e1RM ${p.e1rm.toFixed(1)}kg</title></circle>`;
+        const isSingle = points.length === 1;
+        const r = isSingle ? 8 : 4;
+        const cx = xScale(p.date), cy = yScale(p.e1rm);
+        svg += `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r}" fill="${color}" class="chart-dot" data-eq="${eq}" data-date="${p.date}"/>`;
+        if (isSingle) {
+          svg += `<text x="${(cx+12).toFixed(1)}" y="${(cy-10).toFixed(1)}" class="chart-point-label">${statsFmtDate(p.date)} · ${p.weight}kg×${p.reps}</text>`;
+          svg += `<text x="${(cx+12).toFixed(1)}" y="${(cy+2).toFixed(1)}" class="chart-point-label">e1RM ${p.e1rm.toFixed(1)}kg</text>`;
+          svg += `<text x="${(cx+12).toFixed(1)}" y="${(cy+13).toFixed(1)}" class="chart-point-note">single session</text>`;
+        }
       });
     });
     svg += `</svg>`;
 
-    const legend = Object.keys(pointsByEq).map(eq =>
-      `<span class="legend-item"><span class="legend-dot" style="background:${STATS_EQ_COLORS[eq]||'#000'}"></span>${STATS_EQ_LABELS[eq]||eq}</span>`
-    ).join('');
+    wrap.innerHTML = svg + legendHtml + `<div class="chart-tooltip" id="chart-tooltip"></div>`;
 
-    wrap.innerHTML = svg + `<div class="stats-legend">${legend}</div>`;
-
+    const tooltip = document.getElementById('chart-tooltip');
     wrap.querySelectorAll('.chart-dot').forEach(dot => {
-      dot.addEventListener('click', () => {
-        const eq = dot.dataset.eq, date = dot.dataset.date;
-        const point = pointsByEq[eq].find(p => p.date === date);
-        showStatsSessionPopover(eq, point);
+      const eq = dot.dataset.eq, date = dot.dataset.date;
+      const point = pointsByEq[eq].find(p => p.date === date);
+      const isSingle = pointsByEq[eq].length === 1;
+      if (!isSingle) {
+        dot.addEventListener('mouseenter', () => {
+          const wrapRect = wrap.getBoundingClientRect();
+          const dotRect = dot.getBoundingClientRect();
+          tooltip.innerHTML = `${statsFmtDate(point.date)} · ${STATS_EQ_LABELS[eq]||eq}<br>${point.weight}kg × ${point.reps} · e1RM ${point.e1rm.toFixed(1)}kg`;
+          tooltip.style.left = (dotRect.left - wrapRect.left + dotRect.width/2) + 'px';
+          tooltip.style.top  = (dotRect.top - wrapRect.top) + 'px';
+          tooltip.classList.add('show');
+        });
+        dot.addEventListener('mouseleave', () => tooltip.classList.remove('show'));
+      }
+      dot.addEventListener('click', () => showStatsSessionPopover(eq, point));
+    });
+
+    attachStatsLegendHandlers(pointsByEq, exId);
+  }
+
+  function attachStatsLegendHandlers(pointsByEq, exId) {
+    document.querySelectorAll('#stats-chart .legend-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const eq = item.dataset.eq;
+        const key = `${exId}:${eq}`;
+        const hiddenMap = statsGetHiddenSeries();
+        statsSetHiddenSeries(key, !hiddenMap[key]);
+        renderStatsChart(pointsByEq, exId);
       });
     });
   }
