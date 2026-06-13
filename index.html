@@ -572,7 +572,7 @@
 <body>
 
 <!-- ══ View 1: Übungsbibliothek ══ -->
-<div id="library-view" class="view">
+<div id="library-view" class="view hidden">
   <div class="view-header">
     <h1>Exercises</h1>
     <div class="filter-tabs">
@@ -592,7 +592,7 @@
 </div>
 
 <!-- ══ View 2: Wochenplan + Timer ══ -->
-<div id="plan-view" class="view hidden">
+<div id="plan-view" class="view">
 
   <!-- Sub: Wochenansicht -->
   <div id="plan-week-sub">
@@ -946,7 +946,7 @@
 
 <!-- ══ Bottom Navigation ══ -->
 <nav class="bottom-nav">
-  <button class="nav-btn" data-view="plan-view">
+  <button class="nav-btn active" data-view="plan-view">
     <span class="nav-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="16" height="15"/><line x1="2" y1="8" x2="18" y2="8"/><line x1="6" y1="1" x2="6" y2="5"/><line x1="14" y1="1" x2="14" y2="5"/></svg></span>
     <span class="nav-label">Week Plan</span>
   </button>
@@ -954,7 +954,7 @@
     <span class="nav-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><rect x="1" y="13" width="4" height="7"/><rect x="8" y="8" width="4" height="12"/><rect x="15" y="4" width="4" height="16"/></svg></span>
     <span class="nav-label">Stats</span>
   </button>
-  <button class="nav-btn active" data-view="library-view">
+  <button class="nav-btn" data-view="library-view">
     <span class="nav-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><rect x="0" y="8" width="3" height="4"/><rect x="3" y="6" width="2" height="8"/><rect x="5" y="9" width="10" height="2"/><rect x="15" y="6" width="2" height="8"/><rect x="17" y="8" width="3" height="4"/></svg></span>
     <span class="nav-label">Exercises</span>
   </button>
@@ -2717,6 +2717,7 @@
   }
 
   load();
+  loadAppState().then(() => { applyWeekBState(); loadSessions().then(() => { showPlanSub('week'); renderPlan(); }); });
 </script>
 </body>
 </html>
