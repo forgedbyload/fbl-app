@@ -505,6 +505,61 @@
 
     /* ── Stats ── */
     .stats-placeholder { text-align: center; color: var(--muted); padding: 80px 24px; font-size: 15px; }
+    .stats-body { padding: 16px 16px 24px; }
+
+    .stats-group-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .stats-group-card {
+      background: var(--surface); border: 1px solid var(--border); padding: 18px 14px;
+      cursor: pointer; -webkit-tap-highlight-color: transparent; transition: border-color .15s;
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .stats-group-card:active { border-color: var(--muted); }
+    .stats-group-name { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 1px; }
+    .stats-group-meta { font-size: 12px; color: var(--muted); }
+    .stats-group-mom  { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 1px; margin-top: 4px; }
+
+    /* Status colors */
+    .status-green-strong { color: #1f9d55; }
+    .status-green        { color: #5cb85c; }
+    .status-grey         { color: var(--muted); }
+    .status-yellow       { color: #d4a72c; }
+    .status-red          { color: #d9534f; }
+
+    /* Layer 2: exercise list */
+    .stats-ex-row {
+      display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border);
+      cursor: pointer; -webkit-tap-highlight-color: transparent;
+    }
+    .stats-ex-row:last-child { border-bottom: none; }
+    .stats-ex-row:active { opacity: .6; }
+    .stats-ex-thumb {
+      width: 80px; height: 80px; background: var(--surface); border: 1px solid var(--border);
+      flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center;
+    }
+    .stats-ex-thumb img { width: 100%; height: 100%; object-fit: contain; }
+    .stats-ex-info { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
+    .stats-ex-name { font-size: 14px; font-weight: 600; }
+    .stats-ex-sub  { font-size: 12px; color: var(--muted); }
+    .stats-ex-eq   { display: flex; gap: 8px; align-items: baseline; font-size: 12px; }
+    .stats-ex-eq .eq-name   { min-width: 46px; font-weight: 600; flex-shrink: 0; }
+    .stats-ex-eq .eq-e1rm   { flex: 1; color: var(--muted); }
+    .stats-ex-eq .eq-mom    { font-weight: 700; flex-shrink: 0; }
+
+    /* Layer 3: chart + insights */
+    .stats-chart-wrap { position: relative; }
+    .stats-chart-svg  { width: 100%; height: 220px; display: block; }
+    .chart-grid       { stroke: var(--border); stroke-width: 1; }
+    .chart-axis-label { font-size: 8px; fill: var(--muted); font-family: 'DM Sans', sans-serif; }
+    .chart-dot        { cursor: pointer; stroke: var(--bg); stroke-width: 1.5; }
+    .stats-legend     { display: flex; flex-wrap: wrap; gap: 10px 16px; padding: 10px 0 4px; font-size: 11px; color: var(--muted); }
+    .legend-item      { display: flex; align-items: center; gap: 5px; }
+    .legend-dot       { width: 9px; height: 9px; flex-shrink: 0; }
+
+    .stats-insights      { margin-top: 12px; }
+    .stats-insight-card  { background: var(--surface); border: 1px solid var(--border); padding: 12px 14px; margin-bottom: 10px; }
+    .stats-insight-title { font-family: 'Bebas Neue', sans-serif; font-size: 17px; letter-spacing: 1px; margin-bottom: 8px; }
+    .stats-insight-row   { display: flex; justify-content: space-between; font-size: 13px; padding: 5px 0; border-bottom: 1px solid var(--border); }
+    .stats-insight-row:last-child { border-bottom: none; }
 
     /* ── Session Übersicht (read-only) ── */
     .btn-edit-ses {
@@ -715,10 +770,50 @@
 
 <!-- ══ View 3: Stats ══ -->
 <div id="stats-view" class="view hidden">
-  <div class="view-header">
-    <h1>Stats</h1>
+
+  <!-- Layer 1: muscle group overview -->
+  <div id="stats-overview-sub">
+    <div class="view-header">
+      <h1>Stats</h1>
+    </div>
+    <div class="stats-body">
+      <div class="stats-group-grid" id="stats-groups"></div>
+    </div>
   </div>
-  <div class="stats-placeholder">Stats folgen später.</div>
+
+  <!-- Layer 2: exercise list -->
+  <div id="stats-exlist-sub" style="display:none">
+    <div class="view-header">
+      <div class="plan-detail-nav">
+        <button class="plan-back-btn" id="stats-exlist-back">←</button>
+        <span class="plan-detail-title" id="stats-exlist-title"></span>
+      </div>
+    </div>
+    <div class="stats-body" id="stats-exlist-body"></div>
+  </div>
+
+  <!-- Layer 3: exercise detail -->
+  <div id="stats-detail-sub" style="display:none">
+    <div class="view-header">
+      <div class="plan-detail-nav">
+        <button class="plan-back-btn" id="stats-detail-back">←</button>
+        <span class="plan-detail-title" id="stats-detail-title"></span>
+      </div>
+    </div>
+    <div class="stats-body" id="stats-detail-body"></div>
+  </div>
+
+</div>
+
+<!-- ══ Modal: Stats Session-Detail ══ -->
+<div class="overlay" id="stats-session-overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title" id="stats-session-title">Session</span>
+      <button type="button" class="btn-close" id="stats-session-close">✕</button>
+    </div>
+    <table class="det-table" id="stats-session-table"></table>
+  </div>
 </div>
 
 <!-- ══ Modal: Übungsdetail ══ -->
@@ -1033,6 +1128,7 @@
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       if (id === 'plan-view')  { loadAppState().then(() => { applyWeekBState(); loadSessions().then(() => { showPlanSub('week'); renderPlan(); }); }); }
+      if (id === 'stats-view') { loadStatsData().then(() => { showStatsSub('overview'); renderStatsGroups(); }); }
     });
   });
 
@@ -2703,6 +2799,320 @@
     appState.current_week = week;
     return week;
   }
+
+  // ═══════════════════════════════════════════════════════
+  // MODUL 4 – Stats
+  // ═══════════════════════════════════════════════════════
+  const STATS_GROUPS = [
+    { key: 'chest',     label: 'Chest' },
+    { key: 'back',      label: 'Back' },
+    { key: 'shoulders', label: 'Shoulders' },
+    { key: 'arms',      label: 'Arms' },
+    { key: 'legs',      label: 'Legs' },
+    { key: 'core',      label: 'Core' },
+  ];
+  const STATS_EQ_LABELS = { barbell:'Barbell', dumbbell_1x:'DB 1x', dumbbell_2x:'DB 2x', kettlebell_1x:'KB 1x', kettlebell_2x:'KB 2x', bodyweight:'Bodyweight' };
+  const STATS_EQ_COLORS = { barbell:'#000000', dumbbell_1x:'#3a6ea5', dumbbell_2x:'#5daab0', kettlebell_1x:'#c8a96e', kettlebell_2x:'#9b5de5', bodyweight:'#888888' };
+
+  let statsByExercise = new Map();
+  let statsExercise   = null;
+
+  async function loadStatsData() {
+    const { data, error } = await db.from('set_log')
+      .select('exercise_id,equipment,weight_kg,reps,rir,session_date,set_number')
+      .not('weight_kg', 'is', null)
+      .not('reps', 'is', null)
+      .order('session_date');
+    if (error) { toast('Fehler beim Laden'); return; }
+    statsByExercise = new Map();
+    (data || []).forEach(r => {
+      const eq = r.equipment || 'bodyweight';
+      const row = { ...r, equipment: eq };
+      if (!statsByExercise.has(row.exercise_id)) statsByExercise.set(row.exercise_id, []);
+      statsByExercise.get(row.exercise_id).push(row);
+    });
+  }
+
+  function showStatsSub(sub) {
+    document.getElementById('stats-overview-sub').style.display = sub === 'overview' ? '' : 'none';
+    document.getElementById('stats-exlist-sub').style.display   = sub === 'exlist'   ? '' : 'none';
+    document.getElementById('stats-detail-sub').style.display   = sub === 'detail'   ? '' : 'none';
+  }
+
+  function calcE1RM(weight, reps) { return weight * (1 + reps / 30); }
+
+  function statsDaysAgo(dateStr) {
+    return (Date.now() - new Date(dateStr + 'T00:00:00').getTime()) / 86400000;
+  }
+
+  function statsFmtDate(dateStr) {
+    const [y,m,d] = dateStr.split('-');
+    return `${d}.${m}.`;
+  }
+
+  function statsMedian(arr) {
+    if (!arr.length) return null;
+    const s = [...arr].sort((a,b) => a-b);
+    const mid = Math.floor(s.length/2);
+    return s.length % 2 ? s[mid] : (s[mid-1]+s[mid]) / 2;
+  }
+
+  function statsTop3Median(values) {
+    return statsMedian([...values].sort((a,b) => b-a).slice(0,3));
+  }
+
+  // Group rows by session_date, one point per session = highest e1RM working set
+  // (working set = weight >= 85% of that session's max weight for the exercise)
+  function statsBuildPoints(rows) {
+    const bySession = new Map();
+    rows.forEach(r => {
+      if (!bySession.has(r.session_date)) bySession.set(r.session_date, []);
+      bySession.get(r.session_date).push(r);
+    });
+    const points = [];
+    bySession.forEach((sessionRows, date) => {
+      const maxWeight = Math.max(...sessionRows.map(r => r.weight_kg));
+      const workingSets = sessionRows.filter(r => r.weight_kg >= maxWeight * 0.85);
+      let best = null;
+      workingSets.forEach(r => {
+        const e1rm = calcE1RM(r.weight_kg, r.reps);
+        if (!best || e1rm > best.e1rm) best = { e1rm, weight: r.weight_kg, reps: r.reps, rir: r.rir, set_number: r.set_number };
+      });
+      points.push({ date, ...best, sessionRows });
+    });
+    return points.sort((a,b) => a.date.localeCompare(b.date));
+  }
+
+  function statsComputeMoM(points) {
+    const thisMonth = points.filter(p => statsDaysAgo(p.date) <= 30).map(p => p.e1rm);
+    const lastMonth = points.filter(p => { const d = statsDaysAgo(p.date); return d > 30 && d <= 60; }).map(p => p.e1rm);
+    const thisVal = statsTop3Median(thisMonth);
+    const lastVal = statsTop3Median(lastMonth);
+    if (thisVal == null || lastVal == null || lastVal === 0) return null;
+    return (thisVal - lastVal) / lastVal * 100;
+  }
+
+  function statsMoMStatus(mom) {
+    if (mom == null) return 'grey';
+    if (mom > 5)  return 'green-strong';
+    if (mom >= 1) return 'green';
+    if (mom >= -1) return 'grey';
+    if (mom >= -5) return 'yellow';
+    return 'red';
+  }
+
+  function statsMoMLabel(mom) {
+    if (mom == null) return '—';
+    return `${mom > 0 ? '+' : ''}${mom.toFixed(1)}%`;
+  }
+
+  function statsGroupByEquipment(rows) {
+    const map = {};
+    rows.forEach(r => (map[r.equipment] = map[r.equipment] || []).push(r));
+    return map;
+  }
+
+  // Returns { state: 'none'|'baseline'|'tracking'|'ok', mom? }
+  function statsExerciseStatus(rows) {
+    if (!rows.length) return { state: 'none' };
+    const points = statsBuildPoints(rows);
+    if (points.length < 2) return { state: 'baseline' };
+    if (statsDaysAgo(points[0].date) < 30) return { state: 'tracking' };
+    return { state: 'ok', mom: statsComputeMoM(points) };
+  }
+
+  // ── Layer 1: muscle group overview ─────────────────────
+  function renderStatsGroups() {
+    const html = STATS_GROUPS.map(g => {
+      const exList = exercises.filter(e => (e.body_regions||[]).includes(g.key));
+      let tracked = 0, momSum = 0, momCount = 0;
+      exList.forEach(e => {
+        const rows = statsByExercise.get(e.id) || [];
+        if (!rows.length) return;
+        tracked++;
+        const st = statsExerciseStatus(rows);
+        if (st.state === 'ok' && st.mom != null) { momSum += st.mom; momCount++; }
+      });
+      const avgMom = momCount ? momSum / momCount : null;
+      const status = avgMom != null ? statsMoMStatus(avgMom) : 'grey';
+      return `<div class="stats-group-card" data-group="${g.key}">
+        <div class="stats-group-name">${g.label}</div>
+        <div class="stats-group-meta">${tracked} ${tracked===1?'Übung':'Übungen'} getrackt</div>
+        <div class="stats-group-mom status-${status}">${statsMoMLabel(avgMom)}</div>
+      </div>`;
+    }).join('');
+    document.getElementById('stats-groups').innerHTML = html;
+    document.querySelectorAll('.stats-group-card').forEach(card =>
+      card.addEventListener('click', () => openStatsExList(card.dataset.group)));
+  }
+
+  // ── Layer 2: exercise list ──────────────────────────────
+  function openStatsExList(group) {
+    const g = STATS_GROUPS.find(g => g.key === group);
+    document.getElementById('stats-exlist-title').textContent = g?.label || '';
+    showStatsSub('exlist');
+    renderStatsExList(group);
+  }
+
+  function renderStatsExList(group) {
+    const exList = exercises.filter(e => (e.body_regions||[]).includes(group));
+    const el = document.getElementById('stats-exlist-body');
+    if (!exList.length) { el.innerHTML = '<div class="empty-state">Keine Übungen.</div>'; return; }
+    el.innerHTML = exList.map(e => {
+      const thumb = e.thumbnail_base64 ? `<img src="${e.thumbnail_base64}" alt="">` : '';
+      const rows = statsByExercise.get(e.id) || [];
+      let body;
+      if (!rows.length) {
+        body = `<div class="stats-ex-sub">Not tracked yet</div>`;
+      } else {
+        const byEq = statsGroupByEquipment(rows);
+        body = Object.entries(byEq).map(([eq, eqRows]) => {
+          const points = statsBuildPoints(eqRows);
+          const best = Math.max(...points.map(p => p.e1rm));
+          let momHtml;
+          if (points.length < 2) momHtml = `<span class="eq-mom status-grey">Building baseline</span>`;
+          else if (statsDaysAgo(points[0].date) < 30) momHtml = `<span class="eq-mom status-grey">Tracking…</span>`;
+          else { const mom = statsComputeMoM(points); momHtml = `<span class="eq-mom status-${statsMoMStatus(mom)}">${statsMoMLabel(mom)}</span>`; }
+          return `<div class="stats-ex-eq">
+            <span class="eq-name">${STATS_EQ_LABELS[eq]||eq}</span>
+            <span class="eq-e1rm">${best.toFixed(1)} kg e1RM</span>
+            ${momHtml}
+          </div>`;
+        }).join('');
+      }
+      return `<div class="stats-ex-row" data-id="${e.id}">
+        <div class="stats-ex-thumb">${thumb}</div>
+        <div class="stats-ex-info">
+          <div class="stats-ex-name">${e.name}</div>
+          ${body}
+        </div>
+      </div>`;
+    }).join('');
+    el.querySelectorAll('.stats-ex-row').forEach(row =>
+      row.addEventListener('click', () => openStatsDetail(exercises.find(e => e.id === row.dataset.id))));
+  }
+
+  // ── Layer 3: exercise detail ────────────────────────────
+  function openStatsDetail(ex) {
+    statsExercise = ex;
+    document.getElementById('stats-detail-title').textContent = ex.name;
+    showStatsSub('detail');
+    renderStatsDetail(ex);
+  }
+
+  function renderStatsDetail(ex) {
+    const rows = statsByExercise.get(ex.id) || [];
+    const el = document.getElementById('stats-detail-body');
+    if (!rows.length) { el.innerHTML = '<div class="empty-state">Not tracked yet</div>'; return; }
+    const pointsByEq = {};
+    Object.entries(statsGroupByEquipment(rows)).forEach(([eq, eqRows]) => { pointsByEq[eq] = statsBuildPoints(eqRows); });
+    el.innerHTML = `<div class="stats-chart-wrap" id="stats-chart"></div><div class="stats-insights" id="stats-insights"></div>`;
+    renderStatsChart(pointsByEq);
+    renderStatsInsights(pointsByEq);
+  }
+
+  function renderStatsChart(pointsByEq) {
+    const wrap = document.getElementById('stats-chart');
+    const allPoints = Object.values(pointsByEq).flat();
+    if (!allPoints.length) { wrap.innerHTML = '<div class="empty-state">Keine Daten.</div>'; return; }
+
+    const dates = [...new Set(allPoints.map(p => p.date))].sort();
+    const minDate = new Date(dates[0]+'T00:00:00').getTime();
+    const maxDate = new Date(dates[dates.length-1]+'T00:00:00').getTime();
+    let minE = Math.min(...allPoints.map(p => p.e1rm));
+    let maxE = Math.max(...allPoints.map(p => p.e1rm));
+    if (minE === maxE) { minE -= 5; maxE += 5; }
+    const pad = (maxE - minE) * 0.1;
+    minE -= pad; maxE += pad;
+
+    const W = 320, H = 220, ML = 38, MR = 10, MT = 10, MB = 24;
+    const xScale = d => maxDate === minDate ? ML + (W-ML-MR)/2 : ML + (new Date(d+'T00:00:00').getTime()-minDate)/(maxDate-minDate) * (W-ML-MR);
+    const yScale = v => MT + (1 - (v-minE)/(maxE-minE)) * (H-MT-MB);
+
+    let svg = `<svg viewBox="0 0 ${W} ${H}" class="stats-chart-svg" preserveAspectRatio="none">`;
+    const ySteps = 4;
+    for (let i=0; i<=ySteps; i++) {
+      const v = minE + (maxE-minE) * i/ySteps;
+      const y = yScale(v);
+      svg += `<line x1="${ML}" y1="${y.toFixed(1)}" x2="${W-MR}" y2="${y.toFixed(1)}" class="chart-grid"/>`;
+      svg += `<text x="${ML-4}" y="${(y+3).toFixed(1)}" class="chart-axis-label" text-anchor="end">${v.toFixed(0)}</text>`;
+    }
+    svg += `<text x="${ML}" y="${H-4}" class="chart-axis-label">${statsFmtDate(dates[0])}</text>`;
+    svg += `<text x="${W-MR}" y="${H-4}" class="chart-axis-label" text-anchor="end">${statsFmtDate(dates[dates.length-1])}</text>`;
+
+    Object.entries(pointsByEq).forEach(([eq, points]) => {
+      const color = STATS_EQ_COLORS[eq] || '#000';
+      if (points.length > 1) {
+        const path = points.map(p => `${xScale(p.date).toFixed(1)},${yScale(p.e1rm).toFixed(1)}`).join(' ');
+        svg += `<polyline points="${path}" fill="none" stroke="${color}" stroke-width="2"/>`;
+      }
+      points.forEach(p => {
+        svg += `<circle cx="${xScale(p.date).toFixed(1)}" cy="${yScale(p.e1rm).toFixed(1)}" r="4" fill="${color}" class="chart-dot" data-eq="${eq}" data-date="${p.date}"><title>${statsFmtDate(p.date)} · ${p.weight}kg × ${p.reps} · RIR ${p.rir ?? '—'} · Set ${p.set_number ?? '—'} · e1RM ${p.e1rm.toFixed(1)}kg</title></circle>`;
+      });
+    });
+    svg += `</svg>`;
+
+    const legend = Object.keys(pointsByEq).map(eq =>
+      `<span class="legend-item"><span class="legend-dot" style="background:${STATS_EQ_COLORS[eq]||'#000'}"></span>${STATS_EQ_LABELS[eq]||eq}</span>`
+    ).join('');
+
+    wrap.innerHTML = svg + `<div class="stats-legend">${legend}</div>`;
+
+    wrap.querySelectorAll('.chart-dot').forEach(dot => {
+      dot.addEventListener('click', () => {
+        const eq = dot.dataset.eq, date = dot.dataset.date;
+        const point = pointsByEq[eq].find(p => p.date === date);
+        showStatsSessionPopover(eq, point);
+      });
+    });
+  }
+
+  function showStatsSessionPopover(eq, point) {
+    document.getElementById('stats-session-title').textContent = `${statsFmtDate(point.date)} · ${STATS_EQ_LABELS[eq]||eq}`;
+    const rows = point.sessionRows.map(r => {
+      const e1rm = r.reps != null ? calcE1RM(r.weight_kg, r.reps) : null;
+      return `<tr>
+        <td>Set ${r.set_number ?? '—'}</td>
+        <td>${r.weight_kg}kg × ${r.reps ?? '—'}</td>
+        <td>RIR ${r.rir ?? '—'}</td>
+        <td>${e1rm != null ? e1rm.toFixed(1)+' kg' : '—'}</td>
+      </tr>`;
+    }).join('');
+    document.getElementById('stats-session-table').innerHTML =
+      `<thead><tr><th>Set</th><th>Weight × Reps</th><th>RIR</th><th>e1RM</th></tr></thead><tbody>${rows}</tbody>`;
+    document.getElementById('stats-session-overlay').classList.add('open');
+  }
+
+  function renderStatsInsights(pointsByEq) {
+    const el = document.getElementById('stats-insights');
+    el.innerHTML = Object.entries(pointsByEq).map(([eq, points]) => {
+      if (!points.length) return '';
+      let prWeight = 0, prDate = null;
+      points.forEach(p => p.sessionRows.forEach(r => {
+        if (r.weight_kg > prWeight) { prWeight = r.weight_kg; prDate = p.date; }
+      }));
+      const daysSincePR = prDate != null ? Math.floor(statsDaysAgo(prDate)) : null;
+      const last = points[points.length-1];
+
+      let momHtml;
+      if (points.length < 2) momHtml = `<span class="status-grey">Building baseline</span>`;
+      else if (statsDaysAgo(points[0].date) < 30) momHtml = `<span class="status-grey">Tracking…</span>`;
+      else { const mom = statsComputeMoM(points); momHtml = `<span class="status-${statsMoMStatus(mom)}">${statsMoMLabel(mom)}</span>`; }
+
+      return `<div class="stats-insight-card">
+        <div class="stats-insight-title">${STATS_EQ_LABELS[eq]||eq}</div>
+        <div class="stats-insight-row"><span>All-time PR</span><span>${prWeight} kg</span></div>
+        <div class="stats-insight-row"><span>Current working weight</span><span>${last.weight} kg</span></div>
+        <div class="stats-insight-row"><span>Days since PR</span><span>${daysSincePR ?? '—'}</span></div>
+        <div class="stats-insight-row"><span>MoM</span>${momHtml}</div>
+      </div>`;
+    }).join('');
+  }
+
+  document.getElementById('stats-exlist-back').addEventListener('click', () => showStatsSub('overview'));
+  document.getElementById('stats-detail-back').addEventListener('click', () => showStatsSub('exlist'));
+  document.getElementById('stats-session-close').addEventListener('click', () =>
+    document.getElementById('stats-session-overlay').classList.remove('open'));
 
   // ═══════════════════════════════════════════════════════
   // Util
