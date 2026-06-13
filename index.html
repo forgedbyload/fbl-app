@@ -1115,6 +1115,7 @@
       const pr  = sw?.personal_record ?? null;
       const max = Math.max(0, ...detAllLogs.filter(r => r.equipment === eq && r.weight_kg != null).map(r => r.weight_kg));
       const isManual = pr != null && max > 0 && pr > max;
+      const displayPR = pr != null ? pr : (max > 0 ? max : null);
       if (detPREditing === eq) {
         return `<div class="det-pr-badge">
           <span class="det-pr-name">${DET_WL_LABELS[eq]||eq} – PR:</span>
@@ -1124,8 +1125,8 @@
       }
       return `<div class="det-pr-badge">
         <span class="det-pr-name">${DET_WL_LABELS[eq]||eq} – PR:</span>
-        <span class="det-pr-val">${pr != null ? pr+' kg' : '—'}</span>
-        ${isManual ? `<button type="button" class="det-pr-edit" data-eq="${eq}" title="Manuell gesetzt">✎</button>` : ''}
+        <span class="det-pr-val">${displayPR != null ? displayPR+' kg' : '—'}</span>
+        <button type="button" class="det-pr-edit" data-eq="${eq}" title="${isManual?'Manuell gesetzt':'PR setzen'}">✎</button>
       </div>`;
     }).join('') + '</div>';
     el.querySelectorAll('.det-pr-edit').forEach(btn =>
