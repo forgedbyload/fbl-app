@@ -2643,7 +2643,10 @@
     if (phase==='get-ready') { startExercise(); return; }
     if (phase==='work') {
       const lastInGrp = !grpOf(exIdx) || exIdx === grpEnd(exIdx);
-      if (lastInGrp) openSetLogModal(() => startPhase('rest', tSession?.rest_seconds || DUP_CFG[tMode].restTime));
+      if (lastInGrp) openSetLogModal(() => {
+        if (getNextExercise() === null) showDone();
+        else startPhase('rest', tSession?.rest_seconds || DUP_CFG[tMode].restTime);
+      });
       else           openSetLogModal(() => nextSet());
     } else { nextSet(); }
   }
@@ -2732,7 +2735,10 @@
     if (phase!=='reps') return;
     if (Date.now() - timerLaunchedAt < 500) return;
     const lastInGrp = !grpOf(exIdx) || exIdx === grpEnd(exIdx);
-    if (lastInGrp) openSetLogModal(() => startPhase('rest', tSession?.rest_seconds || DUP_CFG[tMode].restTime));
+    if (lastInGrp) openSetLogModal(() => {
+      if (getNextExercise() === null) showDone();
+      else startPhase('rest', tSession?.rest_seconds || DUP_CFG[tMode].restTime);
+    });
     else           openSetLogModal(() => nextSet());
   });
 
