@@ -571,6 +571,37 @@
     .stats-insight-row   { display: flex; justify-content: space-between; font-size: 13px; padding: 5px 0; border-bottom: 1px solid var(--border); }
     .stats-insight-row:last-child { border-bottom: none; }
 
+    /* ── Training History ── */
+    .stats-history        { margin-top: 24px; }
+    .stats-history-title  { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 1px; margin-bottom: 12px; }
+    .stats-history-scroll { max-height: 60vh; overflow-y: auto; -webkit-overflow-scrolling: touch; display: flex; flex-direction: column; gap: 12px; }
+    .stats-hist-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 16px !important;
+      padding: 16px; position: relative; transition: opacity .15s;
+    }
+    .stats-hist-card.no-working  { opacity: 0.65; }
+    .stats-hist-card.has-working                  { box-shadow: inset 3px 0 0 var(--muted); }
+    .stats-hist-card.has-working.dup-kraft        { box-shadow: inset 3px 0 0 #c8a96e; }
+    .stats-hist-card.has-working.dup-hyper        { box-shadow: inset 3px 0 0 #5daab0; }
+    .stats-hist-card.has-working.dup-vol          { box-shadow: inset 3px 0 0 #9b8ab4; }
+    .stats-hist-card.has-working.dup-flexibility  { box-shadow: inset 3px 0 0 #e8a598; }
+    .stats-hist-card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; min-height: 44px; }
+    .stats-hist-date      { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 0.5px; flex-shrink: 0; }
+    .stats-hist-badges    { display: flex; gap: 6px; flex-wrap: wrap; flex: 1; }
+    .stats-hist-badge     { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 20px !important; letter-spacing: 0.3px; }
+    .stats-hist-mode-badge { background: rgba(0,0,0,.08); color: var(--muted); }
+    .stats-hist-sets { display: flex; flex-direction: column; }
+    .stats-hist-set-row {
+      display: flex; align-items: center; gap: 8px; font-size: 13px;
+      min-height: 44px; padding: 6px 0;
+      border-bottom: 1px solid rgba(0,0,0,.06);
+    }
+    .stats-hist-set-row:last-child { border-bottom: none; }
+    .stats-hist-set-num    { width: 42px; flex-shrink: 0; color: var(--muted); font-size: 12px; }
+    .stats-hist-set-weight { flex: 1; font-weight: 600; }
+    .stats-hist-set-rir    { font-size: 11px; opacity: 0.6; flex-shrink: 0; }
+    .stats-hist-set-e1rm   { font-size: 11px; color: var(--muted); flex-shrink: 0; min-width: 66px; text-align: right; }
+
     /* ── Session Übersicht (read-only) ── */
     .btn-edit-ses {
       padding: 6px 16px; border-radius: 20px; border: 1px solid var(--border);
@@ -632,6 +663,214 @@
       white-space: nowrap; transition: opacity .2s;
     }
     .toast.show { opacity: 1; }
+
+    /* ══════════════════════════════════════════════════════
+       Active Workout screen (Hevy-style set logging)
+       Tokens scoped under .workout-active — do not leak
+       outside this screen. Every radius below carries
+       !important because the app-wide reset
+       (`*,*::before,*::after{border-radius:0!important}`
+       above) beats any unscoped declaration on specificity;
+       these class selectors win because they're more specific
+       than the plain universal selector, not because of
+       declaration order.
+       ══════════════════════════════════════════════════════ */
+    .workout-active {
+      --wbg:              #0D0D10;
+      --wsurface:         #17171B;
+      --wsurface-raised:  #212127;
+      --wsurface-hover:   #2A2A32;
+      --waccent:          #3B82F6;
+      --waccent-dim:      #1E3A5F;
+      --waccent-text:     #FFFFFF;
+      --wtext:            #F4F4F6;
+      --wtext-secondary:  #9B9BA5;
+      --wtext-muted:      #62626D;
+      --wsuperset-a:      #3B82F6;
+      --wsuperset-b:      #A855F7;
+      --wsuperset-c:      #F59E0B;
+      --wdivider:         rgba(255,255,255,0.06);
+      --wr-card:          14px;
+      --wr-input:         10px;
+      --wr-chip:          8px;
+
+      position: fixed; inset: 0 0 var(--nav-h) 0;
+      background: var(--wbg); color: var(--wtext);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-variant-numeric: tabular-nums;
+      display: flex; flex-direction: column;
+      z-index: 15;
+    }
+    .workout-active.hidden { display: none; }
+
+    /* ── Sticky header ── */
+    .wa-header {
+      flex-shrink: 0;
+      background: var(--wsurface-raised);
+      border-bottom: 1px solid var(--wdivider);
+      padding: 10px 14px 12px;
+    }
+    .wa-header-row1 { display: flex; align-items: center; justify-content: space-between; }
+    .wa-timer { font-size: 20px; font-weight: 700; color: var(--wtext); }
+    .wa-finish-btn {
+      background: var(--waccent) !important; border-radius: var(--wr-input) !important;
+      border: none; color: var(--waccent-text); font-size: 13px; font-weight: 700;
+      padding: 8px 16px; cursor: pointer; -webkit-tap-highlight-color: transparent;
+    }
+    .wa-finish-btn:active { opacity: .85; }
+    .wa-header-row2 { display: flex; align-items: center; gap: 14px; margin-top: 4px; }
+    .wa-stat { font-size: 12px; color: var(--wtext-secondary); }
+    .wa-stat b { color: var(--wtext); font-weight: 600; }
+    .wa-scroll-toggle {
+      margin-left: auto; background: none; border: 1px solid var(--wdivider); border-radius: var(--wr-chip) !important;
+      color: var(--wtext-muted); font-size: 10px; font-weight: 600; padding: 4px 8px;
+      cursor: pointer; -webkit-tap-highlight-color: transparent; white-space: nowrap;
+    }
+    .wa-scroll-toggle.wa-on { color: var(--waccent); border-color: var(--waccent); }
+
+    /* ── Scroll body ── */
+    .wa-body { flex: 1 1 auto; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 12px 0 24px; }
+
+    /* ── Exercise card ── */
+    .wa-ex-card {
+      background: var(--wsurface); border-radius: var(--wr-card) !important;
+      margin: 0 10px 14px; overflow: hidden;
+    }
+    .wa-ex-card.wa-superset-a { border-left: 3px solid var(--wsuperset-a); }
+    .wa-ex-card.wa-superset-b { border-left: 3px solid var(--wsuperset-b); }
+    .wa-ex-card.wa-superset-c { border-left: 3px solid var(--wsuperset-c); }
+    .wa-superset-label {
+      font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em;
+      padding: 10px 12px 0;
+    }
+    .wa-superset-label.wa-superset-a { color: var(--wsuperset-a); }
+    .wa-superset-label.wa-superset-b { color: var(--wsuperset-b); }
+    .wa-superset-label.wa-superset-c { color: var(--wsuperset-c); }
+    .wa-ex-head { display: flex; align-items: center; gap: 10px; padding: 10px 12px; }
+    .wa-ex-thumb {
+      width: 40px; height: 40px; border-radius: var(--wr-chip) !important;
+      background: var(--wsurface-raised); flex-shrink: 0; overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; color: var(--wtext-muted); cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .wa-ex-thumb img { width: 100%; height: 100%; object-fit: contain; }
+    .wa-ex-name { font-size: 16px; font-weight: 600; color: var(--wtext); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+
+    .wa-col-headers {
+      display: grid; grid-template-columns: 16px 1fr 44px 36px 84px 44px;
+      gap: 4px; padding: 0 12px 6px; align-items: center;
+    }
+    .wa-col-headers span {
+      font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .06em;
+      color: var(--wtext-secondary); text-align: center; white-space: nowrap; overflow: hidden;
+    }
+    .wa-col-headers span:first-child, .wa-col-headers span:nth-child(2) { text-align: left; }
+
+    /* ── Set row ── */
+    .wa-row-wrap { position: relative; overflow: hidden; }
+    .wa-row-delete {
+      position: absolute; inset: 0; width: 100%; background: #E5484D; color: #fff;
+      border: none; display: flex; align-items: center; justify-content: flex-end;
+      padding-right: 20px; font-size: 13px; font-weight: 600;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .wa-row {
+      position: relative; display: grid; grid-template-columns: 16px 1fr 44px 36px 84px 44px;
+      gap: 4px; align-items: center; min-height: 48px; padding: 3px 12px;
+      background: var(--wsurface); transition: background .15s, transform .18s; touch-action: pan-y;
+    }
+    .wa-row.wa-completed { background: var(--waccent-dim); }
+    .wa-row.wa-dragging { transition: none; }
+    .wa-set-num { font-size: 14px; font-weight: 600; color: var(--wtext-secondary); }
+    .wa-row.wa-completed .wa-set-num { color: var(--wtext); }
+    .wa-set-prev {
+      font-size: 12px; font-weight: 400; color: var(--wtext-secondary);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .wa-input-cell { position: relative; }
+    .wa-input {
+      width: 100%; min-height: 36px; background: var(--wsurface-raised);
+      border: none; border-radius: var(--wr-input) !important; color: var(--wtext);
+      text-align: center; font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums;
+      font-family: inherit; padding: 0 2px; -webkit-tap-highlight-color: transparent;
+    }
+    .wa-input::placeholder { color: var(--wtext-muted); font-weight: 400; }
+    .wa-row.wa-completed .wa-input { background: rgba(255,255,255,0.06); }
+    .wa-eq-badge {
+      position: absolute; top: -7px; left: 1px; font-size: 8px; font-weight: 700;
+      color: var(--waccent); background: var(--wsurface); padding: 0 3px; border-radius: 4px !important;
+      letter-spacing: .02em; cursor: pointer; -webkit-tap-highlight-color: transparent; display: none; z-index: 1;
+    }
+    .wa-eq-badge.wa-show { display: block; }
+    .wa-rir-chips { display: flex; gap: 2px; justify-content: center; }
+    .wa-rir-chip {
+      width: 15px; height: 26px; background: var(--wsurface-raised); border: none;
+      border-radius: var(--wr-chip) !important; color: var(--wtext-secondary);
+      font-size: 10px; font-weight: 600; font-family: inherit; cursor: pointer;
+      -webkit-tap-highlight-color: transparent; transition: background .12s, color .12s; padding: 0;
+    }
+    .wa-rir-chip.wa-on { background: var(--waccent); color: var(--waccent-text); }
+    .wa-row.wa-completed .wa-rir-chip:not(.wa-on) { background: rgba(255,255,255,0.06); }
+    .wa-check-btn {
+      width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
+      background: var(--wsurface-raised); border: none; border-radius: var(--wr-input) !important;
+      cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background .15s;
+    }
+    .wa-check-btn svg { width: 17px; height: 17px; }
+    .wa-check-btn path { stroke: var(--wtext-muted); }
+    .wa-row.wa-completed .wa-check-btn { background: var(--waccent); }
+    .wa-row.wa-completed .wa-check-btn path { stroke: var(--waccent-text); }
+    .wa-add-set {
+      display: flex; align-items: center; gap: 6px; padding: 10px 12px;
+      color: var(--wtext-secondary); font-size: 13px; font-weight: 600;
+      cursor: pointer; -webkit-tap-highlight-color: transparent;
+    }
+    .wa-add-set:active { color: var(--wtext); }
+
+    /* ── Flexibility block (nav-based, no sets) ── */
+    .wa-flex-nav { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 4px 12px 12px; }
+    .wa-flex-btn {
+      flex: 1; padding: 10px; background: var(--wsurface-raised); border: none;
+      border-radius: var(--wr-input) !important; color: var(--wtext); font-size: 13px; font-weight: 600;
+      cursor: pointer; -webkit-tap-highlight-color: transparent;
+    }
+    .wa-flex-btn:disabled { opacity: .35; }
+
+    /* ── Rest/work timer bar ── */
+    .wa-timerbar {
+      flex-shrink: 0; display: none; align-items: center; gap: 10px;
+      background: var(--wsurface-raised); border-top: 1px solid var(--wdivider);
+      padding: 8px 14px; position: relative;
+    }
+    .wa-timerbar.wa-visible { display: flex; }
+    .wa-timerbar-fill {
+      position: absolute; top: 0; left: 0; height: 2px; background: var(--waccent);
+      transition: width .2s linear;
+    }
+    .wa-tb-phase { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--wtext-secondary); width: 40px; flex-shrink: 0; }
+    .wa-tb-time { font-size: 20px; font-weight: 700; flex: 1; text-align: center; font-variant-numeric: tabular-nums; }
+    .wa-tb-btn {
+      background: var(--wsurface-hover); border: none; border-radius: var(--wr-chip) !important;
+      color: var(--wtext); font-size: 12px; font-weight: 600; padding: 8px 10px;
+      cursor: pointer; -webkit-tap-highlight-color: transparent; flex-shrink: 0;
+    }
+    .wa-tb-skip { color: var(--wtext-secondary); }
+
+    /* ── GIF overlay ── */
+    .wa-gif-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,.85); z-index: 70;
+      display: none; align-items: center; justify-content: center; padding: 24px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .wa-gif-overlay.wa-open { display: flex; }
+    .wa-gif-overlay img { max-width: 100%; max-height: 100%; border-radius: var(--wr-card) !important; }
+    .wa-gif-overlay-close {
+      position: absolute; top: 16px; right: 16px; width: 36px; height: 36px;
+      border-radius: 50% !important; background: var(--wsurface-raised); border: none;
+      color: var(--wtext); font-size: 16px; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; -webkit-tap-highlight-color: transparent;
+    }
   </style>
 </head>
 <body>
@@ -776,6 +1015,36 @@
     </div>
 
   </div><!-- /plan-timer-sub -->
+
+  <!-- Sub: Active Workout (Hevy-style set logging) -->
+  <div class="workout-active hidden" id="wa-screen">
+    <div class="wa-header">
+      <div class="wa-header-row1">
+        <span class="wa-timer" id="wa-timer">0:00</span>
+        <button class="wa-finish-btn" id="wa-finish-btn">Finish</button>
+      </div>
+      <div class="wa-header-row2">
+        <span class="wa-stat"><b id="wa-set-count">0</b> sets</span>
+        <span class="wa-stat"><b id="wa-volume">0</b> kg</span>
+        <button class="wa-scroll-toggle" id="wa-autoscroll-toggle">Auto-scroll: On</button>
+      </div>
+    </div>
+    <div class="wa-body" id="wa-body"></div>
+    <div class="wa-timerbar" id="wa-timerbar">
+      <div class="wa-timerbar-fill" id="wa-timerbar-fill" style="width:100%"></div>
+      <span class="wa-tb-phase" id="wa-tb-phase">REST</span>
+      <button class="wa-tb-btn" id="wa-tb-minus">−15s</button>
+      <span class="wa-tb-time" id="wa-tb-time">0:00</span>
+      <button class="wa-tb-btn" id="wa-tb-plus">+15s</button>
+      <button class="wa-tb-btn wa-tb-skip" id="wa-tb-skip">Skip</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Overlay: Workout GIF ══ -->
+<div class="wa-gif-overlay" id="wa-gif-overlay">
+  <button class="wa-gif-overlay-close" id="wa-gif-overlay-close">✕</button>
+  <img id="wa-gif-overlay-img" src="" alt="">
 </div>
 
 <!-- ══ View 3: Stats ══ -->
@@ -1594,7 +1863,8 @@
     document.getElementById('plan-detail-sub').style.display  = sub === 'detail' ? '' : 'none';
     document.getElementById('plan-start-sub').style.display   = sub === 'start'  ? '' : 'none';
     document.getElementById('plan-timer-sub').style.display   = sub === 'timer'  ? '' : 'none';
-    document.getElementById('plan-view').style.overflowY      = sub === 'timer'  ? 'hidden' : 'auto';
+    document.getElementById('wa-screen').classList.toggle('hidden', sub !== 'workout');
+    document.getElementById('plan-view').style.overflowY      = (sub === 'timer' || sub === 'workout') ? 'hidden' : 'auto';
   }
 
   function showTimerState(which) {
@@ -1757,7 +2027,10 @@
   document.getElementById('plan-start-back')?.addEventListener('click', () => {
     if (preWorkoutFrom === 'detail') showPlanSub('detail'); else showPlanSub('week');
   });
-  document.getElementById('plan-start-go')?.addEventListener('click', launchTimer);
+  document.getElementById('plan-start-go')?.addEventListener('click', () => {
+    if (planDetailSes?.dup_mode === 'flexibility') launchTimer();
+    else waLaunch(planDetailSes);
+  });
 
   // ── Session Modal ──────────────────────────────────────
   const SW_LABELS = { barbell:'BB', dumbbell_1x:'DB 1x', dumbbell_2x:'DB 2x', kettlebell_1x:'KB 1x', kettlebell_2x:'KB 2x' };
@@ -2817,6 +3090,575 @@
   }
 
   // ═══════════════════════════════════════════════════════
+  // Active Workout screen (Hevy-style set logging)
+  // Handles kraft / hyper / vol. Flexibility sessions still use
+  // the old step-by-step wizard above — there's nothing to log there
+  // (no weight/reps/RIR), so the scrolling set-row screen doesn't apply.
+  // ═══════════════════════════════════════════════════════
+
+  const WA_STORAGE_KEY   = 'wa_active_workout_v1';
+  const WA_SCROLL_KEY    = 'wa_autoscroll_enabled';
+  const WA_EQ_LABELS     = { barbell:'BB', dumbbell_1x:'DB1', dumbbell_2x:'DB2', kettlebell_1x:'KB1', kettlebell_2x:'KB2' };
+  const WA_SS_CLASS      = { A:'wa-superset-a', B:'wa-superset-b', C:'wa-superset-c' };
+
+  let waSession       = null;
+  let waWeek          = 'A';
+  let waMode          = null;
+  let waBlocks        = [];          // ordered: [{ ex, sets, supersetGroup }]
+  let waSetState      = {};          // waSetState[exId][setNum] = { weight, reps, rir, equipment, completed, rowId }
+  let waPrevMap       = {};
+  let waPrevMapAny    = {};
+  let waGifCache      = new Map();
+  let waStartTime     = 0;
+  let waTimerRAF      = null;
+  let waRest          = null;        // { phase:'work'|'rest', exId, setNum, endsAt, duration }
+  let waRestRAF       = null;
+  let waPersistTimer  = null;
+  let waAutoScroll    = true;
+  try { waAutoScroll = JSON.parse(localStorage.getItem(WA_SCROLL_KEY) ?? 'true'); } catch {}
+
+  function waRenderScrollToggle() {
+    const btn = document.getElementById('wa-autoscroll-toggle');
+    btn.textContent = `Auto-scroll: ${waAutoScroll ? 'On' : 'Off'}`;
+    btn.classList.toggle('wa-on', waAutoScroll);
+  }
+  document.getElementById('wa-autoscroll-toggle').addEventListener('click', () => {
+    waAutoScroll = !waAutoScroll;
+    try { localStorage.setItem(WA_SCROLL_KEY, JSON.stringify(waAutoScroll)); } catch {}
+    waRenderScrollToggle();
+  });
+
+  function waEqTypes(ex) { return (ex.strength_weights || []).map(w => w.type).filter(Boolean); }
+  function waPrevKey(exId, setNum, total) { return `${exId}|${setNum}|${total}`; }
+  function waPrevKeyAny(exId, setNum)     { return `${exId}|${setNum}`; }
+  function waFindBlock(exId)  { return waBlocks.find(b => b.ex.id === exId); }
+  function waBlockIndex(exId) { return waBlocks.findIndex(b => b.ex.id === exId); }
+  function waGetPrev(exId, setNum, total) {
+    return waPrevMap[waPrevKey(exId, setNum, total)] || waPrevMapAny[waPrevKeyAny(exId, setNum)] || null;
+  }
+
+  // ── Entry point ───────────────────────────────────────
+  async function waLaunch(ses) {
+    if (!ses) return;
+    await loadAppState();
+    const rawWeek = appState.current_week || 'A';
+    waWeek    = (!appState.week_b_enabled && rawWeek === 'B') ? 'A' : rawWeek;
+    waSession = ses;
+    waMode    = ses.dup_mode;
+    getAudioCtx().resume();
+
+    waBlocks = (ses.exercise_ids || []).map(cfg => {
+      const id   = typeof cfg === 'string' ? cfg : cfg.exercise_id;
+      const sets = detailExSets[id] ?? (typeof cfg === 'object' ? (cfg.sets || 3) : 3);
+      const sgrp = typeof cfg === 'object' ? (cfg.superset_group || null) : null;
+      const ex   = exercises.find(e => e.id === id);
+      return ex ? { ex, sets, supersetGroup: sgrp } : null;
+    }).filter(Boolean).filter(b => !detailExSkip.has(b.ex.id));
+
+    if (!waBlocks.length) { toast('Keine Übungen ausgewählt'); return; }
+
+    waSetState = {};
+    waGifCache = new Map();
+    waRest     = null;
+    if (waTimerRAF) cancelAnimationFrame(waTimerRAF);
+    if (waRestRAF)  cancelAnimationFrame(waRestRAF);
+
+    const restored = waTryRestore(ses.id);
+    if (!restored) {
+      waBlocks.forEach(b => {
+        waSetState[b.ex.id] = {};
+        const eqTypes = waEqTypes(b.ex);
+        for (let i = 1; i <= b.sets; i++) {
+          waSetState[b.ex.id][i] = { weight: null, reps: null, rir: null, equipment: eqTypes[0] || null, completed: false, rowId: null };
+        }
+      });
+      waStartTime = Date.now();
+    }
+
+    await waLoadPrevious();
+    if (!restored) waApplyPrevPrefill();
+
+    showPlanSub('workout');
+    waRenderHeader();
+    waRenderScrollToggle();
+    waRenderBody();
+    waStartHeaderTimer();
+    if (waRest) { waShowTimerBar(true); waTickRest(); } else { waShowTimerBar(false); }
+    waPersist();
+  }
+
+  // ── Previous performance: one batched query for the whole session ──
+  async function waLoadPrevious() {
+    waPrevMap = {}; waPrevMapAny = {};
+    const ids = waBlocks.map(b => b.ex.id);
+    if (!ids.length) return;
+    const { data } = await db.from('set_log')
+      .select('exercise_id,set_number,total_sets_in_session,weight_kg,reps,equipment,session_date')
+      .in('exercise_id', ids)
+      .order('session_date', { ascending: false })
+      .limit(500);
+    (data || []).forEach(row => {
+      const k1 = waPrevKey(row.exercise_id, row.set_number, row.total_sets_in_session);
+      if (!(k1 in waPrevMap)) waPrevMap[k1] = row;
+      const k2 = waPrevKeyAny(row.exercise_id, row.set_number);
+      if (!(k2 in waPrevMapAny)) waPrevMapAny[k2] = row;
+    });
+  }
+
+  function waApplyPrevPrefill() {
+    waBlocks.forEach(b => {
+      const state = waSetState[b.ex.id];
+      const eqTypes = waEqTypes(b.ex);
+      for (let i = 1; i <= b.sets; i++) {
+        const row = state[i];
+        const prev = waGetPrev(b.ex.id, i, b.sets);
+        if (!prev) continue;
+        if (prev.weight_kg != null) row.weight = prev.weight_kg;
+        if (prev.reps != null) row.reps = prev.reps;
+        if (prev.equipment && eqTypes.includes(prev.equipment)) row.equipment = prev.equipment;
+      }
+    });
+  }
+
+  // ── Header (stopwatch, set count, volume) ──────────────
+  function waCompletedSetCount() {
+    let n = 0;
+    Object.values(waSetState).forEach(sets => Object.values(sets).forEach(s => { if (s.completed) n++; }));
+    return n;
+  }
+  function waVolumeLoad() {
+    let v = 0;
+    Object.values(waSetState).forEach(sets => Object.values(sets).forEach(s => {
+      if (s.completed && s.weight != null && s.reps != null) v += s.weight * s.reps;
+    }));
+    return Math.round(v);
+  }
+  function waRenderHeader() {
+    document.getElementById('wa-set-count').textContent = waCompletedSetCount();
+    document.getElementById('wa-volume').textContent    = waVolumeLoad().toLocaleString('en-US');
+  }
+  function waStartHeaderTimer() {
+    if (waTimerRAF) cancelAnimationFrame(waTimerRAF);
+    const tick = () => {
+      const el = Math.floor((Date.now() - waStartTime) / 1000);
+      const m = Math.floor(el / 60), s = el % 60;
+      document.getElementById('wa-timer').textContent = `${m}:${String(s).padStart(2,'0')}`;
+      waTimerRAF = requestAnimationFrame(tick);
+    };
+    tick();
+  }
+
+  // ── Body rendering ──────────────────────────────────────
+  function waRenderBody() {
+    const body = document.getElementById('wa-body');
+    const html = [];
+    let i = 0;
+    while (i < waBlocks.length) {
+      const grp = waBlocks[i].supersetGroup;
+      if (grp) {
+        let j = i;
+        while (j < waBlocks.length && waBlocks[j].supersetGroup === grp) j++;
+        waBlocks.slice(i, j).forEach((b, k) => html.push(waRenderExCard(b, grp, k === 0)));
+        i = j;
+      } else {
+        html.push(waRenderExCard(waBlocks[i], null, false));
+        i++;
+      }
+    }
+    body.innerHTML = html.join('');
+    waAttachHandlers(body);
+  }
+
+  function waRenderExCard(block, grp, showLabel) {
+    const ex = block.ex;
+    const ssClass = grp ? (WA_SS_CLASS[grp] || 'wa-superset-a') : '';
+    const thumb = ex.thumbnail_base64 ? `<img src="${ex.thumbnail_base64}" loading="lazy" alt="">` : '◔';
+    const label = showLabel ? `<div class="wa-superset-label ${ssClass}">Superset ${grp}</div>` : '';
+    const rows = [];
+    for (let n = 1; n <= block.sets; n++) rows.push(waRenderRow(ex, n, block.sets));
+    return `
+      <div class="wa-ex-card ${ssClass}" data-ex="${ex.id}">
+        ${label}
+        <div class="wa-ex-head">
+          <div class="wa-ex-thumb" data-thumb="${ex.id}">${thumb}</div>
+          <div class="wa-ex-name" data-thumb="${ex.id}">${ex.name}</div>
+        </div>
+        <div class="wa-col-headers"><span>Set</span><span>Previous</span><span>Kg</span><span>Reps</span><span>Rir</span><span></span></div>
+        <div class="wa-rows" data-ex-rows="${ex.id}">${rows.join('')}</div>
+        <div class="wa-add-set" data-add="${ex.id}">+ Add set</div>
+      </div>`;
+  }
+
+  function waRenderRow(ex, setNum, total) {
+    const s = waSetState[ex.id][setNum];
+    const prev = waGetPrev(ex.id, setNum, total);
+    const prevStr = prev && prev.weight_kg != null ? `${prev.weight_kg}kg × ${prev.reps ?? '—'}` : '—';
+    const eqTypes = waEqTypes(ex);
+    const showEqBadge = eqTypes.length > 1;
+    const eqLbl = s.equipment ? (WA_EQ_LABELS[s.equipment] || s.equipment) : '';
+    return `
+      <div class="wa-row-wrap">
+        <button class="wa-row-delete" data-del="${ex.id}|${setNum}">Delete</button>
+        <div class="wa-row${s.completed ? ' wa-completed' : ''}" data-row="${ex.id}|${setNum}">
+          <span class="wa-set-num">${setNum}</span>
+          <span class="wa-set-prev">${prevStr}</span>
+          <div class="wa-input-cell">
+            <span class="wa-eq-badge${showEqBadge ? ' wa-show' : ''}" data-eq="${ex.id}|${setNum}">${eqLbl}</span>
+            <input class="wa-input" inputmode="decimal" data-field="weight" data-key="${ex.id}|${setNum}" value="${s.weight ?? ''}" placeholder="—">
+          </div>
+          <div class="wa-input-cell">
+            <input class="wa-input" inputmode="numeric" data-field="reps" data-key="${ex.id}|${setNum}" value="${s.reps ?? ''}" placeholder="—">
+          </div>
+          <div class="wa-rir-chips" data-rir="${ex.id}|${setNum}">
+            ${[0,1,2,3,4].map(v => `<button class="wa-rir-chip${s.rir === v ? ' wa-on' : ''}" data-rir-val="${v}">${v === 4 ? '4+' : v}</button>`).join('')}
+          </div>
+          <button class="wa-check-btn" data-check="${ex.id}|${setNum}" aria-label="Complete set">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M4 12l6 6L20 6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+      </div>`;
+  }
+
+  function waRenderRowInPlace(exId, setNum) {
+    const block = waFindBlock(exId);
+    const oldRow = document.querySelector(`.wa-row[data-row="${exId}|${setNum}"]`);
+    const wrap = oldRow?.closest('.wa-row-wrap');
+    if (!wrap || !block) return;
+    wrap.outerHTML = waRenderRow(block.ex, setNum, block.sets);
+    const newRow = document.querySelector(`.wa-row[data-row="${exId}|${setNum}"]`);
+    if (newRow) waAttachHandlers(newRow.closest('.wa-row-wrap'));
+  }
+
+  // ── Event handlers (works on full body or a single row-wrap) ──
+  function waAttachHandlers(root) {
+    root.querySelectorAll('.wa-input').forEach(inp => {
+      inp.addEventListener('focus', () => inp.select());
+      inp.addEventListener('change', () => {
+        const [exId, setNum] = inp.dataset.key.split('|');
+        const val = inp.value === '' ? null : parseFloat(inp.value);
+        waSetState[exId][setNum][inp.dataset.field] = (val != null && !isNaN(val)) ? val : null;
+        if (waSetState[exId][setNum].completed) waWriteSetLog(waFindBlock(exId), parseInt(setNum,10), waSetState[exId][setNum]);
+        waPersist();
+      });
+    });
+
+    root.querySelectorAll('.wa-rir-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const wrap = chip.closest('.wa-rir-chips');
+        const [exId, setNum] = wrap.dataset.rir.split('|');
+        const val = parseInt(chip.dataset.rirVal, 10);
+        const cur = waSetState[exId][setNum];
+        cur.rir = (cur.rir === val) ? null : val;
+        wrap.querySelectorAll('.wa-rir-chip').forEach(c => c.classList.remove('wa-on'));
+        if (cur.rir != null) chip.classList.add('wa-on');
+        if (cur.completed) waWriteSetLog(waFindBlock(exId), parseInt(setNum,10), cur);
+        waPersist();
+      });
+    });
+
+    root.querySelectorAll('.wa-eq-badge').forEach(badge => {
+      badge.addEventListener('click', () => {
+        const [exId, setNum] = badge.dataset.eq.split('|');
+        const eqTypes = waEqTypes(waFindBlock(exId)?.ex);
+        if (eqTypes.length < 2) return;
+        const cur = waSetState[exId][setNum];
+        const idx = eqTypes.indexOf(cur.equipment);
+        cur.equipment = eqTypes[(idx + 1) % eqTypes.length];
+        badge.textContent = WA_EQ_LABELS[cur.equipment] || cur.equipment;
+        if (cur.completed) waWriteSetLog(waFindBlock(exId), parseInt(setNum,10), cur);
+        waPersist();
+      });
+    });
+
+    root.querySelectorAll('.wa-check-btn').forEach(btn => {
+      btn.addEventListener('click', () => waCompleteSet(btn.dataset.check));
+    });
+
+    root.querySelectorAll('[data-thumb]').forEach(el => {
+      el.addEventListener('click', () => waOpenGif(el.dataset.thumb));
+    });
+
+    root.querySelectorAll('[data-add]').forEach(el => {
+      el.addEventListener('click', () => waAddSet(el.dataset.add));
+    });
+
+    waAttachSwipe(root);
+  }
+
+  function waAttachSwipe(root) {
+    root.querySelectorAll('.wa-row').forEach(row => {
+      if (row.dataset.swipeBound) return;
+      row.dataset.swipeBound = '1';
+      let startX = 0, curX = 0, dragging = false;
+      const threshold = -70;
+      row.addEventListener('pointerdown', e => {
+        if (e.target.closest('.wa-input, .wa-rir-chip, .wa-eq-badge, .wa-check-btn')) return;
+        startX = e.clientX; dragging = true; row.classList.add('wa-dragging');
+        row.setPointerCapture(e.pointerId);
+      });
+      row.addEventListener('pointermove', e => {
+        if (!dragging) return;
+        curX = Math.min(0, e.clientX - startX);
+        row.style.transform = `translateX(${curX}px)`;
+      });
+      const end = () => {
+        if (!dragging) return;
+        dragging = false; row.classList.remove('wa-dragging');
+        if (curX < threshold) {
+          const [exId, setNum] = row.dataset.row.split('|');
+          waDeleteSet(exId, parseInt(setNum, 10));
+        } else {
+          row.style.transform = '';
+        }
+        curX = 0;
+      };
+      row.addEventListener('pointerup', end);
+      row.addEventListener('pointercancel', end);
+    });
+  }
+
+  // ── Set commit ──────────────────────────────────────────
+  async function waWriteSetLog(block, setNum, s) {
+    if (!block) return false;
+    const today = new Date().toISOString().split('T')[0];
+    const payload = {
+      exercise_id: block.ex.id,
+      session_id: waSession?.id ?? null,
+      session_date: today,
+      set_number: setNum,
+      total_sets_in_session: block.sets,
+      weight_kg: s.weight,
+      reps: s.reps,
+      rir: s.rir,
+      equipment: s.equipment,
+      dup_mode: waMode ?? null,
+      week: waWeek ?? null,
+    };
+    if (s.rowId) {
+      const { error } = await db.from('set_log').update(payload).eq('id', s.rowId);
+      if (error) { console.error('set_log update error:', JSON.stringify(error), payload); toast(error.message || 'Fehler beim Speichern'); return false; }
+      return true;
+    }
+    const { data, error } = await db.from('set_log').insert([payload]).select('id').single();
+    if (error) { console.error('set_log insert error:', JSON.stringify(error), payload); toast(error.message || 'Fehler beim Speichern'); return false; }
+    s.rowId = data.id;
+    return true;
+  }
+
+  async function waCompleteSet(key) {
+    const [exId, setNumStr] = key.split('|');
+    const setNum = parseInt(setNumStr, 10);
+    const block  = waFindBlock(exId);
+    if (!block) return;
+    const s = waSetState[exId][setNum];
+    const wasCompleted = s.completed;
+    const ok = await waWriteSetLog(block, setNum, s);
+    if (!ok) return;
+    s.completed = true;
+    waRenderRowInPlace(exId, setNum);
+    waRenderHeader();
+    waPersist();
+    if (!wasCompleted) waAfterSetCompleted(block, setNum);
+  }
+
+  function waAfterSetCompleted(block, setNum) {
+    const startTimer = () => waStartRest(block, setNum, waMode === 'vol' ? 'work' : 'rest');
+
+    if (block.supersetGroup) {
+      const idx = waBlockIndex(block.ex.id);
+      const grp = block.supersetGroup;
+      let gs = idx; while (gs > 0 && waBlocks[gs-1].supersetGroup === grp) gs--;
+      let ge = idx; while (ge < waBlocks.length-1 && waBlocks[ge+1].supersetGroup === grp) ge++;
+      if (idx !== ge) {
+        waScrollToRow(waBlocks[idx+1].ex.id, setNum);
+      } else {
+        startTimer();
+        const nextRound = Math.min(setNum + 1, waBlocks[gs].sets);
+        waScrollToRow(waBlocks[gs].ex.id, nextRound);
+      }
+      return;
+    }
+    startTimer();
+    if (setNum < block.sets) waScrollToRow(block.ex.id, setNum + 1);
+  }
+
+  function waScrollToRow(exId, setNum) {
+    if (!waAutoScroll) return;
+    const el = document.querySelector(`.wa-row[data-row="${exId}|${setNum}"]`);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  // ── Add / delete set rows ───────────────────────────────
+  function waAddSet(exId) {
+    const block = waFindBlock(exId);
+    if (!block) return;
+    block.sets += 1;
+    const n = block.sets;
+    const eqTypes = waEqTypes(block.ex);
+    const prev = waGetPrev(exId, n, n);
+    waSetState[exId][n] = {
+      weight: prev?.weight_kg ?? null, reps: prev?.reps ?? null, rir: null,
+      equipment: eqTypes[0] || null, completed: false, rowId: null,
+    };
+    const rowsEl = document.querySelector(`[data-ex-rows="${exId}"]`);
+    rowsEl.insertAdjacentHTML('beforeend', waRenderRow(block.ex, n, block.sets));
+    waAttachHandlers(rowsEl.lastElementChild);
+    waPersist();
+  }
+
+  async function waDeleteSet(exId, setNum) {
+    const s = waSetState[exId]?.[setNum];
+    if (s?.rowId) {
+      const { error } = await db.from('set_log').delete().eq('id', s.rowId);
+      if (error) { toast('Fehler beim Löschen'); return; }
+    }
+    delete waSetState[exId][setNum];
+    document.querySelector(`.wa-row[data-row="${exId}|${setNum}"]`)?.closest('.wa-row-wrap')?.remove();
+    waRenderHeader();
+    waPersist();
+  }
+
+  // ── Rest / work timer bar ───────────────────────────────
+  function waStartRest(block, setNum, phase) {
+    const durSec = phase === 'work'
+      ? (waSession?.work_seconds || DUP_CFG.vol.workTime)
+      : (waSession?.rest_seconds || DUP_CFG[waMode]?.restTime || 0);
+    if (!durSec) return;
+    waRest = { phase, exId: block.ex.id, setNum, endsAt: Date.now() + durSec*1000, duration: durSec };
+    waShowTimerBar(true);
+    waTickRest();
+  }
+
+  function waTickRest() {
+    if (waRestRAF) cancelAnimationFrame(waRestRAF);
+    const tick = () => {
+      if (!waRest) return;
+      const remain = Math.max(0, Math.round((waRest.endsAt - Date.now()) / 1000));
+      waRenderTimerBar(remain);
+      if (remain <= 0) { waOnRestEnd(); return; }
+      if (remain <= 3) playBeep(remain === 0 ? 880 : 440, 100);
+      waRestRAF = requestAnimationFrame(tick);
+    };
+    tick();
+  }
+
+  function waOnRestEnd() {
+    if (waMode === 'vol' && waRest?.phase === 'work') {
+      const block = waFindBlock(waRest.exId);
+      const setNum = waRest.setNum;
+      waStartRest(block, setNum, 'rest');
+      return;
+    }
+    waRest = null;
+    waShowTimerBar(false);
+    waPersist();
+  }
+
+  function waRenderTimerBar(remainOverride) {
+    if (!waRest) return;
+    const remain = remainOverride != null ? remainOverride : Math.max(0, Math.round((waRest.endsAt - Date.now()) / 1000));
+    const m = Math.floor(remain / 60), s = remain % 60;
+    document.getElementById('wa-tb-time').textContent  = `${m}:${String(s).padStart(2,'0')}`;
+    document.getElementById('wa-tb-phase').textContent = waRest.phase === 'work' ? 'WORK' : 'REST';
+    const pct = Math.max(0, Math.min(100, (remain / waRest.duration) * 100));
+    document.getElementById('wa-timerbar-fill').style.width = pct + '%';
+  }
+
+  function waShowTimerBar(show) {
+    document.getElementById('wa-timerbar').classList.toggle('wa-visible', show);
+  }
+
+  document.getElementById('wa-tb-minus').addEventListener('click', () => { if (waRest) { waRest.endsAt -= 15000; waRenderTimerBar(); waPersist(); } });
+  document.getElementById('wa-tb-plus').addEventListener('click',  () => { if (waRest) { waRest.endsAt += 15000; waRenderTimerBar(); waPersist(); } });
+  document.getElementById('wa-tb-skip').addEventListener('click',  () => { if (waRest) waOnRestEnd(); });
+
+  // ── GIF overlay (lazy fetch, session-cached) ────────────
+  async function waOpenGif(exId) {
+    const overlay = document.getElementById('wa-gif-overlay');
+    const img     = document.getElementById('wa-gif-overlay-img');
+    overlay.classList.add('wa-open');
+    img.src = '';
+    let gif = waGifCache.get(exId);
+    if (!gif) {
+      const { data } = await db.from('exercises').select('gif_base64').eq('id', exId).single();
+      gif = data?.gif_base64 || null;
+      if (gif) waGifCache.set(exId, gif);
+    }
+    if (gif) img.src = gif;
+    else { overlay.classList.remove('wa-open'); toast('Kein GIF vorhanden'); }
+  }
+  document.getElementById('wa-gif-overlay-close').addEventListener('click', () => {
+    document.getElementById('wa-gif-overlay').classList.remove('wa-open');
+  });
+  document.getElementById('wa-gif-overlay').addEventListener('click', e => {
+    if (e.target.id === 'wa-gif-overlay') e.currentTarget.classList.remove('wa-open');
+  });
+
+  // ── Persistence (survive backgrounding) ─────────────────
+  function waPersist() {
+    if (waPersistTimer) clearTimeout(waPersistTimer);
+    waPersistTimer = setTimeout(() => {
+      if (!waSession) return;
+      const payload = {
+        sessionId: waSession.id,
+        week: waWeek,
+        mode: waMode,
+        startedAt: waStartTime,
+        blocks: waBlocks.map(b => ({ exId: b.ex.id, sets: b.sets, supersetGroup: b.supersetGroup })),
+        setState: waSetState,
+        rest: waRest,
+        savedAt: Date.now(),
+      };
+      try { localStorage.setItem(WA_STORAGE_KEY, JSON.stringify(payload)); } catch {}
+    }, 150);
+  }
+
+  function waTryRestore(sessionId) {
+    let raw;
+    try { raw = localStorage.getItem(WA_STORAGE_KEY); } catch { return false; }
+    if (!raw) return false;
+    let payload;
+    try { payload = JSON.parse(raw); } catch { return false; }
+    if (!payload || payload.sessionId !== sessionId) return false;
+    payload.blocks.forEach(sb => {
+      const b = waBlocks.find(x => x.ex.id === sb.exId);
+      if (b) b.sets = sb.sets;
+    });
+    waSetState  = payload.setState || {};
+    waStartTime = payload.startedAt || Date.now();
+    waRest      = payload.rest || null;
+    return true;
+  }
+
+  function waClearPersisted() {
+    try { localStorage.removeItem(WA_STORAGE_KEY); } catch {}
+  }
+
+  // ── Finish ───────────────────────────────────────────────
+  document.getElementById('wa-finish-btn').addEventListener('click', waFinish);
+  async function waFinish() {
+    if (waTimerRAF) cancelAnimationFrame(waTimerRAF);
+    if (waRestRAF)  cancelAnimationFrame(waRestRAF);
+    const mins = Math.round((Date.now() - waStartTime) / 60000);
+    const { error } = await db.from('training_log').insert([{
+      date:             new Date().toISOString().split('T')[0],
+      session_id:       waSession?.id ?? null,
+      duration_minutes: mins,
+    }]);
+    if (error) { toast('Fehler beim Speichern'); return; }
+    const newWeek = await recalcCurrentWeek();
+    const patch = { current_week: newWeek };
+    Object.assign(appState, patch);
+    if (appState.id) await db.from('app_state').update(patch).eq('id', appState.id);
+    waClearPersisted();
+    toast(`Training gespeichert · ${waCompletedSetCount()} sets · ${waVolumeLoad().toLocaleString('en-US')} kg`);
+    waSession = null;
+    await loadSessions();
+    renderPlan();
+    showPlanSub('week');
+  }
+
+  // ═══════════════════════════════════════════════════════
   // MODUL 4 – Stats
   // ═══════════════════════════════════════════════════════
   const STATS_GROUPS = [
@@ -2835,7 +3677,7 @@
 
   async function loadStatsData() {
     const { data, error } = await db.from('set_log')
-      .select('exercise_id,equipment,weight_kg,reps,rir,session_date,set_number')
+      .select('exercise_id,equipment,weight_kg,reps,rir,session_date,set_number,session_id,dup_mode')
       .not('weight_kg', 'is', null)
       .not('reps', 'is', null)
       .order('session_date');
@@ -3019,14 +3861,26 @@
   function renderStatsDetail(ex) {
     const rows = statsByExercise.get(ex.id) || [];
     const el = document.getElementById('stats-detail-body');
-    if (!rows.length) { el.innerHTML = '<div class="empty-state">Not tracked yet</div>'; return; }
+    el.innerHTML = `<div class="stats-chart-wrap" id="stats-chart"></div><div class="stats-insights" id="stats-insights"></div><div id="stats-history"></div>`;
+
+    if (!rows.length) {
+      document.getElementById('stats-chart').innerHTML = '<div class="empty-state">Not tracked yet</div>';
+      renderStatsHistory([]);
+      return;
+    }
+
     const pooledPoints = statsBuildPoints(rows);
-    if (pooledPoints.length < 2) { el.innerHTML = '<div class="empty-state">Building baseline – need more data</div>'; return; }
     const pointsByEq = {};
     Object.entries(statsGroupByEquipment(rows)).forEach(([eq, eqRows]) => { pointsByEq[eq] = statsBuildPoints(eqRows); });
-    el.innerHTML = `<div class="stats-chart-wrap" id="stats-chart"></div><div class="stats-insights" id="stats-insights"></div>`;
-    renderStatsChart(pointsByEq, ex.id);
-    renderStatsInsights(pointsByEq);
+
+    if (pooledPoints.length < 2) {
+      document.getElementById('stats-chart').innerHTML = '<div class="empty-state">Building baseline – need more data</div>';
+    } else {
+      renderStatsChart(pointsByEq, ex.id);
+      renderStatsInsights(pointsByEq);
+    }
+
+    renderStatsHistory(rows);
   }
 
   // ── Legend visibility persistence ──────────────────────
@@ -3066,12 +3920,12 @@
     let yEnd   = Math.ceil(rawMax / 5) * 5;
     if (yEnd <= yStart) yEnd = yStart + 5;
 
-    const W = 320, H = 220, ML = 38, MR = 10, MT = 10, MB = 46;
+    const W = wrap.clientWidth || 320, H = 220, ML = 38, MR = 10, MT = 10, MB = 46;
     const plotW = W - ML - MR, plotH = H - MT - MB;
     const xScale = date => dates.length > 1 ? ML + dates.indexOf(date)/(dates.length-1) * plotW : ML + plotW/2;
     const yScale = v => MT + (1 - (v-yStart)/(yEnd-yStart)) * plotH;
 
-    let svg = `<svg viewBox="0 0 ${W} ${H}" class="stats-chart-svg" preserveAspectRatio="none">`;
+    let svg = `<svg viewBox="0 0 ${W} ${H}" class="stats-chart-svg">`;
 
     // Y grid + labels, every 5kg
     for (let v = yStart; v <= yEnd; v += 5) {
@@ -3188,6 +4042,71 @@
         <div class="stats-insight-row"><span>MoM</span>${momHtml}</div>
       </div>`;
     }).join('');
+  }
+
+  function renderStatsHistory(rows) {
+    const el = document.getElementById('stats-history');
+    if (!el) return;
+
+    if (!rows.length) {
+      el.innerHTML = `<div class="stats-history"><div class="stats-history-title">TRAINING HISTORY</div><div class="empty-state">No sessions logged yet</div></div>`;
+      return;
+    }
+
+    // Group by session_date, sorted newest first
+    const byDate = new Map();
+    rows.forEach(r => {
+      if (!byDate.has(r.session_date)) byDate.set(r.session_date, []);
+      byDate.get(r.session_date).push(r);
+    });
+    const sortedDates = [...byDate.keys()].sort((a, b) => b.localeCompare(a));
+
+    const cards = sortedDates.map(date => {
+      const sessionRows = byDate.get(date).sort((a, b) => (a.set_number || 0) - (b.set_number || 0));
+      const weights = sessionRows.map(r => r.weight_kg).filter(w => w != null);
+      const maxWeight = weights.length ? Math.max(...weights) : 0;
+      const hasWorking = maxWeight > 0 && sessionRows.some(r => r.weight_kg != null && r.weight_kg >= maxWeight * 0.85);
+      const dupMode = sessionRows.find(r => r.dup_mode)?.dup_mode || null;
+      const cardClass = `stats-hist-card${hasWorking ? ' has-working' + (dupMode ? ' dup-' + dupMode : '') : ' no-working'}`;
+
+      const [, m, d] = date.split('-');
+      const dateStr = `${d}.${m}.`;
+
+      const eqTypes = [...new Set(sessionRows.map(r => r.equipment).filter(Boolean))];
+      const eqBadges = eqTypes.map(eq => {
+        const color = (STATS_EQ_COLORS[eq] === '#000000' ? '#444' : STATS_EQ_COLORS[eq]) || '#666';
+        return `<span class="stats-hist-badge" style="background:${color};color:#fff">${STATS_EQ_LABELS[eq] || eq}</span>`;
+      }).join('');
+      const modeLabel = dupMode ? (DET_MODE_LBL[dupMode] || cap(dupMode)) : '';
+      const modeBadge = modeLabel ? `<span class="stats-hist-badge stats-hist-mode-badge">${modeLabel}</span>` : '';
+
+      const setHtml = sessionRows.map(r => {
+        const e1rm = r.weight_kg != null && r.reps != null ? calcE1RM(r.weight_kg, r.reps) : null;
+        const weightStr = r.weight_kg != null
+          ? (r.reps != null ? `${r.weight_kg}kg × ${r.reps}` : `${r.weight_kg}kg`)
+          : '—';
+        const rirHtml = r.rir != null ? `<span class="stats-hist-set-rir">RIR ${r.rir}</span>` : '';
+        const e1rmHtml = e1rm != null ? `<span class="stats-hist-set-e1rm">e1RM ${e1rm.toFixed(1)}</span>` : `<span class="stats-hist-set-e1rm"></span>`;
+        return `<div class="stats-hist-set-row">
+          <span class="stats-hist-set-num">Set ${r.set_number ?? '—'}</span>
+          <span class="stats-hist-set-weight">${weightStr}</span>
+          ${rirHtml}${e1rmHtml}
+        </div>`;
+      }).join('');
+
+      return `<div class="${cardClass}" data-date="${date}">
+        <div class="stats-hist-card-head">
+          <span class="stats-hist-date">${dateStr}</span>
+          <div class="stats-hist-badges">${eqBadges}${modeBadge}</div>
+        </div>
+        <div class="stats-hist-sets">${setHtml}</div>
+      </div>`;
+    });
+
+    el.innerHTML = `<div class="stats-history">
+      <div class="stats-history-title">TRAINING HISTORY</div>
+      <div class="stats-history-scroll">${cards.join('')}</div>
+    </div>`;
   }
 
   document.getElementById('stats-exlist-back').addEventListener('click', () => showStatsSub('overview'));
