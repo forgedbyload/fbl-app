@@ -156,6 +156,26 @@ grant all on table set_log to anon, authenticated;
 --
 -- Migration: week_b_enabled auf app_state
 -- alter table app_state add column if not exists week_b_enabled boolean default false;
+--
+-- Migration: RLS auf "nur authentifiziert" umstellen (vorher offen, qual: true)
+-- ACHTUNG: erst ausführen, nachdem der Login-Screen im Frontend deployt und
+-- getestet ist (sonst verliert die App den Datenzugriff, bis eingeloggt wird).
+-- drop policy if exists "Alle Zugriffe erlaubt (kein Auth)" on exercises;
+-- drop policy if exists "Alle Zugriffe erlaubt (kein Auth)" on sessions;
+-- drop policy if exists "Alle Zugriffe erlaubt (kein Auth)" on set_log;
+-- drop policy if exists "Alle Zugriffe erlaubt (kein Auth)" on training_log;
+-- drop policy if exists "Alle Zugriffe erlaubt (kein Auth)" on app_state;
+--
+-- create policy "Authenticated users only" on exercises
+--   for all using (auth.uid() is not null);
+-- create policy "Authenticated users only" on sessions
+--   for all using (auth.uid() is not null);
+-- create policy "Authenticated users only" on set_log
+--   for all using (auth.uid() is not null);
+-- create policy "Authenticated users only" on training_log
+--   for all using (auth.uid() is not null);
+-- create policy "Authenticated users only" on app_state
+--   for all using (auth.uid() is not null);
 
 -- ============================================================
 -- Funktion & Trigger: PR auto-update nach set_log insert

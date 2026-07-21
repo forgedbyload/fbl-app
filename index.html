@@ -192,6 +192,25 @@
     }
     .btn-danger:active { background: rgba(224,85,85,.1); }
 
+    /* ── Login screen ── */
+    .login-screen {
+      position: fixed; inset: 0; z-index: 500; background: var(--bg);
+      display: flex; align-items: center; justify-content: center; padding: 24px;
+    }
+    .login-screen.hidden { display: none; }
+    .login-card { width: 100%; max-width: 340px; }
+    .login-title { font-family: 'Bebas Neue', sans-serif; font-size: 40px; letter-spacing: 1px; text-align: center; margin-bottom: 36px; }
+    .login-error { color: #e05555; font-size: 13px; margin: -8px 0 16px; display: none; }
+    .login-error.show { display: block; }
+    .stats-header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .stats-header-row h1 { margin-bottom: 0; }
+    .stats-logout-btn {
+      background: none; border: 1px solid var(--border); border-radius: 20px;
+      color: var(--muted); font-size: 12px; font-weight: 600; padding: 6px 14px;
+      cursor: pointer; -webkit-tap-highlight-color: transparent; transition: all .15s;
+    }
+    .stats-logout-btn:active { background: var(--border); color: var(--text); }
+
     .ses-sets-input { width: 38px; background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 2px 0; text-align: center; font-size: 12px; }
     .ta-weight-hint { color: var(--text); font-size: 12px; text-align: center; padding: 0 16px 4px; }
     .satz-progress { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 1px; color: var(--kraft); }
@@ -742,6 +761,27 @@
     .wa-ex-thumb img { width: 100%; height: 100%; object-fit: contain; }
     .wa-ex-name { font-size: 16px; font-weight: 600; color: var(--text); cursor: pointer; -webkit-tap-highlight-color: transparent; }
 
+    /* ── Target weight + warmup note (kraft only) ── */
+    .wa-target-row { display: flex; align-items: center; gap: 8px; padding: 0 12px 8px; }
+    .wa-target-label { font-size: 12px; font-weight: 600; color: var(--muted); margin-right: 2px; }
+    .wa-target-btn {
+      width: 28px; height: 28px; flex-shrink: 0; background: var(--bg); border: 1px solid var(--border);
+      border-radius: var(--wr-chip); color: var(--text); font-size: 16px; font-weight: 600; line-height: 1;
+      cursor: pointer; -webkit-tap-highlight-color: transparent;
+    }
+    .wa-target-input {
+      width: 60px; min-height: 32px; background: var(--bg); border: 1px solid var(--border);
+      border-radius: var(--wr-input); color: var(--text); text-align: center; font-size: 15px; font-weight: 600;
+      font-variant-numeric: tabular-nums; font-family: inherit; padding: 0 2px; -webkit-tap-highlight-color: transparent;
+    }
+    .wa-target-input::placeholder { color: var(--muted); font-weight: 400; }
+    .wa-target-unit { font-size: 12px; color: var(--muted); }
+    .wa-warmup-note {
+      padding: 0 12px 10px; font-size: 13px; color: var(--muted); line-height: 1.3;
+    }
+    .wa-warmup-tag { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+    .wa-warmup-values { font-variant-numeric: tabular-nums; }
+
     .wa-col-headers {
       display: grid; grid-template-columns: 16px 1fr 44px 36px 84px 44px;
       gap: 4px; padding: 0 12px 6px; align-items: center;
@@ -770,7 +810,7 @@
     .wa-set-num { font-size: 14px; font-weight: 600; color: var(--muted); }
     .wa-row.wa-completed .wa-set-num { color: var(--text); }
     .wa-set-prev {
-      font-size: 12px; font-weight: 400; color: var(--muted);
+      font-size: 12px; font-weight: 400; color: var(--text); opacity: .6;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .wa-input-cell { position: relative; }
@@ -859,6 +899,25 @@
   </style>
 </head>
 <body>
+
+<!-- ══ Login Screen ══ -->
+<div class="login-screen hidden" id="login-screen">
+  <div class="login-card">
+    <div class="login-title">FBL</div>
+    <form id="login-form">
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input class="form-input" type="email" id="login-email" autocomplete="username" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Passwort</label>
+        <input class="form-input" type="password" id="login-password" autocomplete="current-password" required>
+      </div>
+      <div class="login-error" id="login-error"></div>
+      <button type="submit" class="btn-primary" id="login-submit">Login</button>
+    </form>
+  </div>
+</div>
 
 <!-- ══ View 1: Übungsbibliothek ══ -->
 <div id="library-view" class="view hidden">
@@ -1038,7 +1097,10 @@
   <!-- Layer 1: muscle group overview -->
   <div id="stats-overview-sub">
     <div class="view-header">
-      <h1>Stats</h1>
+      <div class="stats-header-row">
+        <h1>Stats</h1>
+        <button type="button" class="stats-logout-btn" id="stats-logout-btn">Logout</button>
+      </div>
     </div>
     <div class="stats-body">
       <div class="stats-group-grid" id="stats-groups"></div>
@@ -3084,15 +3146,16 @@
   const WA_STORAGE_KEY   = 'wa_active_workout_v1';
   const WA_SCROLL_KEY    = 'wa_autoscroll_enabled';
   const WA_EQ_LABELS     = { barbell:'BB', dumbbell_1x:'DB1', dumbbell_2x:'DB2', kettlebell_1x:'KB1', kettlebell_2x:'KB2' };
+  const WA_EQ_LABELS_FULL = { barbell:'Barbell', dumbbell_1x:'DB 1x', dumbbell_2x:'DB 2x', kettlebell_1x:'KB 1x', kettlebell_2x:'KB 2x' };
   const WA_SS_CLASS      = { A:'wa-superset-a', B:'wa-superset-b', C:'wa-superset-c' };
 
   let waSession       = null;
   let waWeek          = 'A';
   let waMode          = null;
   let waBlocks        = [];          // ordered: [{ ex, sets, supersetGroup }]
-  let waSetState      = {};          // waSetState[exId][setNum] = { weight, reps, rir, equipment, completed, rowId }
-  let waPrevMap       = {};
-  let waPrevMapAny    = {};
+  let waSetState      = {};          // waSetState[exId][setNum] = { weight, reps, rir, equipment, completed, rowId, weightAuto, repsAuto, eqAuto }
+  let waPrevByExercise = new Map();  // exercise_id -> { weight, reps, equipment, date, byEquipment: { eq: {weight,reps,equipment,date} } }
+  let waTargetWeight  = {};          // waTargetWeight[exId] = number|null — kraft-only, drives the warmup note, independent of the per-set Kg inputs
   let waGifCache      = new Map();
   let waStartTime     = 0;
   let waTimerRAF      = null;
@@ -3114,12 +3177,64 @@
   });
 
   function waEqTypes(ex) { return (ex.strength_weights || []).map(w => w.type).filter(Boolean); }
-  function waPrevKey(exId, setNum, total) { return `${exId}|${setNum}|${total}`; }
-  function waPrevKeyAny(exId, setNum)     { return `${exId}|${setNum}`; }
   function waFindBlock(exId)  { return waBlocks.find(b => b.ex.id === exId); }
   function waBlockIndex(exId) { return waBlocks.findIndex(b => b.ex.id === exId); }
-  function waGetPrev(exId, setNum, total) {
-    return waPrevMap[waPrevKey(exId, setNum, total)] || waPrevMapAny[waPrevKeyAny(exId, setNum)] || null;
+  function waFmtDateDDMM(dateStr) {
+    if (!dateStr) return '';
+    const [, m, d] = dateStr.split('-');
+    return `${d}.${m}.`;
+  }
+  // Returns the previous-history entry relevant to a given row, based on
+  // that row's currently selected equipment (so switching equipment mid-session
+  // re-targets the pre-fill / hint to that equipment's own history).
+  function waGetPrevForRow(exId, setNum) {
+    const entry = waPrevByExercise.get(exId);
+    if (!entry) return null;
+    const eq = waSetState[exId]?.[setNum]?.equipment;
+    // No specific equipment selected on this row (exercise has no configured
+    // equipment types) — fall back to the overall most recent entry, since
+    // there's nothing more specific to key off of.
+    if (!eq) return { weight: entry.weight, reps: entry.reps, equipment: entry.equipment, date: entry.date };
+    return entry.byEquipment[eq] || null;
+  }
+
+  // ── Warmup calculator (kraft mode only, purely derived — never persisted) ──
+  const WA_WARMUP_MIN_TARGET = 20; // kg per DB — below this, warmup guidance is skipped
+  const WA_DB_WEIGHTS = [6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28.5, 33, 35, 40];
+  function waRoundDownDB(w) {
+    let best = null;
+    for (const v of WA_DB_WEIGHTS) { if (v <= w + 1e-9) best = v; else break; }
+    return best;
+  }
+  function waRoundBarbell(w) { return Math.round(w / 2.5) * 2.5; }
+
+  // Target weight's "equipment" is read from Set 1's currently selected equipment
+  // (falling back to the exercise's only configured type) — Set 1 is the exercise's
+  // representative working set for warmup purposes.
+  function waTargetEquipment(exId, ex) {
+    return waSetState[exId]?.[1]?.equipment || waEqTypes(ex)[0] || null;
+  }
+
+  function waComputeWarmup(exId, ex) {
+    const target = waTargetWeight[exId];
+    if (target == null || isNaN(target)) return null;
+    const eq = waTargetEquipment(exId, ex);
+    if (eq && eq.startsWith('kettlebell')) {
+      return { single: '20kg × 8' }; // only one KB weight exists — no ramp possible, just a reminder
+    }
+    if (target <= WA_WARMUP_MIN_TARGET) return null;
+    const round = eq === 'barbell' ? waRoundBarbell : waRoundDownDB;
+    return {
+      sets: [
+        { weight: round(target * 0.45), reps: 5 },
+        { weight: round(target * 0.65), reps: 3 },
+        { weight: round(target * 0.85), reps: 2 },
+      ],
+    };
+  }
+
+  function waWarmupValuesText(warm) {
+    return warm.single ? warm.single : warm.sets.map(s => `${s.weight} × ${s.reps}`).join('  ·  ');
   }
 
   // ── Entry point ───────────────────────────────────────
@@ -3160,8 +3275,8 @@
       waStartTime = Date.now();
     }
 
-    await waLoadPrevious();
-    if (!restored) waApplyPrevPrefill();
+    waPrevByExercise = await getPreviousValues(waBlocks.map(b => b.ex.id));
+    if (!restored) { waApplyPrevPrefill(); waInitTargets(); }
 
     showPlanSub('workout');
     waRenderHeader();
@@ -3173,36 +3288,78 @@
   }
 
   // ── Previous performance: one batched query for the whole session ──
-  async function waLoadPrevious() {
-    waPrevMap = {}; waPrevMapAny = {};
-    const ids = waBlocks.map(b => b.ex.id);
-    if (!ids.length) return;
+  // Returns Map<exercise_id, { weight, reps, equipment, date, byEquipment }>
+  // where the top-level fields are the most recent logged set for that
+  // exercise (any equipment), and byEquipment holds the most recent entry
+  // per equipment type so switching equipment can re-target the pre-fill.
+  async function getPreviousValues(exerciseIds) {
+    const map = new Map();
+    if (!exerciseIds.length) return map;
     const { data } = await db.from('set_log')
-      .select('exercise_id,set_number,total_sets_in_session,weight_kg,reps,equipment,session_date')
-      .in('exercise_id', ids)
+      .select('exercise_id,equipment,weight_kg,reps,session_date,created_at')
+      .in('exercise_id', exerciseIds)
+      .not('weight_kg', 'is', null)
       .order('session_date', { ascending: false })
-      .limit(500);
+      .order('created_at', { ascending: false })
+      .limit(1000);
     (data || []).forEach(row => {
-      const k1 = waPrevKey(row.exercise_id, row.set_number, row.total_sets_in_session);
-      if (!(k1 in waPrevMap)) waPrevMap[k1] = row;
-      const k2 = waPrevKeyAny(row.exercise_id, row.set_number);
-      if (!(k2 in waPrevMapAny)) waPrevMapAny[k2] = row;
+      let entry = map.get(row.exercise_id);
+      if (!entry) {
+        entry = { weight: null, reps: null, equipment: null, date: null, byEquipment: {} };
+        map.set(row.exercise_id, entry);
+      }
+      if (entry.date == null) {
+        entry.weight = row.weight_kg; entry.reps = row.reps;
+        entry.equipment = row.equipment; entry.date = row.session_date;
+      }
+      const eqKey = row.equipment || '_none';
+      if (!entry.byEquipment[eqKey]) {
+        entry.byEquipment[eqKey] = { weight: row.weight_kg, reps: row.reps, equipment: row.equipment, date: row.session_date };
+      }
+    });
+    return map;
+  }
+
+  // Set 1 pre-fills from history; Set 2+ pre-fill from the (now-filled)
+  // Set 1 of THIS session, not from their own history — the user typically
+  // holds the same weight across sets within a session.
+  function waApplyPrevPrefill() {
+    waBlocks.forEach(b => {
+      const exId = b.ex.id;
+      const state = waSetState[exId];
+      const eqTypes = waEqTypes(b.ex);
+      const prevEntry = waPrevByExercise.get(exId);
+      const set1 = state[1];
+      if (prevEntry) {
+        if (prevEntry.weight != null) set1.weight = prevEntry.weight;
+        if (prevEntry.reps != null) set1.reps = prevEntry.reps;
+        if (prevEntry.equipment && eqTypes.includes(prevEntry.equipment)) set1.equipment = prevEntry.equipment;
+      }
+      for (let n = 2; n <= b.sets; n++) waCascadeSet(exId, n, set1);
     });
   }
 
-  function waApplyPrevPrefill() {
+  // Kraft-only: seed each exercise's Target working weight from its last
+  // logged working weight — same source Set 1's pre-fill uses, but tracked
+  // as independent state so it can be nudged without touching the set rows.
+  function waInitTargets() {
+    waTargetWeight = {};
+    if (waMode !== 'kraft') return;
     waBlocks.forEach(b => {
-      const state = waSetState[b.ex.id];
-      const eqTypes = waEqTypes(b.ex);
-      for (let i = 1; i <= b.sets; i++) {
-        const row = state[i];
-        const prev = waGetPrev(b.ex.id, i, b.sets);
-        if (!prev) continue;
-        if (prev.weight_kg != null) row.weight = prev.weight_kg;
-        if (prev.reps != null) row.reps = prev.reps;
-        if (prev.equipment && eqTypes.includes(prev.equipment)) row.equipment = prev.equipment;
-      }
+      const prevEntry = waPrevByExercise.get(b.ex.id);
+      waTargetWeight[b.ex.id] = prevEntry?.weight ?? null;
     });
+  }
+
+  // Copies weight/reps/equipment from `source` (typically Set 1) into a
+  // later set — but only into fields the user hasn't manually edited yet
+  // (tracked via the *Auto flags) and never into a completed (already logged) set.
+  function waCascadeSet(exId, setNum, source) {
+    const row = waSetState[exId]?.[setNum];
+    if (!row || row.completed) return;
+    if (row.weightAuto !== false) { row.weight = source.weight; row.weightAuto = true; }
+    if (row.repsAuto   !== false) { row.reps   = source.reps;   row.repsAuto   = true; }
+    if (row.eqAuto      !== false && source.equipment) { row.equipment = source.equipment; row.eqAuto = true; }
   }
 
   // ── Header (stopwatch, set count, volume) ──────────────
@@ -3261,6 +3418,7 @@
     const label = showLabel ? `<div class="wa-superset-label ${ssClass}">Superset ${grp}</div>` : '';
     const rows = [];
     for (let n = 1; n <= block.sets; n++) rows.push(waRenderRow(ex, n, block.sets));
+    const targetBlock = waMode === 'kraft' ? waRenderTargetAndWarmup(ex) : '';
     return `
       <div class="wa-ex-card ${ssClass}" data-ex="${ex.id}">
         ${label}
@@ -3268,17 +3426,68 @@
           <div class="wa-ex-thumb" data-thumb="${ex.id}">${thumb}</div>
           <div class="wa-ex-name" data-thumb="${ex.id}">${ex.name}</div>
         </div>
+        ${targetBlock}
         <div class="wa-col-headers"><span>Set</span><span>Previous</span><span>Kg</span><span>Reps</span><span>Rir</span><span></span></div>
         <div class="wa-rows" data-ex-rows="${ex.id}">${rows.join('')}</div>
         <div class="wa-add-set" data-add="${ex.id}">+ Add set</div>
       </div>`;
   }
 
+  function waRenderTargetAndWarmup(ex) {
+    const exId = ex.id;
+    const target = waTargetWeight[exId];
+    const warm = waComputeWarmup(exId, ex);
+    return `
+      <div class="wa-target-row" data-target-row="${exId}">
+        <span class="wa-target-label">Target</span>
+        <button class="wa-target-btn" data-target-dec="${exId}" aria-label="Decrease target weight">−</button>
+        <input class="wa-target-input" inputmode="decimal" data-target-input="${exId}" value="${target ?? ''}" placeholder="kg">
+        <span class="wa-target-unit">kg</span>
+        <button class="wa-target-btn" data-target-inc="${exId}" aria-label="Increase target weight">+</button>
+      </div>
+      ${waRenderWarmupNote(exId, warm)}`;
+  }
+
+  function waRenderWarmupNote(exId, warm) {
+    if (!warm) return '';
+    return `<div class="wa-warmup-note" data-warmup="${exId}"><span class="wa-warmup-tag">Warmup:</span> <span class="wa-warmup-values">${waWarmupValuesText(warm)}</span></div>`;
+  }
+
+  // Re-renders just the warmup note (not the whole card) so typing/nudging
+  // the target weight stays cheap and doesn't steal input focus.
+  function waRenderWarmupInPlace(exId) {
+    const targetRow = document.querySelector(`.wa-target-row[data-target-row="${exId}"]`);
+    if (!targetRow) return;
+    const existing = targetRow.nextElementSibling;
+    if (existing && existing.classList.contains('wa-warmup-note')) existing.remove();
+    const ex = waFindBlock(exId)?.ex;
+    if (!ex) return;
+    const warm = waComputeWarmup(exId, ex);
+    const html = waRenderWarmupNote(exId, warm);
+    if (html) targetRow.insertAdjacentHTML('afterend', html);
+  }
+
+  function waAdjustTarget(exId, delta) {
+    const cur = waTargetWeight[exId] ?? 0;
+    const next = Math.max(0, Math.round((cur + delta) * 10) / 10);
+    waTargetWeight[exId] = next;
+    const inp = document.querySelector(`.wa-target-input[data-target-input="${exId}"]`);
+    if (inp) inp.value = next;
+    waRenderWarmupInPlace(exId);
+    waPersist();
+  }
+
   function waRenderRow(ex, setNum, total) {
     const s = waSetState[ex.id][setNum];
-    const prev = waGetPrev(ex.id, setNum, total);
-    const prevStr = prev && prev.weight_kg != null ? `${prev.weight_kg}kg × ${prev.reps ?? '—'}` : '—';
     const eqTypes = waEqTypes(ex);
+    const prev = waGetPrevForRow(ex.id, setNum);
+    let prevStr = '';
+    if (prev && prev.weight != null) {
+      const eqPart = (eqTypes.length > 1 && prev.equipment)
+        ? ` (${WA_EQ_LABELS_FULL[prev.equipment] || prev.equipment})`
+        : '';
+      prevStr = `Last: ${prev.weight}kg${eqPart} × ${prev.reps ?? '—'} on ${waFmtDateDDMM(prev.date)}`;
+    }
     const showEqBadge = eqTypes.length > 1;
     const eqLbl = s.equipment ? (WA_EQ_LABELS[s.equipment] || s.equipment) : '';
     return `
@@ -3316,13 +3525,41 @@
 
   // ── Event handlers (works on full body or a single row-wrap) ──
   function waAttachHandlers(root) {
+    root.querySelectorAll('.wa-target-input').forEach(inp => {
+      inp.addEventListener('focus', () => inp.select());
+      inp.addEventListener('change', () => {
+        const exId = inp.dataset.targetInput;
+        const val = inp.value === '' ? null : parseFloat(inp.value);
+        waTargetWeight[exId] = (val != null && !isNaN(val)) ? val : null;
+        waRenderWarmupInPlace(exId);
+        waPersist();
+      });
+    });
+    root.querySelectorAll('[data-target-dec]').forEach(btn => {
+      btn.addEventListener('click', () => waAdjustTarget(btn.dataset.targetDec, -2.5));
+    });
+    root.querySelectorAll('[data-target-inc]').forEach(btn => {
+      btn.addEventListener('click', () => waAdjustTarget(btn.dataset.targetInc, 2.5));
+    });
+
     root.querySelectorAll('.wa-input').forEach(inp => {
       inp.addEventListener('focus', () => inp.select());
       inp.addEventListener('change', () => {
-        const [exId, setNum] = inp.dataset.key.split('|');
+        const [exId, setNumStr] = inp.dataset.key.split('|');
+        const setNum = parseInt(setNumStr, 10);
+        const field = inp.dataset.field;
         const val = inp.value === '' ? null : parseFloat(inp.value);
-        waSetState[exId][setNum][inp.dataset.field] = (val != null && !isNaN(val)) ? val : null;
-        if (waSetState[exId][setNum].completed) waWriteSetLog(waFindBlock(exId), parseInt(setNum,10), waSetState[exId][setNum]);
+        const row = waSetState[exId][setNum];
+        row[field] = (val != null && !isNaN(val)) ? val : null;
+        row[field + 'Auto'] = false; // user-edited directly — no longer eligible for cascade overwrite
+        if (row.completed) waWriteSetLog(waFindBlock(exId), setNum, row);
+        if (setNum === 1) {
+          const block = waFindBlock(exId);
+          if (block) {
+            for (let n = 2; n <= block.sets; n++) waCascadeSet(exId, n, row);
+            for (let n = 2; n <= block.sets; n++) waRenderRowInPlace(exId, n);
+          }
+        }
         waPersist();
       });
     });
@@ -3343,14 +3580,32 @@
 
     root.querySelectorAll('.wa-eq-badge').forEach(badge => {
       badge.addEventListener('click', () => {
-        const [exId, setNum] = badge.dataset.eq.split('|');
+        const [exId, setNumStr] = badge.dataset.eq.split('|');
+        const setNum = parseInt(setNumStr, 10);
         const eqTypes = waEqTypes(waFindBlock(exId)?.ex);
         if (eqTypes.length < 2) return;
         const cur = waSetState[exId][setNum];
         const idx = eqTypes.indexOf(cur.equipment);
         cur.equipment = eqTypes[(idx + 1) % eqTypes.length];
-        badge.textContent = WA_EQ_LABELS[cur.equipment] || cur.equipment;
-        if (cur.completed) waWriteSetLog(waFindBlock(exId), parseInt(setNum,10), cur);
+        cur.eqAuto = false; // manual equipment pick — no longer eligible for cascade overwrite
+        if (!cur.completed) {
+          // switching equipment re-targets weight/reps to THAT equipment's own history
+          const prevForEq = waGetPrevForRow(exId, setNum);
+          cur.weight = prevForEq?.weight ?? null;
+          cur.reps   = prevForEq?.reps ?? null;
+          cur.weightAuto = true;
+          cur.repsAuto = true;
+        }
+        waRenderRowInPlace(exId, setNum);
+        if (waMode === 'kraft' && setNum === 1) {
+          // Set 1 is the exercise's representative working set — its equipment
+          // change is what "changing equipment type" means for the Target/warmup.
+          waTargetWeight[exId] = cur.weight;
+          const targetInp = document.querySelector(`.wa-target-input[data-target-input="${exId}"]`);
+          if (targetInp) targetInp.value = cur.weight ?? '';
+          waRenderWarmupInPlace(exId);
+        }
+        if (cur.completed) waWriteSetLog(waFindBlock(exId), setNum, cur);
         waPersist();
       });
     });
@@ -3480,10 +3735,11 @@
     block.sets += 1;
     const n = block.sets;
     const eqTypes = waEqTypes(block.ex);
-    const prev = waGetPrev(exId, n, n);
+    const prevRow = waSetState[exId][n - 1]; // new set carries the previous set's values, same as Set 2+ cascade
     waSetState[exId][n] = {
-      weight: prev?.weight_kg ?? null, reps: prev?.reps ?? null, rir: null,
-      equipment: eqTypes[0] || null, completed: false, rowId: null,
+      weight: prevRow?.weight ?? null, reps: prevRow?.reps ?? null, rir: null,
+      equipment: prevRow?.equipment ?? (eqTypes[0] || null), completed: false, rowId: null,
+      weightAuto: true, repsAuto: true, eqAuto: true,
     };
     const rowsEl = document.querySelector(`[data-ex-rows="${exId}"]`);
     rowsEl.insertAdjacentHTML('beforeend', waRenderRow(block.ex, n, block.sets));
@@ -3591,6 +3847,7 @@
         startedAt: waStartTime,
         blocks: waBlocks.map(b => ({ exId: b.ex.id, sets: b.sets, supersetGroup: b.supersetGroup })),
         setState: waSetState,
+        targetWeight: waTargetWeight,
         rest: waRest,
         savedAt: Date.now(),
       };
@@ -3609,9 +3866,10 @@
       const b = waBlocks.find(x => x.ex.id === sb.exId);
       if (b) b.sets = sb.sets;
     });
-    waSetState  = payload.setState || {};
-    waStartTime = payload.startedAt || Date.now();
-    waRest      = payload.rest || null;
+    waSetState    = payload.setState || {};
+    waTargetWeight = payload.targetWeight || {};
+    waStartTime   = payload.startedAt || Date.now();
+    waRest        = payload.rest || null;
     return true;
   }
 
@@ -4112,8 +4370,61 @@
     toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2200);
   }
 
-  load();
-  loadAppState().then(() => { applyWeekBState(); loadSessions().then(() => { showPlanSub('week'); renderPlan(); }); });
+  // ═══════════════════════════════════════════════════════
+  // Auth
+  // ═══════════════════════════════════════════════════════
+  let appBooted = false;
+  function bootAppOnce() {
+    if (appBooted) return;
+    appBooted = true;
+    load();
+    loadAppState().then(() => { applyWeekBState(); loadSessions().then(() => { showPlanSub('week'); renderPlan(); }); });
+  }
+
+  function showLoginScreen() { document.getElementById('login-screen').classList.remove('hidden'); }
+  function hideLoginScreen() { document.getElementById('login-screen').classList.add('hidden'); }
+
+  document.getElementById('login-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const email    = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+    const errEl    = document.getElementById('login-error');
+    const btn      = document.getElementById('login-submit');
+    errEl.classList.remove('show'); errEl.textContent = '';
+    btn.disabled = true; btn.textContent = 'Logging in…';
+    const { error } = await db.auth.signInWithPassword({ email, password });
+    btn.disabled = false; btn.textContent = 'Login';
+    if (error) {
+      errEl.textContent = error.message || 'Login fehlgeschlagen';
+      errEl.classList.add('show');
+      return;
+    }
+    document.getElementById('login-password').value = '';
+    // onAuthStateChange (below) hides the login screen and boots the app
+  });
+
+  document.getElementById('stats-logout-btn').addEventListener('click', async () => {
+    await db.auth.signOut();
+    // onAuthStateChange (below) shows the login screen again
+  });
+
+  async function initAuth() {
+    const { data: { session } } = await db.auth.getSession();
+    if (session) { hideLoginScreen(); bootAppOnce(); }
+    else { showLoginScreen(); }
+
+    db.auth.onAuthStateChange((event, session) => {
+      if (session) {
+        hideLoginScreen();
+        bootAppOnce();
+      } else {
+        appBooted = false; // re-arm so the next login re-fetches everything fresh
+        showLoginScreen();
+      }
+    });
+  }
+
+  initAuth();
 </script>
 </body>
 </html>
