@@ -285,6 +285,13 @@
       -webkit-tap-highlight-color: transparent; transition: background .15s;
     }
     .session-start-btn:active { background: var(--border); }
+    .session-dup-btn {
+      background: none; border: 1px solid var(--border); border-radius: 8px;
+      color: var(--muted); padding: 5px 9px; font-size: 13px;
+      cursor: pointer; flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent; transition: background .15s;
+    }
+    .session-dup-btn:active { background: var(--border); }
 
     /* ── Plan Detail / Session-Detailansicht ── */
     #plan-timer-sub { height: 100%; overflow: hidden; }
@@ -967,6 +974,7 @@
       <div class="plan-detail-nav">
         <button class="plan-back-btn" id="plan-detail-back">←</button>
         <span class="plan-detail-title" id="plan-detail-title"></span>
+        <button class="btn-edit-ses" id="plan-detail-duplicate">Duplicate</button>
         <button class="btn-edit-ses" id="plan-detail-edit">Edit</button>
       </div>
       <div class="plan-detail-meta" id="plan-detail-meta"></div>
@@ -1853,6 +1861,7 @@
               <div class="session-meta">${meta}</div>
             </div>
             <span class="session-mode-badge mode-${s.dup_mode}">${modeLabel}</span>
+            <button type="button" class="session-dup-btn" data-id="${s.id}" title="Duplicate">⧉</button>
             <button type="button" class="session-start-btn" data-id="${s.id}">▶</button>
           </div>`;
         }).join('');
@@ -1874,6 +1883,10 @@
       card.querySelector('.session-start-btn')?.addEventListener('click', e => {
         e.stopPropagation();
         startTrainingDirect(sessions.find(s => s.id === card.dataset.id));
+      });
+      card.querySelector('.session-dup-btn')?.addEventListener('click', e => {
+        e.stopPropagation();
+        duplicateSession(sessions.find(s => s.id === card.dataset.id));
       });
     });
   }
@@ -2019,6 +2032,9 @@
   document.getElementById('plan-detail-edit')?.addEventListener('click', () => {
     if (planDetailSes) openSessionModal(planDetailSes);
   });
+  document.getElementById('plan-detail-duplicate')?.addEventListener('click', () => {
+    if (planDetailSes) duplicateSession(planDetailSes);
+  });
   document.getElementById('plan-detail-start')?.addEventListener('click', () => openPreWorkoutScreen('detail'));
 
   let preWorkoutFrom = 'detail';
@@ -2088,9 +2104,14 @@
     document.getElementById('ses-btn-delete').style.display    = editingSessionId ? 'block' : 'none';
   }
 
-  function openSessionModal(ses = null, preDay = null) {
-    editingSessionId = ses?.id ?? null;
-    document.getElementById('ses-btn-delete').style.display = ses ? 'block' : 'none';
+  function duplicateSession(ses) {
+    if (!ses) return;
+    openSessionModal(ses, ses.weekday, true);
+  }
+
+  function openSessionModal(ses = null, preDay = null, duplicate = false) {
+    editingSessionId = duplicate ? null : (ses?.id ?? null);
+    document.getElementById('ses-btn-delete').style.display = (ses && !duplicate) ? 'block' : 'none';
     document.querySelectorAll('.t-toggle[data-weekday]').forEach(b => b.classList.remove('on'));
     document.querySelectorAll('.t-toggle[data-sesmode]').forEach(b => b.classList.remove('on'));
     const day = ses?.weekday || preDay;
@@ -2112,6 +2133,7 @@
     renderSesPool('');
     renderSesSelected();
     enterSesEditMode();
+    if (duplicate) document.getElementById('session-modal-title').textContent = 'Duplicate Session';
     document.getElementById('session-overlay').classList.add('open');
   }
 
