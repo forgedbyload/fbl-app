@@ -105,6 +105,7 @@
     .card-thumb {
       width: 80px; height: 72px; border-radius: 8px; background: var(--border);
       flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; -webkit-tap-highlight-color: transparent;
     }
     .card-thumb img { width: 100%; height: 100%; object-fit: contain; }
     .card-content { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; justify-content: center; }
@@ -216,16 +217,11 @@
     .satz-progress { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 1px; color: var(--kraft); }
 
     /* ── Wochenplan ── */
-    .plan-week-switch { display: flex; gap: 8px; padding-bottom: 12px; }
-    .plan-week-btn {
-      flex: 1; padding: 8px; border-radius: 10px; border: 1px solid var(--border);
-      background: transparent; color: var(--muted);
-      font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 1px;
-      cursor: pointer; text-align: center; transition: all .15s; -webkit-tap-highlight-color: transparent;
+    .plan-week-heading {
+      font-family: 'Bebas Neue', sans-serif; font-size: 14px; letter-spacing: 1px;
+      text-transform: uppercase; color: var(--muted);
+      padding: 10px 0 6px; margin-top: 4px; border-bottom: 1px solid var(--border);
     }
-    .plan-week-btn[data-week="A"].active { background: rgba(0,0,0,.05); border-color: var(--kraft); color: var(--kraft); }
-    .plan-week-btn[data-week="B"].active { background: rgba(0,0,0,.05);  border-color: var(--hyper); color: var(--hyper); }
-    .plan-week-btn[data-week="B"].hidden { display: none; }
     .plan-toggle-row {
       display: flex; align-items: center; justify-content: space-between;
       padding: 0 0 14px; border-bottom: 1px solid var(--border); margin-bottom: 4px;
@@ -326,21 +322,44 @@
     .plan-start-name { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
     .plan-start-weights { font-size: 12px; color: var(--muted); line-height: 1.5; }
 
-    /* ── Bias ── */
-    .bias-section { margin-top: 24px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; }
-    .bias-title { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 1px; margin-bottom: 14px; }
-    .bias-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-    .bias-label { width: 80px; font-size: 12px; font-weight: 500; color: var(--muted); flex-shrink: 0; }
-    .bias-bar-track { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
-    .bias-bar-fill { height: 100%; border-radius: 3px; background: var(--text); transition: width .4s ease; }
-    .bias-bar-fill.zero { background: var(--border); }
-    .bias-count { width: 20px; text-align: right; font-size: 12px; font-weight: 600; color: var(--muted); flex-shrink: 0; }
-    .bias-count.nonzero { color: var(--text); }
-    .bias-balance { display: flex; gap: 8px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
-    .balance-chip { flex: 1; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); font-size: 11px; font-weight: 600; text-align: center; line-height: 1.4; }
-    .balance-chip .balance-label { color: var(--muted); display: block; margin-bottom: 2px; }
-    .balance-chip.balanced { border-color: rgba(0,0,0,.12); color: var(--hyper); }
-    .balance-chip.warn     { border-color: rgba(0,0,0,.12); color: var(--kraft); }
+    /* ── Volume Verteilung ── */
+    .plan-header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .plan-header-row h1 { margin-bottom: 0; }
+    #plan-volume-sub { height: 100%; }
+    .vol-wrap { max-width: 420px; margin-left: auto; margin-right: auto; height: 100%; display: flex; flex-direction: column; }
+    .vol-scroll { flex: 1; min-height: 0; overflow-y: auto; position: relative; -webkit-overflow-scrolling: touch; }
+    .vol-col-header {
+      position: sticky; top: 0; z-index: 3; background: var(--bg);
+      display: grid; grid-template-columns: 44px repeat(7, minmax(0,1fr));
+      gap: 2px; height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border);
+    }
+    .vol-col-head { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+    .vol-col-label { font-size: 9px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase; color: var(--muted); }
+    .vol-col-avg   { font-family: 'Bebas Neue', sans-serif; font-size: 16px; line-height: 1; }
+    .vol-col-avg.ok    { color: var(--text); }
+    .vol-col-avg.under { color: #d9a441; }
+    .vol-col-avg.over  { color: #e05555; }
+    .vol-week-heading {
+      position: sticky; top: 44px; z-index: 2; background: var(--surface);
+      font-family: 'Bebas Neue', sans-serif; font-size: 13px; letter-spacing: 1px;
+      text-transform: uppercase; color: var(--muted);
+      padding: 6px 16px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    }
+    .vol-day-row {
+      display: grid; grid-template-columns: 44px repeat(7, minmax(0,1fr));
+      gap: 2px; align-items: center; height: 56px; padding: 0 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .vol-day-row.rest { opacity: .6; }
+    .vol-day-label { font-size: 10.5px; font-weight: 600; color: var(--muted); }
+    .vol-dot-cell { position: relative; display: flex; align-items: center; justify-content: center; height: 100%; }
+    .vol-dot { border-radius: 50%; cursor: pointer; flex-shrink: 0; }
+    .vol-gap-line { position: absolute; top: 0; left: 50%; width: 2px; background: #d9a441; transform: translateX(-50%); }
+    .vol-footnote-fixed { font-size: 11px; color: var(--muted); text-align: center; padding: 10px 16px; border-top: 1px solid var(--border); }
+    .vol-popover {
+      position: fixed; background: var(--text); color: var(--bg); font-size: 12px; font-weight: 600;
+      padding: 6px 10px; border-radius: 8px; z-index: 50; pointer-events: none; white-space: nowrap;
+    }
 
     /* ── Session-Overlay Felder ── */
     .ses-pool-item {
@@ -564,6 +583,7 @@
     .stats-ex-thumb {
       width: 80px; height: 80px; background: var(--surface); border: 1px solid var(--border);
       border-radius: 8px; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; -webkit-tap-highlight-color: transparent;
     }
     .stats-ex-thumb img { width: 100%; height: 100%; object-fit: contain; }
     .stats-ex-info { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
@@ -889,15 +909,15 @@
     }
     .wa-tb-skip { color: var(--muted); }
 
-    /* ── GIF overlay ── */
-    .wa-gif-overlay {
+    /* ── GIF-Vorschau-Overlay (app-weit) ── */
+    .gif-preview-overlay {
       position: fixed; inset: 0; background: rgba(0,0,0,.85); z-index: 70;
       display: none; align-items: center; justify-content: center; padding: 24px;
       -webkit-tap-highlight-color: transparent;
     }
-    .wa-gif-overlay.wa-open { display: flex; }
-    .wa-gif-overlay img { max-width: 100%; max-height: 100%; border-radius: var(--wr-card); }
-    .wa-gif-overlay-close {
+    .gif-preview-overlay.open { display: flex; }
+    .gif-preview-overlay img { max-width: 100%; max-height: 100%; border-radius: var(--wr-card); }
+    .gif-preview-close {
       position: absolute; top: 16px; right: 16px; width: 36px; height: 36px;
       border-radius: 50%; background: var(--surface); border: 1px solid var(--border);
       color: var(--text); font-size: 16px; display: flex; align-items: center; justify-content: center;
@@ -952,7 +972,10 @@
   <!-- Sub: Wochenansicht -->
   <div id="plan-week-sub">
     <div class="view-header">
-      <h1>Wochenplan</h1>
+      <div class="plan-header-row">
+        <h1>Wochenplan</h1>
+        <button class="btn-edit-ses" id="btn-open-volume">Volumen</button>
+      </div>
       <div class="plan-toggle-row">
         <span class="plan-toggle-label">Woche B aktivieren</span>
         <label class="toggle-switch">
@@ -960,12 +983,25 @@
           <span class="toggle-slider"></span>
         </label>
       </div>
-      <div class="plan-week-switch">
-        <button class="plan-week-btn active" data-week="A">Woche A</button>
-        <button class="plan-week-btn hidden" data-week="B">Woche B</button>
-      </div>
     </div>
     <div class="plan-body" id="plan-content"></div>
+  </div>
+
+  <!-- Sub: Volume Verteilung -->
+  <div id="plan-volume-sub" style="display:none">
+    <div class="vol-wrap">
+      <div class="view-header">
+        <div class="plan-detail-nav">
+          <button class="plan-back-btn" id="plan-volume-back">←</button>
+          <span class="plan-detail-title">Volume Verteilung</span>
+        </div>
+      </div>
+      <div class="vol-scroll" id="vol-scroll">
+        <div class="vol-col-header" id="vol-col-header"></div>
+        <div class="vol-blocks" id="vol-blocks"></div>
+      </div>
+      <div class="vol-footnote-fixed">Primär 1.0 · Sekundär 0.5 · ⚠ = unter 48h Pause</div>
+    </div>
   </div>
 
   <!-- Sub: Session-Detail -->
@@ -1093,10 +1129,10 @@
   </div>
 </div>
 
-<!-- ══ Overlay: Workout GIF ══ -->
-<div class="wa-gif-overlay" id="wa-gif-overlay">
-  <button class="wa-gif-overlay-close" id="wa-gif-overlay-close">✕</button>
-  <img id="wa-gif-overlay-img" src="" alt="">
+<!-- ══ Overlay: GIF-Vorschau (app-weit) ══ -->
+<div class="gif-preview-overlay" id="gif-preview-overlay">
+  <button class="gif-preview-close" id="gif-preview-close">✕</button>
+  <img id="gif-preview-img" src="" alt="">
 </div>
 
 <!-- ══ View 3: Stats ══ -->
@@ -1405,7 +1441,7 @@
   let editingId      = null;
   let editingEx      = null;
   let gifBase64      = null;
-  let planWeek       = 'A';
+  let sesModalWeek   = 'A';
   let appState       = { id: null, current_week: 'A', week_b_enabled: false };
   let editingSessionId = null;
   let sesSelectedIds   = [];
@@ -1433,10 +1469,33 @@
   const DAY_LABELS = { mo:'Montag', di:'Dienstag', mi:'Mittwoch', do:'Donnerstag', fr:'Freitag', sa:'Samstag', so:'Sonntag' };
   const CIRC = 2 * Math.PI * 54;
 
-  const MOVEMENT_PATTERNS = [
-    'horizontal_push','vertical_push','horizontal_pull','vertical_pull',
-    'hip_hinge','squat','lunge','carry','rotation','anti_rotation','core_flexion','isometrie','mobility'
+  const MUSCLE_TO_GROUP = {
+    pectoralis_major: 'chest',
+    latissimus_dorsi: 'back', rhomboids: 'back', trapezius_upper: 'back',
+    trapezius_middle: 'back', trapezius_lower: 'back', erector_spinae: 'back',
+    deltoid_posterior: 'back',
+    deltoid_anterior: 'shoulders', deltoid_lateral: 'shoulders',
+    triceps: 'triceps',
+    biceps: 'biceps', brachialis: 'biceps',
+    quadriceps: 'legs', hamstrings: 'legs', gluteus_maximus: 'legs',
+    gluteus_medius: 'legs', adductors: 'legs', calves: 'legs',
+    rectus_abdominis: 'core', obliques: 'core', transversus_abdominis: 'core',
+  };
+  const VOL_GROUPS = [
+    { key:'chest',     label:'Chest',     short:'Chest', target:[10,20] },
+    { key:'back',      label:'Back',      short:'Back',  target:[10,20] },
+    { key:'shoulders', label:'Shoulders', short:'Sho',   target:[10,20] },
+    { key:'triceps',   label:'Triceps',   short:'Tri',   target:[10,20] },
+    { key:'biceps',    label:'Biceps',    short:'Bi',    target:[10,20] },
+    { key:'legs',      label:'Legs',      short:'Legs',  target:[10,20] },
+    { key:'core',      label:'Core',      short:'Core',  target:[8,15]  },
   ];
+  const MODE_VAR = { kraft:'--kraft', hyper:'--hyper', vol:'--vol', flexibility:'--flex' };
+  const VOL_CYCLE = [];
+  ['A','B'].forEach(week => DAYS.forEach(day => VOL_CYCLE.push({ week, day })));
+  let volBlockHeight = 0;
+  let volInitialized = false;
+  let volPopoverEl   = null;
 
   // ── DOM refs ──────────────────────────────────────────
   const listEl      = document.getElementById('exercise-list');
@@ -1742,6 +1801,8 @@
     listEl.innerHTML = html;
     listEl.querySelectorAll('.exercise-card').forEach(c =>
       c.addEventListener('click', () => openDetailModal(exercises.find(e => e.id === c.dataset.id))));
+    listEl.querySelectorAll('.card-thumb').forEach(t =>
+      t.addEventListener('click', e => { e.stopPropagation(); openGifPreview(t.closest('.exercise-card').dataset.id); }));
   }
 
   async function openModal(ex = null) {
@@ -1807,18 +1868,6 @@
     const enabled = !!appState.week_b_enabled;
     const toggle  = document.getElementById('week-b-toggle');
     if (toggle) toggle.checked = enabled;
-    const btnB = document.querySelector('.plan-week-btn[data-week="B"]');
-    if (!btnB) return;
-    if (enabled) {
-      btnB.classList.remove('hidden');
-    } else {
-      btnB.classList.add('hidden');
-      if (planWeek === 'B') {
-        planWeek = 'A';
-        document.querySelectorAll('.plan-week-btn').forEach(b => b.classList.remove('active'));
-        document.querySelector('.plan-week-btn[data-week="A"]').classList.add('active');
-      }
-    }
   }
 
   document.getElementById('week-b-toggle')?.addEventListener('change', async function() {
@@ -1835,49 +1884,49 @@
   }
 
   function renderPlan() {
-    const ws = sessions.filter(s => s.week === planWeek);
     let html = '';
-    DAYS.forEach(day => {
-      const daySessions = ws.filter(s => s.weekday === day);
-      html += `<div class="plan-day"><div class="plan-day-header">
-        <span class="plan-day-label">${DAY_LABELS[day]}</span>
-        <button class="plan-day-add" data-day="${day}">+</button>
-      </div>`;
-      if (daySessions.length) {
-        html += daySessions.map(s => {
-          const ids    = s.exercise_ids || [];
-          const pairs  = Math.ceil(ids.length / 2);
-          const total  = ids.reduce((n, c) => n + (typeof c === 'object' ? (c.sets||3) : 3), 0);
-          const rest   = s.rest_seconds  || DUP_CFG[s.dup_mode]?.restTime || '?';
-          const work   = s.work_seconds  || DUP_CFG.vol.workTime;
-          const meta   = s.dup_mode === 'flexibility' ? ''
-            : s.dup_mode === 'hyper' ? `${pairs} Supersets · 8-12 Reps · ${rest}s Pause`
-            : s.dup_mode === 'vol'   ? `${pairs} Supersets · ${work}s AMRAP · ${rest}s Pause`
-            :                          `${total} Sets · 3-5 Reps · ${rest}s Pause`;
-          const modeLabel = s.dup_mode === 'kraft' ? 'Strength' : cap(s.dup_mode);
-          return `<div class="session-card" data-id="${s.id}">
-            <div class="session-info">
-              <div class="session-title">${s.title || modeLabel}</div>
-              <div class="session-meta">${meta}</div>
-            </div>
-            <span class="session-mode-badge mode-${s.dup_mode}">${modeLabel}</span>
-            <button type="button" class="session-dup-btn" data-id="${s.id}" title="Duplicate">⧉</button>
-            <button type="button" class="session-start-btn" data-id="${s.id}">▶</button>
-          </div>`;
-        }).join('');
-      } else {
-        html += `<div class="plan-day-empty">Keine Sessions</div>`;
-      }
-      html += `</div>`;
+    const weeks = appState.week_b_enabled ? ['A','B'] : ['A'];
+    weeks.forEach(week => {
+      html += `<div class="plan-week-heading">Woche ${week}</div>`;
+      const ws = sessions.filter(s => s.week === week);
+      DAYS.forEach(day => {
+        const daySessions = ws.filter(s => s.weekday === day);
+        html += `<div class="plan-day"><div class="plan-day-header">
+          <span class="plan-day-label">${DAY_LABELS[day]}</span>
+          <button class="plan-day-add" data-day="${day}" data-week="${week}">+</button>
+        </div>`;
+        if (daySessions.length) {
+          html += daySessions.map(s => {
+            const ids    = s.exercise_ids || [];
+            const pairs  = Math.ceil(ids.length / 2);
+            const total  = ids.reduce((n, c) => n + (typeof c === 'object' ? (c.sets||3) : 3), 0);
+            const rest   = s.rest_seconds  || DUP_CFG[s.dup_mode]?.restTime || '?';
+            const work   = s.work_seconds  || DUP_CFG.vol.workTime;
+            const meta   = s.dup_mode === 'flexibility' ? ''
+              : s.dup_mode === 'hyper' ? `${pairs} Supersets · 8-12 Reps · ${rest}s Pause`
+              : s.dup_mode === 'vol'   ? `${pairs} Supersets · ${work}s AMRAP · ${rest}s Pause`
+              :                          `${total} Sets · 3-5 Reps · ${rest}s Pause`;
+            const modeLabel = s.dup_mode === 'kraft' ? 'Strength' : cap(s.dup_mode);
+            return `<div class="session-card" data-id="${s.id}">
+              <div class="session-info">
+                <div class="session-title">${s.title || modeLabel}</div>
+                <div class="session-meta">${meta}</div>
+              </div>
+              <span class="session-mode-badge mode-${s.dup_mode}">${modeLabel}</span>
+              <button type="button" class="session-dup-btn" data-id="${s.id}" title="Duplicate">⧉</button>
+              <button type="button" class="session-start-btn" data-id="${s.id}">▶</button>
+            </div>`;
+          }).join('');
+        } else {
+          html += `<div class="plan-day-empty">Keine Sessions</div>`;
+        }
+        html += `</div>`;
+      });
     });
-
-    const allExIds = new Set(ws.filter(s=>s.dup_mode!=='flexibility').flatMap(s=>(s.exercise_ids||[]).map(c=>typeof c==='string'?c:c.exercise_id)));
-    const wex = exercises.filter(e => allExIds.has(e.id));
-    html += buildBiasHTML(wex);
 
     planContent.innerHTML = html;
     planContent.querySelectorAll('.plan-day-add').forEach(btn =>
-      btn.addEventListener('click', () => openSessionModal(null, btn.dataset.day)));
+      btn.addEventListener('click', () => openSessionModal(null, btn.dataset.day, false, btn.dataset.week)));
     planContent.querySelectorAll('.session-card').forEach(card => {
       card.addEventListener('click', () => openPlanDetail(sessions.find(s => s.id === card.dataset.id)));
       card.querySelector('.session-start-btn')?.addEventListener('click', e => {
@@ -1891,40 +1940,200 @@
     });
   }
 
-  function buildBiasHTML(wex) {
-    const counts = Object.fromEntries(MOVEMENT_PATTERNS.map(m => [m, 0]));
-    wex.forEach(e => (e.movement_patterns||[]).forEach(m => { if (m in counts) counts[m]++; }));
-    const max = Math.max(...Object.values(counts), 1);
-    const bars = MOVEMENT_PATTERNS.map(m => {
-      const c = counts[m], pct = Math.round(c/max*100);
-      const label = m.replace(/_/g,' ');
-      return `<div class="bias-row"><span class="bias-label">${label}</span><div class="bias-bar-track"><div class="bias-bar-fill${c===0?' zero':''}" style="width:${pct}%"></div></div><span class="bias-count${c>0?' nonzero':''}">${c}</span></div>`;
+  // ── Volume Verteilung ──────────────────────────────────
+  function computeVolumeData() {
+    const exMap = new Map(exercises.map(e => [e.id, e]));
+    const value = { A:{}, B:{} };
+    const modeCredit = { A:{}, B:{} };
+    DAYS.forEach(d => {
+      value.A[d] = {}; value.B[d] = {};
+      modeCredit.A[d] = {}; modeCredit.B[d] = {};
+      VOL_GROUPS.forEach(g => {
+        value.A[d][g.key] = 0; value.B[d][g.key] = 0;
+        modeCredit.A[d][g.key] = { order: [] };
+        modeCredit.B[d][g.key] = { order: [] };
+      });
+    });
+
+    sessions.forEach(ses => {
+      const week = ses.week, day = ses.weekday, mode = ses.dup_mode;
+      if (!value[week] || !value[week][day]) return;
+      (ses.exercise_ids || []).forEach(cfg => {
+        const id   = typeof cfg === 'string' ? cfg : cfg.exercise_id;
+        const sets = typeof cfg === 'object' ? (cfg.sets || 3) : 3;
+        const ex = exMap.get(id);
+        if (!ex) return;
+        const muscles = ex.muscle_groups_anatomical || [];
+        if (!muscles.length) { console.log('[Volume Verteilung] Übung ohne Muskeldaten übersprungen:', ex.name || id); return; }
+        muscles.forEach((m, i) => {
+          const group = MUSCLE_TO_GROUP[m];
+          if (!group) { console.log('[Volume Verteilung] Unbekannter Muskel übersprungen:', m); return; }
+          const credit = (i === 0 ? 1 : 0.5) * sets;
+          value[week][day][group] += credit;
+          const mc = modeCredit[week][day][group];
+          if (!(mode in mc)) { mc[mode] = 0; mc.order.push(mode); }
+          mc[mode] += credit;
+        });
+      });
+    });
+
+    return { value, modeCredit };
+  }
+
+  function dominantMode(mc) {
+    let best = null, bestCredit = -1;
+    (mc.order || []).forEach(mode => { if (mc[mode] > bestCredit) { bestCredit = mc[mode]; best = mode; } });
+    return best;
+  }
+
+  function fmtNum(v) {
+    return Math.abs(v - Math.round(v)) < 1e-9 ? String(Math.round(v)) : v.toFixed(1);
+  }
+
+  function targetClass(total, target) {
+    const [lo, hi] = target;
+    return total < lo ? 'under' : total > hi ? 'over' : 'ok';
+  }
+
+  function diameterFor(v, colMax) {
+    if (v <= 0) return 0;
+    const lo = 1.5, loD = 6, hiD = 16;
+    const hi = Math.max(colMax, lo + 0.001);
+    const t  = Math.max(0, Math.min(1, (v - lo) / (hi - lo)));
+    return loD + t * (hiD - loD);
+  }
+
+  function buildVolumeCycle() {
+    const { value, modeCredit } = computeVolumeData();
+
+    const rowHasSession = VOL_CYCLE.map(({ week, day }) =>
+      sessions.some(s => s.week === week && s.weekday === day)
+    );
+
+    const colData = VOL_GROUPS.map(g => {
+      const vals  = VOL_CYCLE.map(({ week, day }) => value[week][day][g.key]);
+      const max   = Math.max(...vals, 0);
+      const totalA = DAYS.reduce((s,d) => s + value.A[d][g.key], 0);
+      const totalB = DAYS.reduce((s,d) => s + value.B[d][g.key], 0);
+      const avg    = (totalA + totalB) / 2;
+      const gapFlags = vals.map((v,i) => v > 0 && vals[(i - 1 + vals.length) % vals.length] > 0);
+      const modes  = VOL_CYCLE.map(({ week, day }) => dominantMode(modeCredit[week][day][g.key]));
+      return { group: g, vals, max, avg, gapFlags, modes };
+    });
+
+    return { rowHasSession, colData };
+  }
+
+  function renderVolumeColHeader(colData) {
+    const cells = colData.map(({ group, avg }) => {
+      const cls = targetClass(avg, group.target);
+      return `<div class="vol-col-head">
+        <div class="vol-col-label">${group.short}</div>
+        <div class="vol-col-avg ${cls}">${fmtNum(avg)}</div>
+      </div>`;
     }).join('');
-    const hp = counts.horizontal_push, hpl = counts.horizontal_pull, vpl = counts.vertical_pull;
-    const sq = counts.squat, hi = counts.hip_hinge;
-    const pushTotal = hp + (counts.vertical_push||0);
-    const pullTotal = hpl + vpl;
-    return `<div class="bias-section"><div class="bias-title">Muskel-Bias</div>${bars}<div class="bias-balance">${balanceChip('Push/Pull',pushTotal,pullTotal)}${balanceChip('Squat/Hinge',sq,hi)}</div></div>`;
+    document.getElementById('vol-col-header').innerHTML = `<div></div>${cells}`;
   }
 
-  function balanceChip(label, a, b) {
-    const d = Math.abs(a-b), cls = d===0?'balanced':'warn', s = d===0?'✓ Ausgeglichen':`± ${d}`;
-    return `<div class="balance-chip ${cls}"><span class="balance-label">${label}</span>${s}</div>`;
+  function volDotLabel(week, day, mode, group, v) {
+    const modeLabel = mode === 'kraft' ? 'Strength' : cap(mode || '');
+    return `${week} · ${DAY_LABELS[day].slice(0,2)} · ${modeLabel} · ${group.label} ${fmtNum(v)} Sätze`;
   }
 
-  document.querySelectorAll('.plan-week-btn').forEach(btn => btn.addEventListener('click', () => {
-    document.querySelectorAll('.plan-week-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active'); planWeek = btn.dataset.week; renderPlan();
-  }));
+  function renderVolumeBlockHTML(rowHasSession, colData) {
+    let html = '';
+    ['A','B'].forEach(week => {
+      html += `<div class="vol-week-heading">Woche ${week}</div>`;
+      DAYS.forEach(day => {
+        const idx = VOL_CYCLE.findIndex(c => c.week === week && c.day === day);
+        const hasSession = rowHasSession[idx];
+        const cells = colData.map(({ group, vals, max, gapFlags, modes }) => {
+          const v = vals[idx];
+          if (v <= 0) return `<div class="vol-dot-cell"></div>`;
+          const d    = diameterFor(v, max);
+          const mode = modes[idx];
+          const bg   = mode ? `var(${MODE_VAR[mode]})` : 'var(--muted)';
+          const gapLine = gapFlags[idx] ? `<div class="vol-gap-line" style="height:28px"></div>` : '';
+          const label = volDotLabel(week, day, mode, group, v);
+          return `<div class="vol-dot-cell">${gapLine}<div class="vol-dot" style="width:${d}px;height:${d}px;background:${bg}" data-label="${label}"></div></div>`;
+        }).join('');
+        html += `<div class="vol-day-row${hasSession ? '' : ' rest'}">
+          <div class="vol-day-label">${week} · ${DAY_LABELS[day].slice(0,2)}</div>
+          ${cells}
+        </div>`;
+      });
+    });
+    return html;
+  }
+
+  function showVolPopover(dot) {
+    hideVolPopover();
+    const rect = dot.getBoundingClientRect();
+    const pop = document.createElement('div');
+    pop.className = 'vol-popover';
+    pop.textContent = dot.dataset.label;
+    document.body.appendChild(pop);
+    const pw = pop.offsetWidth, ph = pop.offsetHeight;
+    let left = rect.left + rect.width / 2 - pw / 2;
+    left = Math.max(6, Math.min(left, window.innerWidth - pw - 6));
+    pop.style.left = `${left}px`;
+    pop.style.top  = `${rect.top - ph - 8}px`;
+    volPopoverEl = pop;
+  }
+
+  function hideVolPopover() {
+    if (volPopoverEl) { volPopoverEl.remove(); volPopoverEl = null; }
+  }
+
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.vol-dot')) hideVolPopover();
+  });
+
+  function renderVolume() {
+    const { rowHasSession, colData } = buildVolumeCycle();
+    renderVolumeColHeader(colData);
+
+    const blockHTML = `<div class="vol-block">${renderVolumeBlockHTML(rowHasSession, colData)}</div>`;
+    const blocksEl  = document.getElementById('vol-blocks');
+    blocksEl.innerHTML = blockHTML.repeat(4);
+    volBlockHeight = blocksEl.querySelector('.vol-block').offsetHeight;
+
+    const scrollEl = document.getElementById('vol-scroll');
+    scrollEl.scrollTop = volBlockHeight;
+
+    if (!volInitialized) {
+      scrollEl.addEventListener('scroll', () => {
+        hideVolPopover();
+        const st = scrollEl.scrollTop;
+        if (st < volBlockHeight * 0.5) scrollEl.scrollTop = st + volBlockHeight;
+        else if (st > volBlockHeight * 2.5) scrollEl.scrollTop = st - volBlockHeight;
+      });
+      blocksEl.addEventListener('click', e => {
+        const dot = e.target.closest('.vol-dot');
+        if (dot) showVolPopover(dot);
+      });
+      volInitialized = true;
+    }
+  }
+
+  document.getElementById('btn-open-volume')?.addEventListener('click', () => {
+    showPlanSub('volume');
+    renderVolume();
+  });
+  document.getElementById('plan-volume-back')?.addEventListener('click', () => {
+    hideVolPopover();
+    showPlanSub('week');
+  });
 
   // ── Plan: Sub-view control ────────────────────────────
   function showPlanSub(sub) {
     document.getElementById('plan-week-sub').style.display    = sub === 'week'   ? '' : 'none';
+    document.getElementById('plan-volume-sub').style.display  = sub === 'volume' ? '' : 'none';
     document.getElementById('plan-detail-sub').style.display  = sub === 'detail' ? '' : 'none';
     document.getElementById('plan-start-sub').style.display   = sub === 'start'  ? '' : 'none';
     document.getElementById('plan-timer-sub').style.display   = sub === 'timer'  ? '' : 'none';
     document.getElementById('wa-screen').classList.toggle('hidden', sub !== 'workout');
-    document.getElementById('plan-view').style.overflowY      = (sub === 'timer' || sub === 'workout') ? 'hidden' : 'auto';
+    document.getElementById('plan-view').style.overflowY      = (sub === 'timer' || sub === 'workout' || sub === 'volume') ? 'hidden' : 'auto';
   }
 
   function showTimerState(which) {
@@ -2109,7 +2318,8 @@
     openSessionModal(ses, ses.weekday, true);
   }
 
-  function openSessionModal(ses = null, preDay = null, duplicate = false) {
+  function openSessionModal(ses = null, preDay = null, duplicate = false, preWeek = null) {
+    sesModalWeek = ses?.week || preWeek || 'A';
     editingSessionId = duplicate ? null : (ses?.id ?? null);
     document.getElementById('ses-btn-delete').style.display = (ses && !duplicate) ? 'block' : 'none';
     document.querySelectorAll('.t-toggle[data-weekday]').forEach(b => b.classList.remove('on'));
@@ -2437,7 +2647,7 @@
     if (!weekday || !mode) { toast('Select a day and mode'); return; }
     const isFlex = mode === 'flexibility';
     const payload = {
-      week:         planWeek,
+      week:         sesModalWeek,
       weekday,
       dup_mode:     mode,
       exercise_ids: sesSelectedIds.map(s => ({ exercise_id: s.exercise_id, sets: s.sets || 3, ...(s.superset_group ? { superset_group: s.superset_group } : {}) })),
@@ -2450,8 +2660,8 @@
       const ex = exercises.find(e => e.id === item.exercise_id);
       if (ex) {
         const wa = ex.week_assignment || [];
-        if (!wa.includes(planWeek)) {
-          const updated = [...wa, planWeek];
+        if (!wa.includes(sesModalWeek)) {
+          const updated = [...wa, sesModalWeek];
           await db.from('exercises').update({ week_assignment: updated }).eq('id', item.exercise_id);
           ex.week_assignment = updated;
         }
@@ -3178,7 +3388,7 @@
   let waSetState      = {};          // waSetState[exId][setNum] = { weight, reps, rir, equipment, completed, rowId, weightAuto, repsAuto, eqAuto }
   let waPrevByExercise = new Map();  // exercise_id -> { weight, reps, equipment, date, byEquipment: { eq: {weight,reps,equipment,date} } }
   let waTargetWeight  = {};          // waTargetWeight[exId] = number|null — kraft-only, drives the warmup note, independent of the per-set Kg inputs
-  let waGifCache      = new Map();
+  let gifPreviewCache = new Map();
   let waStartTime     = 0;
   let waTimerRAF      = null;
   let waRest          = null;        // { phase:'work'|'rest', exId, setNum, endsAt, duration }
@@ -3280,7 +3490,6 @@
     if (!waBlocks.length) { toast('Keine Übungen ausgewählt'); return; }
 
     waSetState = {};
-    waGifCache = new Map();
     waRest     = null;
     if (waTimerRAF) cancelAnimationFrame(waTimerRAF);
     if (waRestRAF)  cancelAnimationFrame(waRestRAF);
@@ -3637,7 +3846,7 @@
     });
 
     root.querySelectorAll('[data-thumb]').forEach(el => {
-      el.addEventListener('click', () => waOpenGif(el.dataset.thumb));
+      el.addEventListener('click', () => openGifPreview(el.dataset.thumb));
     });
 
     root.querySelectorAll('[data-add]').forEach(el => {
@@ -3836,25 +4045,25 @@
   document.getElementById('wa-tb-skip').addEventListener('click',  () => { if (waRest) waOnRestEnd(); });
 
   // ── GIF overlay (lazy fetch, session-cached) ────────────
-  async function waOpenGif(exId) {
-    const overlay = document.getElementById('wa-gif-overlay');
-    const img     = document.getElementById('wa-gif-overlay-img');
-    overlay.classList.add('wa-open');
+  async function openGifPreview(exId) {
+    const overlay = document.getElementById('gif-preview-overlay');
+    const img     = document.getElementById('gif-preview-img');
+    overlay.classList.add('open');
     img.src = '';
-    let gif = waGifCache.get(exId);
+    let gif = gifPreviewCache.get(exId);
     if (!gif) {
       const { data } = await db.from('exercises').select('gif_base64').eq('id', exId).single();
       gif = data?.gif_base64 || null;
-      if (gif) waGifCache.set(exId, gif);
+      if (gif) gifPreviewCache.set(exId, gif);
     }
     if (gif) img.src = gif;
-    else { overlay.classList.remove('wa-open'); toast('Kein GIF vorhanden'); }
+    else { overlay.classList.remove('open'); toast('Kein GIF vorhanden'); }
   }
-  document.getElementById('wa-gif-overlay-close').addEventListener('click', () => {
-    document.getElementById('wa-gif-overlay').classList.remove('wa-open');
+  document.getElementById('gif-preview-close').addEventListener('click', () => {
+    document.getElementById('gif-preview-overlay').classList.remove('open');
   });
-  document.getElementById('wa-gif-overlay').addEventListener('click', e => {
-    if (e.target.id === 'wa-gif-overlay') e.currentTarget.classList.remove('wa-open');
+  document.getElementById('gif-preview-overlay').addEventListener('click', e => {
+    if (e.target.id === 'gif-preview-overlay') e.currentTarget.classList.remove('open');
   });
 
   // ── Persistence (survive backgrounding) ─────────────────
@@ -4113,6 +4322,8 @@
     }).join('');
     el.querySelectorAll('.stats-ex-row').forEach(row =>
       row.addEventListener('click', () => openStatsDetail(exercises.find(e => e.id === row.dataset.id))));
+    el.querySelectorAll('.stats-ex-thumb').forEach(t =>
+      t.addEventListener('click', e => { e.stopPropagation(); openGifPreview(t.closest('.stats-ex-row').dataset.id); }));
   }
 
   // ── Layer 3: exercise detail ────────────────────────────
