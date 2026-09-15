@@ -217,29 +217,15 @@
     .satz-progress { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 1px; color: var(--kraft); }
 
     /* ── Wochenplan ── */
-    .plan-week-heading {
-      font-family: 'Bebas Neue', sans-serif; font-size: 14px; letter-spacing: 1px;
-      text-transform: uppercase; color: var(--muted);
-      padding: 10px 0 6px; margin-top: 4px; border-bottom: 1px solid var(--border);
+    .plan-week-switch { display: flex; gap: 8px; padding-bottom: 12px; }
+    .plan-week-btn {
+      flex: 1; padding: 8px; border-radius: 10px; border: 1px solid var(--border);
+      background: transparent; color: var(--muted);
+      font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 1px;
+      cursor: pointer; text-align: center; transition: all .15s; -webkit-tap-highlight-color: transparent;
     }
-    .plan-toggle-row {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 0 0 14px; border-bottom: 1px solid var(--border); margin-bottom: 4px;
-    }
-    .plan-toggle-label { font-size: 13px; color: var(--muted); }
-    .toggle-switch { position: relative; width: 48px; height: 26px; flex-shrink: 0; }
-    .toggle-switch input { opacity: 0; width: 0; height: 0; }
-    .toggle-slider {
-      position: absolute; inset: 0; background: var(--border);
-      border-radius: 13px; cursor: pointer; transition: background .2s;
-    }
-    .toggle-slider::before {
-      content: ''; position: absolute; left: 4px; top: 4px;
-      width: 18px; height: 18px; background: var(--muted);
-      border-radius: 50%; transition: transform .2s, background .2s;
-    }
-    .toggle-switch input:checked + .toggle-slider { background: var(--text); }
-    .toggle-switch input:checked + .toggle-slider::before { transform: translateX(22px); background: var(--bg); }
+    .plan-week-btn[data-week="A"].active { background: rgba(0,0,0,.05); border-color: var(--kraft); color: var(--kraft); }
+    .plan-week-btn[data-week="B"].active { background: rgba(0,0,0,.05);  border-color: var(--hyper); color: var(--hyper); }
     .plan-body { padding: 16px 16px 120px; }
 
     /* ── Sessions im Plan ── */
@@ -976,12 +962,9 @@
         <h1>Wochenplan</h1>
         <button class="btn-edit-ses" id="btn-open-volume">Volumen</button>
       </div>
-      <div class="plan-toggle-row">
-        <span class="plan-toggle-label">Woche B aktivieren</span>
-        <label class="toggle-switch">
-          <input type="checkbox" id="week-b-toggle">
-          <span class="toggle-slider"></span>
-        </label>
+      <div class="plan-week-switch">
+        <button class="plan-week-btn active" data-week="A">Woche A</button>
+        <button class="plan-week-btn" data-week="B">Woche B</button>
       </div>
     </div>
     <div class="plan-body" id="plan-content"></div>
@@ -1441,8 +1424,8 @@
   let editingId      = null;
   let editingEx      = null;
   let gifBase64      = null;
-  let sesModalWeek   = 'A';
-  let appState       = { id: null, current_week: 'A', week_b_enabled: false };
+  let planWeek       = 'A';
+  let appState       = { id: null, current_week: 'A' };
   let editingSessionId = null;
   let sesSelectedIds   = [];
   let sesSelectIdxs    = new Set();
@@ -1520,7 +1503,7 @@
       document.getElementById(id)?.classList.remove('hidden');
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      if (id === 'plan-view')  { loadAppState().then(() => { applyWeekBState(); loadSessions().then(() => { showPlanSub('week'); renderPlan(); }); }); }
+      if (id === 'plan-view')  { loadAppState().then(() => { loadSessions().then(() => { showPlanSub('week'); renderPlan(); }); }); }
       if (id === 'stats-view') { loadStatsData().then(() => { showStatsSub('overview'); renderStatsGroups(); }); }
     });
   });
@@ -1864,69 +1847,51 @@
     if (data) appState = data;
   }
 
-  function applyWeekBState() {
-    const enabled = !!appState.week_b_enabled;
-    const toggle  = document.getElementById('week-b-toggle');
-    if (toggle) toggle.checked = enabled;
-  }
-
-  document.getElementById('week-b-toggle')?.addEventListener('change', async function() {
-    const enabled = this.checked;
-    appState.week_b_enabled = enabled;
-    if (appState.id) await db.from('app_state').update({ week_b_enabled: enabled }).eq('id', appState.id);
-    applyWeekBState();
-    renderPlan();
-  });
-
   async function loadSessions() {
     const { data } = await db.from('sessions').select('*').order('created_at');
     sessions = data || [];
   }
 
   function renderPlan() {
+    const ws = sessions.filter(s => s.week === planWeek);
     let html = '';
-    const weeks = appState.week_b_enabled ? ['A','B'] : ['A'];
-    weeks.forEach(week => {
-      html += `<div class="plan-week-heading">Woche ${week}</div>`;
-      const ws = sessions.filter(s => s.week === week);
-      DAYS.forEach(day => {
-        const daySessions = ws.filter(s => s.weekday === day);
-        html += `<div class="plan-day"><div class="plan-day-header">
-          <span class="plan-day-label">${DAY_LABELS[day]}</span>
-          <button class="plan-day-add" data-day="${day}" data-week="${week}">+</button>
-        </div>`;
-        if (daySessions.length) {
-          html += daySessions.map(s => {
-            const ids    = s.exercise_ids || [];
-            const pairs  = Math.ceil(ids.length / 2);
-            const total  = ids.reduce((n, c) => n + (typeof c === 'object' ? (c.sets||3) : 3), 0);
-            const rest   = s.rest_seconds  || DUP_CFG[s.dup_mode]?.restTime || '?';
-            const work   = s.work_seconds  || DUP_CFG.vol.workTime;
-            const meta   = s.dup_mode === 'flexibility' ? ''
-              : s.dup_mode === 'hyper' ? `${pairs} Supersets · 8-12 Reps · ${rest}s Pause`
-              : s.dup_mode === 'vol'   ? `${pairs} Supersets · ${work}s AMRAP · ${rest}s Pause`
-              :                          `${total} Sets · 3-5 Reps · ${rest}s Pause`;
-            const modeLabel = s.dup_mode === 'kraft' ? 'Strength' : cap(s.dup_mode);
-            return `<div class="session-card" data-id="${s.id}">
-              <div class="session-info">
-                <div class="session-title">${s.title || modeLabel}</div>
-                <div class="session-meta">${meta}</div>
-              </div>
-              <span class="session-mode-badge mode-${s.dup_mode}">${modeLabel}</span>
-              <button type="button" class="session-dup-btn" data-id="${s.id}" title="Duplicate">⧉</button>
-              <button type="button" class="session-start-btn" data-id="${s.id}">▶</button>
-            </div>`;
-          }).join('');
-        } else {
-          html += `<div class="plan-day-empty">Keine Sessions</div>`;
-        }
-        html += `</div>`;
-      });
+    DAYS.forEach(day => {
+      const daySessions = ws.filter(s => s.weekday === day);
+      html += `<div class="plan-day"><div class="plan-day-header">
+        <span class="plan-day-label">${DAY_LABELS[day]}</span>
+        <button class="plan-day-add" data-day="${day}">+</button>
+      </div>`;
+      if (daySessions.length) {
+        html += daySessions.map(s => {
+          const ids    = s.exercise_ids || [];
+          const pairs  = Math.ceil(ids.length / 2);
+          const total  = ids.reduce((n, c) => n + (typeof c === 'object' ? (c.sets||3) : 3), 0);
+          const rest   = s.rest_seconds  || DUP_CFG[s.dup_mode]?.restTime || '?';
+          const work   = s.work_seconds  || DUP_CFG.vol.workTime;
+          const meta   = s.dup_mode === 'flexibility' ? ''
+            : s.dup_mode === 'hyper' ? `${pairs} Supersets · 8-12 Reps · ${rest}s Pause`
+            : s.dup_mode === 'vol'   ? `${pairs} Supersets · ${work}s AMRAP · ${rest}s Pause`
+            :                          `${total} Sets · 3-5 Reps · ${rest}s Pause`;
+          const modeLabel = s.dup_mode === 'kraft' ? 'Strength' : cap(s.dup_mode);
+          return `<div class="session-card" data-id="${s.id}">
+            <div class="session-info">
+              <div class="session-title">${s.title || modeLabel}</div>
+              <div class="session-meta">${meta}</div>
+            </div>
+            <span class="session-mode-badge mode-${s.dup_mode}">${modeLabel}</span>
+            <button type="button" class="session-dup-btn" data-id="${s.id}" title="Duplicate">⧉</button>
+            <button type="button" class="session-start-btn" data-id="${s.id}">▶</button>
+          </div>`;
+        }).join('');
+      } else {
+        html += `<div class="plan-day-empty">Keine Sessions</div>`;
+      }
+      html += `</div>`;
     });
 
     planContent.innerHTML = html;
     planContent.querySelectorAll('.plan-day-add').forEach(btn =>
-      btn.addEventListener('click', () => openSessionModal(null, btn.dataset.day, false, btn.dataset.week)));
+      btn.addEventListener('click', () => openSessionModal(null, btn.dataset.day)));
     planContent.querySelectorAll('.session-card').forEach(card => {
       card.addEventListener('click', () => openPlanDetail(sessions.find(s => s.id === card.dataset.id)));
       card.querySelector('.session-start-btn')?.addEventListener('click', e => {
@@ -1939,6 +1904,11 @@
       });
     });
   }
+
+  document.querySelectorAll('.plan-week-btn').forEach(btn => btn.addEventListener('click', () => {
+    document.querySelectorAll('.plan-week-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active'); planWeek = btn.dataset.week; renderPlan();
+  }));
 
   // ── Volume Verteilung ──────────────────────────────────
   function computeVolumeData() {
@@ -2318,8 +2288,7 @@
     openSessionModal(ses, ses.weekday, true);
   }
 
-  function openSessionModal(ses = null, preDay = null, duplicate = false, preWeek = null) {
-    sesModalWeek = ses?.week || preWeek || 'A';
+  function openSessionModal(ses = null, preDay = null, duplicate = false) {
     editingSessionId = duplicate ? null : (ses?.id ?? null);
     document.getElementById('ses-btn-delete').style.display = (ses && !duplicate) ? 'block' : 'none';
     document.querySelectorAll('.t-toggle[data-weekday]').forEach(b => b.classList.remove('on'));
@@ -2647,7 +2616,7 @@
     if (!weekday || !mode) { toast('Select a day and mode'); return; }
     const isFlex = mode === 'flexibility';
     const payload = {
-      week:         sesModalWeek,
+      week:         planWeek,
       weekday,
       dup_mode:     mode,
       exercise_ids: sesSelectedIds.map(s => ({ exercise_id: s.exercise_id, sets: s.sets || 3, ...(s.superset_group ? { superset_group: s.superset_group } : {}) })),
@@ -2660,8 +2629,8 @@
       const ex = exercises.find(e => e.id === item.exercise_id);
       if (ex) {
         const wa = ex.week_assignment || [];
-        if (!wa.includes(sesModalWeek)) {
-          const updated = [...wa, sesModalWeek];
+        if (!wa.includes(planWeek)) {
+          const updated = [...wa, planWeek];
           await db.from('exercises').update({ week_assignment: updated }).eq('id', item.exercise_id);
           ex.week_assignment = updated;
         }
@@ -2910,8 +2879,7 @@
     const ses = planDetailSes;
     if (!ses) return;
     await loadAppState();
-    const rawWeek = appState.current_week || 'A';
-    tWeek    = (!appState.week_b_enabled && rawWeek === 'B') ? 'A' : rawWeek;
+    tWeek    = appState.current_week || 'A';
     tSession = ses;
     tMode    = ses.dup_mode;
     getAudioCtx().resume();
@@ -3473,8 +3441,7 @@
   async function waLaunch(ses) {
     if (!ses) return;
     await loadAppState();
-    const rawWeek = appState.current_week || 'A';
-    waWeek    = (!appState.week_b_enabled && rawWeek === 'B') ? 'A' : rawWeek;
+    waWeek    = appState.current_week || 'A';
     waSession = ses;
     waMode    = ses.dup_mode;
     getAudioCtx().resume();
@@ -4611,7 +4578,7 @@
     if (appBooted) return;
     appBooted = true;
     load();
-    loadAppState().then(() => { applyWeekBState(); loadSessions().then(() => { showPlanSub('week'); renderPlan(); }); });
+    loadAppState().then(() => { loadSessions().then(() => { showPlanSub('week'); renderPlan(); }); });
   }
 
   function showLoginScreen() { document.getElementById('login-screen').classList.remove('hidden'); }
